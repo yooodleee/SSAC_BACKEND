@@ -23,6 +23,24 @@ Java 17, Spring Boot 4.x, Spring Security, JPA(MySQL) 스택으로 구성된다.
 
 → 상세 내용: `docs/decisions/002-agent-centric-architecture.md`
 
+### 원칙 #2: 환경 중심 설계 (ADR 003)
+
+> **긴 프롬프트가 아닌 구조화된 환경을 기반으로 동작해야 한다.**
+> 이 파일(AGENTS.md)은 진입점 인덱스일 뿐, 단일 지시 파일이 아니다.
+
+규칙 배치 우선순위:
+
+```
+1순위: 도구로 강제   →  ArchUnit, Checkstyle, CI 빌드 실패
+2순위: 구조로 강제   →  패키지 분리, 설정 파일
+3순위: 문서로 안내   →  docs/ 하위 각 파일
+4순위 (지양): 지시   →  이 파일(AGENTS.md) 텍스트 나열
+```
+
+> 새 규칙을 여기에 직접 쓰기 전에 먼저 1~3순위로 표현할 수 없는지 검토하라.
+
+→ 상세 내용: `docs/decisions/003-environment-centric-design.md`
+
 ---
 
 ## 코드 작성 전 반드시 읽어야 할 파일
