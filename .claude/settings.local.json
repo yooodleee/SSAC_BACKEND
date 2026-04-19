@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(build.gradle)",
+      "Bash(config/SwaggerConfig.java)",
+      "Bash(config/SecurityConfig.java)",
+      "Bash(application-test.properties)",
+      "Bash(.github/workflows/swagger-contract.yml)",
+      "Bash(python3:*)"
     ]
   }
 }

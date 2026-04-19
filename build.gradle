@@ -23,9 +23,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    // OpenAPI(Swagger) 계약 문서 자동 생성 (docs/decisions/004-swagger-contract.md 참고)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.mysql:mysql-connector-j'
+    // CI 환경 및 test 프로파일에서 사용하는 인메모리 DB
+    runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'

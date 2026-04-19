@@ -1,0 +1,220 @@
+name: Swagger Contract 추출 · 배포 · 알림
+
+# master 브랜치에 PR이 머지될 때마다 실행
+on:
+  push:
+    branches: [master]
+  # 수동 실행 (초기 베이스라인 생성 등)
+  workflow_dispatch:
+
+jobs:
+  swagger-contract:
+    runs-on: ubuntu-latest
+    # docs/api/swagger.json 갱신 커밋을 위해 write 권한 필요
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 이전 커밋의 swagger.json과 비교하려면 전체 히스토리 불필요,
+          # 하지만 git push를 위해 최소 1 depth 확보
+          fetch-depth: 1
+
+      - name: Java 17 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Gradle 캐시
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      # ──────────────────────────────────────────────────────────────────────
+      # ① 백엔드 서버 기동 (테스트 프로파일 — H2 인메모리 DB)
+      # ──────────────────────────────────────────────────────────────────────
+      - name: 빌드 (테스트 제외)
+        run: ./gradlew build -x test --no-daemon
+
+      - name: 서버 기동 (테스트 프로파일)
+        run: |
+          ./gradlew bootRun \
+            --args='--spring.profiles.active=test --server.port=8080' \
+            --no-daemon &
+          echo "BOOTRUN_PID=$!" >> "$GITHUB_ENV"
+
+      - name: 서버 준비 대기 (최대 60초)
+        run: |
+          for i in $(seq 1 30); do
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" \
+              http://localhost:8080/api-docs/swagger.json || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ 서버 준비 완료 (${i}번째 시도)"
+              exit 0
+            fi
+            echo "  대기 중... HTTP $STATUS (${i}/30)"
+            sleep 2
+          done
+          echo "❌ 서버 기동 시간 초과"
+          exit 1
+
+      # ──────────────────────────────────────────────────────────────────────
+      # ② swagger.json 추출 → /tmp/swagger-new.json
+      # ──────────────────────────────────────────────────────────────────────
+      - name: swagger.json 추출
+        run: |
+          mkdir -p docs/api
+          curl -sf http://localhost:8080/api-docs/swagger.json \
+            | python3 -m json.tool --indent 2 \
+            > /tmp/swagger-new.json
+          echo "✅ swagger.json 추출 완료 ($(wc -l < /tmp/swagger-new.json)줄)"
+
+      - name: 서버 종료
+        if: always()
+        run: |
+          kill "$BOOTRUN_PID" 2>/dev/null || true
+          # bootRun이 포크한 JVM 프로세스까지 정리
+          pkill -f 'ssac-backend' 2>/dev/null || true
+
+      # ──────────────────────────────────────────────────────────────────────
+      # ③ 이전 버전과 diff 비교 — paths/components 키 기준
+      #    변경 없으면 이후 단계 전부 건너뜀
+      # ──────────────────────────────────────────────────────────────────────
+      - name: API 계약 diff 비교
+        id: diff-check
+        run: |
+          EXTRACT_CONTRACT='
+          import json, sys
+          d = json.load(sys.stdin)
+          print(json.dumps(
+            {k: d.get(k, {}) for k in ["paths", "components"]},
+            sort_keys=True, indent=2
+          ))
+          '
+
+          if [ ! -f docs/api/swagger.json ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "is_first=true"  >> "$GITHUB_OUTPUT"
+            echo "diff_summary=최초 swagger.json 생성" >> "$GITHUB_OUTPUT"
+            echo "📋 베이스라인 없음 — 최초 생성으로 처리"
+            exit 0
+          fi
+
+          python3 -c "$EXTRACT_CONTRACT" < docs/api/swagger.json   > /tmp/contract-old.json
+          python3 -c "$EXTRACT_CONTRACT" < /tmp/swagger-new.json   > /tmp/contract-new.json
+
+          if diff -q /tmp/contract-old.json /tmp/contract-new.json > /dev/null 2>&1; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "✅ API 계약 변경 없음 — 이후 단계 건너뜀"
+          else
+            echo "changed=true"  >> "$GITHUB_OUTPUT"
+            echo "is_first=false" >> "$GITHUB_OUTPUT"
+
+            # 엔드포인트 경로 레벨의 diff 요약 생성
+            DIFF_TEXT=$(diff \
+              <(python3 -c "import json; d=json.load(open('/tmp/contract-old.json')); [print(k) for k in d.get('paths',{}).keys()]") \
+              <(python3 -c "import json; d=json.load(open('/tmp/contract-new.json')); [print(k) for k in d.get('paths',{}).keys()]") \
+              || true)
+
+            # GitHub Output에 멀티라인 저장
+            {
+              echo "diff_summary<<DIFF_EOF"
+              echo "$DIFF_TEXT"
+              echo "DIFF_EOF"
+            } >> "$GITHUB_OUTPUT"
+
+            echo "⚠️ API 계약 변경 감지"
+            echo "$DIFF_TEXT"
+          fi
+
+      # ──────────────────────────────────────────────────────────────────────
+      # ④-a  docs/api/swagger.json 갱신 커밋 (변경 시)
+      # ──────────────────────────────────────────────────────────────────────
+      - name: swagger.json 갱신 커밋
+        if: steps.diff-check.outputs.changed == 'true'
+        run: |
+          cp /tmp/swagger-new.json docs/api/swagger.json
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/api/swagger.json
+          git commit -m "docs: swagger.json 자동 갱신 [skip ci]
+
+          CI 워크플로우(swagger-contract.yml)에 의해 자동 생성.
+          Run: ${{ github.run_id }}"
+          git push
+
+      # ──────────────────────────────────────────────────────────────────────
+      # ④-b  S3 배포 (변경 시, AWS 시크릿이 설정된 경우만 실행)
+      # ──────────────────────────────────────────────────────────────────────
+      - name: S3 배포
+        if: steps.diff-check.outputs.changed == 'true'
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+          S3_BUCKET:             ${{ secrets.S3_SWAGGER_BUCKET }}
+        run: |
+          if [ -z "$S3_BUCKET" ]; then
+            echo "⏭️  S3_SWAGGER_BUCKET 미설정 — S3 배포 건너뜀 (docs/api/swagger.json만 갱신됨)"
+            exit 0
+          fi
+          aws s3 cp docs/api/swagger.json \
+            "s3://${S3_BUCKET}/api-docs/swagger.json" \
+            --content-type "application/json" \
+            --cache-control "no-cache, no-store, must-revalidate"
+          echo "✅ S3 배포 완료: s3://${S3_BUCKET}/api-docs/swagger.json"
+
+      # ──────────────────────────────────────────────────────────────────────
+      # ⑤  Slack 알림 (변경 시)
+      #    SLACK_WEBHOOK_URL 시크릿: GitHub Repository Settings > Secrets에 등록
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Slack 알림 — API 계약 변경
+        if: steps.diff-check.outputs.changed == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          DIFF_SUMMARY:      ${{ steps.diff-check.outputs.diff_summary }}
+          GITHUB_SHA:        ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID:     ${{ github.run_id }}
+        run: |
+          python3 - <<'PYEOF'
+          import urllib.request, json, os
+
+          webhook_url = os.environ.get("SLACK_WEBHOOK_URL", "")
+          if not webhook_url:
+              print("⏭️  SLACK_WEBHOOK_URL 미설정 — Slack 알림 건너뜀")
+              exit(0)
+
+          commit  = os.environ.get("GITHUB_SHA", "unknown")[:7]
+          repo    = os.environ.get("GITHUB_REPOSITORY", "")
+          run_id  = os.environ.get("GITHUB_RUN_ID", "")
+          diff    = os.environ.get("DIFF_SUMMARY", "(변경 감지됨 — 상세는 로그 참고)")
+
+          actions_url = f"https://github.com/{repo}/actions/runs/{run_id}"
+
+          payload = {
+              "text": (
+                  f"⚠️ *API 계약이 변경되었습니다.*\n\n"
+                  f"프론트엔드 팀은 `sync:api`를 실행하세요.\n\n"
+                  f"• 커밋: `{commit}` (<{actions_url}|Actions 로그>)\n"
+                  f"• 변경된 엔드포인트 경로:\n"
+                  f"```\n{diff[:1000]}\n```\n"
+                  f"• 최신 계약: `docs/api/swagger.json` (최신 커밋 참고)"
+              )
+          }
+
+          data = json.dumps(payload).encode("utf-8")
+          req  = urllib.request.Request(
+              webhook_url,
+              data=data,
+              headers={"Content-Type": "application/json; charset=utf-8"}
+          )
+          urllib.request.urlopen(req)
+          print("✅ Slack 알림 전송 완료")
+          PYEOF

@@ -1,0 +1,10 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SSAC Backend API",
+    "description": "CI 워크플로우(swagger-contract.yml)가 자동 갱신하는 파일입니다.\n직접 수정하지 마세요. 변경이 필요하면 컨트롤러 코드를 수정하세요.",
+    "version": "v1"
+  },
+  "paths": {},
+  "components": {}
+}
