@@ -7,7 +7,14 @@
       "Bash(config/SecurityConfig.java)",
       "Bash(application-test.properties)",
       "Bash(.github/workflows/swagger-contract.yml)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(java -version)",
+      "Bash(./gradlew build:*)",
+      "Bash(SPRING_PROFILES_ACTIVE=test ./gradlew test:*)",
+      "Bash(xargs cat:*)",
+      "Bash(mysql --version)",
+      "Bash(application-local.properties)",
+      "Bash(.gitignore)"
     ]
   }
 }
