@@ -1,10 +1,36 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
     "title": "SSAC Backend API",
-    "description": "CI 워크플로우(swagger-contract.yml)가 자동 갱신하는 파일입니다.\n직접 수정하지 마세요. 변경이 필요하면 컨트롤러 코드를 수정하세요.",
+    "description": "SSAC \uc11c\ube44\uc2a4 \ubc31\uc5d4\ub4dc REST API \uba85\uc138\uc11c.\n\n## \uc5d0\uc774\uc804\ud2b8 \uc0ac\uc6a9 \uc9c0\uce68\n\n\uc774 \ubb38\uc11c\ub294 \ud504\ub860\ud2b8\uc5d4\ub4dc \uc5d0\uc774\uc804\ud2b8\uac00 \uc18c\ube44\ud558\ub294 **\ub2e8\uc77c \uacc4\uc57d \uc6d0\ubcf8**\uc774\ub2e4.\n\n### \uc751\ub2f5 \uad6c\uc870\n\ubaa8\ub4e0 \uc751\ub2f5\uc740 `ApiResponse<T>` \ub798\ud37c\ub97c \ub530\ub978\ub2e4.\n```json\n{ \"success\": true,  \"data\": { ... }, \"message\": null }\n{ \"success\": false, \"data\": null,    \"message\": \"\ud55c\uad6d\uc5b4 \uc624\ub958 \uba54\uc2dc\uc9c0\" }\n```\n\n### \uc778\uc99d\n\ub85c\uadf8\uc778 API\ub85c JWT \ud1a0\ud070\uc744 \ubc1c\uae09\ubc1b\uc740 \ud6c4,\n\uc6b0\uce21 \uc0c1\ub2e8 **Authorize** \ubc84\ud2bc\uc5d0 `Bearer <token>` \ud615\uc2dd\uc73c\ub85c \uc785\ub825.\n\n### \uc5d0\ub7ec \ucf54\ub4dc \ud574\uc11d\n| \ucf54\ub4dc | \uc758\ubbf8 |\n|------|------|\n| 400  | \uc694\uccad \ud30c\ub77c\ubbf8\ud130/\ubc14\ub514 \uac80\uc99d \uc2e4\ud328 |\n| 401  | \uc778\uc99d \ud1a0\ud070 \uc5c6\uc74c \ub610\ub294 \ub9cc\ub8cc |\n| 403  | \uad8c\ud55c \uc5c6\uc74c (\uc758\ub3c4\uc801\uc73c\ub85c 404 \ub300\uc2e0 403\uc744 \ubc18\ud658\ud558\ub294 \ucf00\uc774\uc2a4 \uc874\uc7ac) |\n| 404  | \ub9ac\uc18c\uc2a4 \uc5c6\uc74c |\n| 409  | \ucda9\ub3cc (\uc911\ubcf5 \ub370\uc774\ud130 \ub4f1) |\n| 410  | \ub9ac\uc18c\uc2a4 \uc601\uad6c \uc0ad\uc81c\ub428 (\ud0c8\ud1f4 \uacc4\uc815 \ub4f1) |\n| 500  | \uc11c\ubc84 \ub0b4\ubd80 \uc624\ub958 |\n\nBreaking Change \ubc1c\uc0dd \uc2dc: Slack #api-contract \ucc44\ub110 \uacf5\uc9c0 \ud655\uc778.\n",
+    "contact": {
+      "name": "SSAC Backend Team",
+      "email": "ssac-backend@ssac.com"
+    },
     "version": "v1"
   },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "paths": {},
-  "components": {}
+  "components": {
+    "schemas": {},
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "\ub85c\uadf8\uc778 \ud6c4 \ubc1c\uae09\ubc1b\uc740 JWT \ud1a0\ud070. \ud615\uc2dd: Bearer <token>",
+        "name": "bearerAuth",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
 }
