@@ -15,7 +15,9 @@
       "Bash(mysql --version)",
       "Bash(application-local.properties)",
       "Bash(.gitignore)",
-      "Bash(./gradlew test:*)"
+      "Bash(./gradlew test:*)",
+      "Bash(git filter-repo:*)",
+      "Bash(grep -r \"hooks.slack.com\" scripts/ .env*)"
     ]
   }
 }
