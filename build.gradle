@@ -9,6 +9,15 @@ group = 'com.ssac'
 version = '0.0.1-SNAPSHOT'
 description = 'ssac-backend'
 
+// ── 프로젝트 전반 UTF-8 강제 ────────────────────────────────────────────────
+// 컴파일러, Javadoc, Gradle 데몬이 모두 UTF-8 소스를 올바르게 처리하도록 한다.
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
@@ -48,6 +57,18 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // 테스트 JVM도 UTF-8로 실행
+    jvmArgs '-Dfile.encoding=UTF-8'
+}
+
+// ── bootRun 시 JVM 인코딩 UTF-8 고정 ─────────────────────────────────────────
+// IDE 또는 CLI에서 ./gradlew bootRun 실행 시 한글 로그/출력이 깨지지 않도록 한다.
+tasks.named('bootRun') {
+    jvmArgs = [
+        '-Dfile.encoding=UTF-8',
+        '-Dstdout.encoding=UTF-8',
+        '-Dstderr.encoding=UTF-8'
+    ]
 }
 
 checkstyle {

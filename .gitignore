@@ -38,3 +38,9 @@ out/
 
 ### Local environment (비밀 정보 포함 — 절대 커밋 금지) ###
 src/main/resources/application-local.properties
+
+### 환경 변수 / 시크릿 (절대 커밋 금지) ###
+.env
+.env.local
+.env.*.local
+*.bak
