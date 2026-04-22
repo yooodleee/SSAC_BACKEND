@@ -29,7 +29,9 @@
       "Bash(SPRING_PROFILES_ACTIVE=local ./gradlew bootRun)",
       "Bash(kill %1)",
       "Bash(curl:*)",
-      "Bash(./gradlew compileJava)"
+      "Bash(./gradlew compileJava)",
+      "Bash(POST /api/v1/auth/reissue)",
+      "Bash(POST /api/v1/auth/logout)"
     ]
   }
 }

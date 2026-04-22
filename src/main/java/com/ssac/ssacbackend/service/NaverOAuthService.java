@@ -5,7 +5,7 @@ import com.ssac.ssacbackend.config.NaverOAuthProperties;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.domain.social.SocialAccount;
 import com.ssac.ssacbackend.domain.user.User;
-import com.ssac.ssacbackend.dto.response.LoginResponse;
+import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.NaverProfileResponse;
 import com.ssac.ssacbackend.dto.response.NaverTokenResponse;
 import com.ssac.ssacbackend.repository.SocialAccountRepository;
@@ -45,7 +45,7 @@ public class NaverOAuthService {
     private final NaverOAuthProperties naverOAuthProperties;
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
-    private final JwtService jwtService;
+    private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
     private final RestTemplate restTemplate;
 
@@ -73,24 +73,23 @@ public class NaverOAuthService {
     }
 
     /**
-     * 네이버 콜백을 처리하고 JWT 토큰을 발급한다.
+     * 네이버 콜백을 처리하고 Access Token / Refresh Token 쌍을 발급한다.
      *
      * <p>state 검증 → 인증 코드 교환 → 프로필 조회 → 사용자 조회/생성 순으로 진행된다.
      *
      * @param code  네이버가 전달한 인증 코드
      * @param state CSRF 방어용 state 파라미터
-     * @return 발급된 JWT 토큰
+     * @return Access Token / Refresh Token 쌍
      */
     @Transactional
-    public LoginResponse processCallback(String code, String state) {
+    public TokenPair processCallback(String code, String state) {
         validateState(state);
 
         NaverTokenResponse tokenResponse = exchangeCodeForToken(code, state);
         NaverProfileResponse.NaverUserDetail profile = fetchNaverProfile(tokenResponse.getAccessToken());
 
         User user = findOrCreateUser(profile);
-        String jwt = jwtService.generateToken(user.getEmail());
-        return new LoginResponse(jwt);
+        return tokenService.issueTokens(user);
     }
 
     private void validateState(String state) {

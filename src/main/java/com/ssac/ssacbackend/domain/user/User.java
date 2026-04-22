@@ -2,6 +2,8 @@ package com.ssac.ssacbackend.domain.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,6 +46,10 @@ public class User {
     @Column(length = 100)
     private String providerId; // 소셜 서비스의 고유 ID
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private UserRole role;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -51,12 +57,14 @@ public class User {
     private LocalDateTime updatedAt;
 
     @Builder
-    public User(String email, String password, String nickname, String provider, String providerId) {
+    public User(String email, String password, String nickname, String provider,
+        String providerId, UserRole role) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.provider = provider;
         this.providerId = providerId;
+        this.role = role != null ? role : UserRole.USER;
     }
 
     /**
@@ -68,6 +76,9 @@ public class User {
 
     @PrePersist
     private void prePersist() {
+        if (this.role == null) {
+            this.role = UserRole.USER;
+        }
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
