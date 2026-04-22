@@ -17,7 +17,18 @@
       "Bash(.gitignore)",
       "Bash(./gradlew test:*)",
       "Bash(git filter-repo:*)",
-      "Bash(grep -r \"hooks.slack.com\" scripts/ .env*)"
+      "Bash(grep -r \"hooks.slack.com\" scripts/ .env*)",
+      "Bash(./gradlew compileJava --profile)",
+      "Bash(./gradlew checkstyleMain)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill:*)",
+      "Bash(cmd:*)",
+      "Bash(powershell:*)",
+      "Bash(jps -l)",
+      "Bash(wsl:*)",
+      "Bash(SPRING_PROFILES_ACTIVE=local ./gradlew bootRun)",
+      "Bash(kill %1)",
+      "Bash(curl:*)"
     ]
   }
 }
