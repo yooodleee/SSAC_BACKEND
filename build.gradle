@@ -33,6 +33,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     // OpenAPI(Swagger) 계약 문서 자동 생성 (docs/decisions/004-swagger-contract.md 참고)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
     // JWT 토큰 생성 및 검증 (SSACEBE-10)

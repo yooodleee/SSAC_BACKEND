@@ -1,6 +1,8 @@
 package com.ssac.ssacbackend.config;
 
+import com.ssac.ssacbackend.service.CustomOAuth2UserService;
 import com.ssac.ssacbackend.service.JwtService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,28 +17,24 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 /**
  * Spring Security 설정.
- *
- * <p>공개 경로:
- * - /api-docs/**     : OpenAPI JSON (에이전트/프론트엔드 계약 문서)
- * - /swagger-ui/**   : Swagger UI 리소스
- * - /swagger-ui.html : Swagger UI 진입점
- * - /api/v1/auth/**  : 로그인·회원가입 등 인증 불필요 엔드포인트
- *
- * <p>나머지 모든 경로는 JWT Bearer 토큰 인증이 필요하다.
- * JwtAuthenticationFilter가 Authorization 헤더를 검증하고 SecurityContext를 설정한다.
- *
- * <p>변경 기준: docs/decisions/004-swagger-contract.md
  */
 @Configuration
 @EnableWebSecurity
 @EnableConfigurationProperties(JwtProperties.class)
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
 
     private static final String[] PUBLIC_PATHS = {
         "/api-docs/**",
         "/swagger-ui/**",
         "/swagger-ui.html",
-        "/api/v1/auth/**"
+        "/api/v1/auth/**",
+        "/login/**",
+        "/oauth2/**"
     };
 
     @Bean
@@ -49,6 +47,11 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_PATHS).permitAll()
                 .anyRequest().authenticated()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(oAuth2SuccessHandler)
+                .failureHandler(oAuth2FailureHandler)
             )
             .addFilterBefore(
                 new JwtAuthenticationFilter(jwtService),

@@ -32,11 +32,17 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false)
+    @Column // 소셜 로그인의 경우 비밀번호가 없을 수 있음
     private String password;
 
     @Column(nullable = false, unique = true, length = 20)
     private String nickname;
+
+    @Column(length = 20)
+    private String provider; // 예: "kakao"
+
+    @Column(length = 100)
+    private String providerId; // 소셜 서비스의 고유 ID
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -45,10 +51,12 @@ public class User {
     private LocalDateTime updatedAt;
 
     @Builder
-    public User(String email, String password, String nickname) {
+    public User(String email, String password, String nickname, String provider, String providerId) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     /**
