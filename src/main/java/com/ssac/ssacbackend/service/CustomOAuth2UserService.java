@@ -35,7 +35,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-       ` OAuth2UserInfo oAuth2UserInfo = null;
+        OAuth2UserInfo oAuth2UserInfo = null;
 
         if (registrationId.equals("kakao")) {
             oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());

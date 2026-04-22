@@ -28,7 +28,8 @@
       "Bash(wsl:*)",
       "Bash(SPRING_PROFILES_ACTIVE=local ./gradlew bootRun)",
       "Bash(kill %1)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(./gradlew compileJava)"
     ]
   }
 }
