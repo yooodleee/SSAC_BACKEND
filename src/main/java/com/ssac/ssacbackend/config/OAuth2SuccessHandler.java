@@ -1,12 +1,12 @@
 package com.ssac.ssacbackend.config;
 
+import com.ssac.ssacbackend.common.util.CookieUtils;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.KakaoUserInfo;
 import com.ssac.ssacbackend.dto.response.OAuth2UserInfo;
 import com.ssac.ssacbackend.repository.UserRepository;
 import com.ssac.ssacbackend.service.TokenService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -27,11 +27,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private static final int ACCESS_TOKEN_MAX_AGE = 30 * 60;       // 30분
-    private static final int REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7일
-
     private final TokenService tokenService;
     private final UserRepository userRepository;
+    private final CookieProperties cookieProperties;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -39,16 +37,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         OAuth2UserInfo oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
-        String email = oAuth2UserInfo.getEmail();
+        String providerId = oAuth2UserInfo.getProviderId();
 
-        if (email == null) {
-            email = oAuth2UserInfo.getProviderId() + "@kakao.com";
-        }
-
-        String resolvedEmail = email;
-        User user = userRepository.findByEmail(resolvedEmail)
+        User user = userRepository.findByProviderAndProviderId("kakao", providerId)
             .orElseGet(() -> {
-                log.warn("OAuth2 로그인 성공했으나 DB에서 사용자를 찾을 수 없음: email={}", resolvedEmail);
+                log.warn("OAuth2 로그인 성공했으나 DB에서 사용자를 찾을 수 없음: providerId={}", providerId);
                 return null;
             });
 
@@ -59,19 +52,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         TokenPair tokens = tokenService.issueTokens(user);
 
-        Cookie accessTokenCookie = new Cookie("accessToken", tokens.accessToken());
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setMaxAge(ACCESS_TOKEN_MAX_AGE);
-        // accessTokenCookie.setSecure(true); // 운영 환경(HTTPS)에서 활성화
-        response.addCookie(accessTokenCookie);
-
-        Cookie refreshTokenCookie = new Cookie("refreshToken", tokens.refreshToken());
-        refreshTokenCookie.setPath("/api/v1/auth");
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setMaxAge(REFRESH_TOKEN_MAX_AGE);
-        // refreshTokenCookie.setSecure(true); // 운영 환경(HTTPS)에서 활성화
-        response.addCookie(refreshTokenCookie);
+        CookieUtils.addAccessTokenCookie(response, tokens.accessToken(), cookieProperties);
+        CookieUtils.addRefreshTokenCookie(response, tokens.refreshToken(), cookieProperties);
 
         log.info("OAuth2 로그인 성공: userId={}, 토큰 발급 완료", user.getId());
         getRedirectStrategy().sendRedirect(request, response, "/");

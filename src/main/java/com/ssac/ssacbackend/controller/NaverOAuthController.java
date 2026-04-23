@@ -1,13 +1,14 @@
 package com.ssac.ssacbackend.controller;
 
 import com.ssac.ssacbackend.common.response.ApiResponse;
+import com.ssac.ssacbackend.common.util.CookieUtils;
+import com.ssac.ssacbackend.config.CookieProperties;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.LoginResponse;
 import com.ssac.ssacbackend.service.NaverOAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "네이버 OAuth", description = "네이버 소셜 로그인 API")
 public class NaverOAuthController {
 
-    private static final int REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7일
-
     private final NaverOAuthService naverOAuthService;
+    private final CookieProperties cookieProperties;
 
     /**
      * 네이버 OAuth 인증 페이지로 리다이렉트한다.
@@ -76,12 +76,8 @@ public class NaverOAuthController {
         log.debug("네이버 콜백 수신: state={}", state);
         TokenPair tokens = naverOAuthService.processCallback(code, state);
 
-        Cookie refreshTokenCookie = new Cookie("refreshToken", tokens.refreshToken());
-        refreshTokenCookie.setPath("/api/v1/auth");
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setMaxAge(REFRESH_TOKEN_MAX_AGE);
-        // refreshTokenCookie.setSecure(true); // 운영 환경(HTTPS)에서 활성화
-        response.addCookie(refreshTokenCookie);
+        CookieUtils.addAccessTokenCookie(response, tokens.accessToken(), cookieProperties);
+        CookieUtils.addRefreshTokenCookie(response, tokens.refreshToken(), cookieProperties);
 
         return ResponseEntity.ok(
             ApiResponse.success(new LoginResponse(tokens.accessToken(), "Bearer"))

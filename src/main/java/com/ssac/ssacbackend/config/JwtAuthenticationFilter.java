@@ -18,7 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * JWT Bearer 토큰을 검증하고 SecurityContext에 인증 정보를 설정하는 필터.
  *
  * <p>Authorization 헤더(Bearer) 또는 accessToken 쿠키에서 토큰을 추출한다.
- * 유효한 토큰이 있으면 userId를 principal로 하는 Authentication을 등록한다.
+ * 유효한 토큰이 있으면 email을 principal로 하는 Authentication을 등록한다.
  * 토큰이 없거나 유효하지 않으면 인증 없이 다음 필터로 넘기며,
  * Spring Security의 권한 검사에서 401로 거부된다.
  */
@@ -38,12 +38,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         FilterChain filterChain) throws ServletException, IOException {
 
         String token = extractToken(request);
-        if (token != null && jwtService.isTokenValid(token)) {
-            Long userId = jwtService.extractUserId(token);
-            UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.debug("JWT 인증 완료: userId={}", userId);
+        if (token != null) {
+            jwtService.extractEmailIfValid(token).ifPresent(email -> {
+                UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.debug("JWT 인증 완료: email={}", email);
+            });
         }
 
         filterChain.doFilter(request, response);
