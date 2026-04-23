@@ -7,6 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import lombok.extern.slf4j.Slf4j;
@@ -90,6 +91,22 @@ public class JwtService {
         } catch (JwtException e) {
             log.warn("유효하지 않은 JWT 토큰: {}", e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * 토큰을 한 번만 파싱하여 email 클레임을 반환한다.
+     *
+     * <p>서명·만료 검증과 클레임 추출을 단일 파싱으로 처리한다.
+     * 토큰이 유효하지 않거나 email 클레임이 없으면 빈 Optional을 반환한다.
+     */
+    public Optional<String> extractEmailIfValid(String token) {
+        try {
+            String email = parseClaims(token).get(CLAIM_EMAIL, String.class);
+            return Optional.ofNullable(email);
+        } catch (JwtException e) {
+            log.warn("유효하지 않은 JWT 토큰: {}", e.getMessage());
+            return Optional.empty();
         }
     }
 
