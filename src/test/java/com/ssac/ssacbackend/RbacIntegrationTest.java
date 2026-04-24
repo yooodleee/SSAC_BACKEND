@@ -318,4 +318,105 @@ class RbacIntegrationTest {
                 .content("{\"role\":\"GUEST\"}"))
             .andExpect(status().isBadRequest());
     }
+
+    // ── 로그아웃 시 쿠키 삭제 ────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("단일 기기 로그아웃 응답에 accessToken, refreshToken, guestId 쿠키 삭제 헤더가 포함된다")
+    void logout_clearsAllCookies() throws Exception {
+        TokenPair tokens = tokenService.issueTokens(user);
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                .cookie(new Cookie("refreshToken", tokens.refreshToken())))
+            .andExpect(status().isOk())
+            .andExpect(result -> {
+                String setCookieHeaders = String.join(";",
+                    result.getResponse().getHeaders("Set-Cookie"));
+                assert setCookieHeaders.contains("accessToken=;") || setCookieHeaders.contains("accessToken=;")
+                    : "accessToken 쿠키가 삭제되어야 합니다";
+                assert setCookieHeaders.contains("refreshToken=;")
+                    : "refreshToken 쿠키가 삭제되어야 합니다";
+                assert setCookieHeaders.contains("guestId=;")
+                    : "guestId 쿠키가 삭제되어야 합니다";
+            });
+    }
+
+    // ── 전체 디바이스 로그아웃 ───────────────────────────────────────────────
+
+    @Test
+    @DisplayName("전체 디바이스 로그아웃 후 모든 세션의 Access Token이 차단된다")
+    void logoutAll_invalidatesAllSessions() throws Exception {
+        // 세션 1과 세션 2의 토큰을 각각 발급
+        TokenPair session1 = tokenService.issueTokens(user);
+        TokenPair session2 = tokenService.issueTokens(user);
+
+        // 세션 1 토큰으로 로그인 상태 확인
+        mockMvc.perform(get("/api/v1/users/me")
+                .header("Authorization", "Bearer " + session1.accessToken()))
+            .andExpect(status().isOk());
+
+        // 전체 디바이스 로그아웃 (세션 1 Access Token으로 호출)
+        mockMvc.perform(post("/api/v1/users/me/logout")
+                .header("Authorization", "Bearer " + session1.accessToken()))
+            .andExpect(status().isOk());
+
+        // 세션 1의 Access Token → 401
+        mockMvc.perform(get("/api/v1/users/me")
+                .header("Authorization", "Bearer " + session1.accessToken()))
+            .andExpect(status().isUnauthorized());
+
+        // 세션 2의 Access Token도 → 401 (invalidatedBefore로 모두 차단)
+        mockMvc.perform(get("/api/v1/users/me")
+                .header("Authorization", "Bearer " + session2.accessToken()))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("전체 디바이스 로그아웃 후 모든 세션의 Refresh Token으로 재발급이 불가능하다")
+    void logoutAll_revokesAllRefreshTokens() throws Exception {
+        TokenPair session1 = tokenService.issueTokens(user);
+        TokenPair session2 = tokenService.issueTokens(user);
+
+        // 전체 디바이스 로그아웃
+        mockMvc.perform(post("/api/v1/users/me/logout")
+                .header("Authorization", "Bearer " + session1.accessToken()))
+            .andExpect(status().isOk());
+
+        // 세션 1 Refresh Token으로 재발급 시도 → 400
+        mockMvc.perform(post("/api/v1/auth/reissue")
+                .cookie(new Cookie("refreshToken", session1.refreshToken())))
+            .andExpect(status().isBadRequest());
+
+        // 세션 2 Refresh Token으로 재발급 시도 → 400 (revokeAll로 모두 취소됨)
+        mockMvc.perform(post("/api/v1/auth/reissue")
+                .cookie(new Cookie("refreshToken", session2.refreshToken())))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("전체 디바이스 로그아웃은 인증 토큰 없이 호출 시 401을 응답받는다")
+    void logoutAll_withoutToken_returns401() throws Exception {
+        mockMvc.perform(post("/api/v1/users/me/logout"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("전체 디바이스 로그아웃 응답에 accessToken, refreshToken, guestId 쿠키 삭제 헤더가 포함된다")
+    void logoutAll_clearsAllCookies() throws Exception {
+        TokenPair tokens = tokenService.issueTokens(user);
+
+        mockMvc.perform(post("/api/v1/users/me/logout")
+                .header("Authorization", "Bearer " + tokens.accessToken()))
+            .andExpect(status().isOk())
+            .andExpect(result -> {
+                String setCookieHeaders = String.join(";",
+                    result.getResponse().getHeaders("Set-Cookie"));
+                assert setCookieHeaders.contains("accessToken=;")
+                    : "accessToken 쿠키가 삭제되어야 합니다";
+                assert setCookieHeaders.contains("refreshToken=;")
+                    : "refreshToken 쿠키가 삭제되어야 합니다";
+                assert setCookieHeaders.contains("guestId=;")
+                    : "guestId 쿠키가 삭제되어야 합니다";
+            });
+    }
 }

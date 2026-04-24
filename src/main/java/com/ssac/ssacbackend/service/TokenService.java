@@ -95,6 +95,23 @@ public class TokenService {
             });
     }
 
+    /**
+     * 해당 사용자의 모든 Refresh Token을 무효화하고 Access Token도 차단한다.
+     *
+     * <p>전체 디바이스 로그아웃 시 호출한다.
+     * revokeAllByUserId로 모든 세션의 Refresh Token을 일괄 revoke하고,
+     * user.invalidateTokens()로 기발급된 Access Token도 다음 요청부터 차단한다.
+     *
+     * @param email 인증된 사용자 이메일
+     */
+    public void logoutAll(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> BusinessException.notFound("사용자를 찾을 수 없습니다."));
+        refreshTokenRepository.revokeAllByUserId(user.getId());
+        user.invalidateTokens();
+        log.info("전체 디바이스 로그아웃 완료: userId={}", user.getId());
+    }
+
     private String createAndStoreRefreshToken(Long userId) {
         String raw = jwtService.generateRefreshToken();
         String hash = hashToken(raw);

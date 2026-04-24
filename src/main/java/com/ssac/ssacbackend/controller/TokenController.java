@@ -103,6 +103,7 @@ public class TokenController {
         }
         CookieUtils.clearRefreshTokenCookie(response, cookieProperties);
         CookieUtils.clearAccessTokenCookie(response, cookieProperties);
+        CookieUtils.clearGuestIdCookie(response, cookieProperties);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
