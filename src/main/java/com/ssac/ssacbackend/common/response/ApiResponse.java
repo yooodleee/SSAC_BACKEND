@@ -16,24 +16,27 @@ public class ApiResponse<T> {
     private final boolean success;
     private final T data;
     private final String message;
+    private final boolean loginRequired;
 
-    private ApiResponse(boolean success, T data, String message) {
+    private ApiResponse(boolean success, T data, String message, boolean loginRequired) {
         this.success = success;
         this.data = data;
         this.message = message;
+        this.loginRequired = loginRequired;
     }
 
-    /**
-     * 성공 응답을 생성한다.
-     */
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, data, null);
+        return new ApiResponse<>(true, data, null, false);
+    }
+
+    public static <T> ApiResponse<T> fail(String message) {
+        return new ApiResponse<>(false, null, message, false);
     }
 
     /**
-     * 실패 응답을 생성한다. 메시지는 한국어로 작성해야 한다.
+     * 로그인이 필요한 기능에 접근했을 때 반환한다. 클라이언트는 loginRequired를 보고 로그인 유도 UI를 표시한다.
      */
-    public static <T> ApiResponse<T> fail(String message) {
-        return new ApiResponse<>(false, null, message);
+    public static <T> ApiResponse<T> loginRequired(String message) {
+        return new ApiResponse<>(false, null, message, true);
     }
 }

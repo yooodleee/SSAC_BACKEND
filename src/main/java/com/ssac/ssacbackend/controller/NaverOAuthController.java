@@ -14,6 +14,7 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,19 +67,26 @@ public class NaverOAuthController {
     @Operation(
         summary = "네이버 로그인 콜백",
         description = "네이버 인증 코드를 받아 Access Token을 발급한다. "
-            + "Refresh Token은 HttpOnly 쿠키로 전달된다. 신규 사용자는 자동 가입된다."
+            + "Refresh Token은 HttpOnly 쿠키로 전달된다. 신규 사용자는 자동 가입된다. "
+            + "guestId 쿠키가 있으면 비회원 퀴즈 기록을 회원 계정으로 자동 이전한다."
     )
     public ResponseEntity<ApiResponse<LoginResponse>> callback(
         @Parameter(description = "네이버가 전달한 인증 코드") @RequestParam String code,
         @Parameter(description = "CSRF 방어용 state 파라미터") @RequestParam String state,
+        @CookieValue(name = "guestId", required = false) String guestId,
         HttpServletResponse response
     ) {
-        log.debug("네이버 콜백 수신: state={}", state);
-        TokenPair tokens = naverOAuthService.processCallback(code, state);
+        log.debug("네이버 콜백 수신: state={}, guestId={}", state, guestId);
+        TokenPair tokens = naverOAuthService.processCallback(code, state, guestId);
 
         CookieUtils.addAccessTokenCookie(response, tokens.accessToken(), cookieProperties);
         CookieUtils.addRefreshTokenCookie(response, tokens.refreshToken(), cookieProperties);
+        if (guestId != null) {
+            CookieUtils.clearGuestIdCookie(response, cookieProperties);
+            log.debug("네이버 로그인 후 guestId 쿠키 삭제: guestId={}", guestId);
+        }
 
+        log.info("네이버 로그인 성공: 토큰 발급 완료");
         return ResponseEntity.ok(
             ApiResponse.success(new LoginResponse(tokens.accessToken(), "Bearer"))
         );

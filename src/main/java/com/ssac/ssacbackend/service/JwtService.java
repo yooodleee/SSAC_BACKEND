@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.service;
 
 import com.ssac.ssacbackend.config.JwtProperties;
+import com.ssac.ssacbackend.domain.user.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -32,6 +33,13 @@ public class JwtService {
     private static final String CLAIM_EMAIL = "email";
     private static final String CLAIM_ROLE = "role";
 
+    /**
+     * JWT에서 추출한 인증 주체 정보.
+     * GUEST 토큰은 principal이 guestId(UUID), USER/ADMIN은 email이다.
+     */
+    public record TokenInfo(String principal, String role) {}
+
+
     private final SecretKey secretKey;
     private final long expirationMs;
 
@@ -56,6 +64,42 @@ public class JwtService {
             .expiration(expiry)
             .signWith(secretKey)
             .compact();
+    }
+
+    /**
+     * 비회원 Guest용 JWT를 생성한다. email claim 없이 sub에 guestId만 담는다.
+     */
+    public String generateGuestToken(String guestId) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expirationMs);
+        return Jwts.builder()
+            .subject(guestId)
+            .claim(CLAIM_ROLE, UserRole.GUEST.name())
+            .issuedAt(now)
+            .expiration(expiry)
+            .signWith(secretKey)
+            .compact();
+    }
+
+    /**
+     * 토큰에서 role에 따라 principal(email 또는 guestId)과 role을 추출한다.
+     * GUEST 토큰은 sub(guestId)를 principal로, USER/ADMIN은 email claim을 principal로 반환한다.
+     */
+    public Optional<TokenInfo> extractTokenInfoIfValid(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            String role = claims.get(CLAIM_ROLE, String.class);
+            String principal = UserRole.GUEST.name().equals(role)
+                ? claims.getSubject()
+                : claims.get(CLAIM_EMAIL, String.class);
+            if (principal == null || role == null) {
+                return Optional.empty();
+            }
+            return Optional.of(new TokenInfo(principal, role));
+        } catch (JwtException e) {
+            log.warn("유효하지 않은 JWT 토큰: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     /**

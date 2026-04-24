@@ -6,10 +6,12 @@ import com.ssac.ssacbackend.common.util.CookieUtils;
 import com.ssac.ssacbackend.config.CookieProperties;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.LoginResponse;
+import com.ssac.ssacbackend.service.JwtService;
 import com.ssac.ssacbackend.service.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TokenController {
 
     private final TokenService tokenService;
+    private final JwtService jwtService;
     private final CookieProperties cookieProperties;
 
     /**
@@ -58,6 +61,29 @@ public class TokenController {
         return ResponseEntity.ok(
             ApiResponse.success(new LoginResponse(tokens.accessToken(), "Bearer"))
         );
+    }
+
+    /**
+     * 비회원(Guest)에게 임시 JWT를 발급한다.
+     *
+     * <p>UUID 기반 guestId를 생성하고 GUEST role의 Access Token을 쿠키로 전달한다.
+     * guestId 쿠키(30일)를 별도로 설정하여 로그인 시 데이터 마이그레이션에 활용한다.
+     */
+    @PostMapping("/guest")
+    @Operation(
+        summary = "비회원 토큰 발급",
+        description = "로그인 없이 서비스를 이용할 수 있는 임시 Guest 토큰을 발급한다. "
+            + "이후 로그인 시 퀴즈 기록이 회원 계정으로 자동 이전된다."
+    )
+    public ResponseEntity<ApiResponse<LoginResponse>> issueGuestToken(HttpServletResponse response) {
+        String guestId = UUID.randomUUID().toString();
+        String accessToken = jwtService.generateGuestToken(guestId);
+
+        CookieUtils.addAccessTokenCookie(response, accessToken, cookieProperties);
+        CookieUtils.addGuestIdCookie(response, guestId, cookieProperties);
+
+        log.info("Guest 토큰 발급: guestId={}", guestId);
+        return ResponseEntity.ok(ApiResponse.success(new LoginResponse(accessToken, "Bearer")));
     }
 
     /**

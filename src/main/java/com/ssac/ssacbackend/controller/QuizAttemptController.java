@@ -64,9 +64,15 @@ public class QuizAttemptController {
     public ResponseEntity<ApiResponse<QuizAttemptSummaryResponse>> submitQuiz(
         Authentication authentication,
         @RequestBody @Valid QuizSubmitRequest request) {
-        log.debug("퀴즈 제출 요청: email={}, quizId={}", authentication.getName(), request.quizId());
-        QuizAttemptSummaryResponse result =
-            quizAttemptService.submitQuiz(authentication.getName(), request);
+        log.debug("퀴즈 제출 요청: principal={}, quizId={}", authentication.getName(), request.quizId());
+
+        boolean isGuest = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_GUEST"));
+
+        QuizAttemptSummaryResponse result = isGuest
+            ? quizAttemptService.submitQuizAsGuest(authentication.getName(), request)
+            : quizAttemptService.submitQuiz(authentication.getName(), request);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result));
     }
 

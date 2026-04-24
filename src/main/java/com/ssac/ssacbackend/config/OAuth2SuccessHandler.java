@@ -6,7 +6,9 @@ import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.KakaoUserInfo;
 import com.ssac.ssacbackend.dto.response.OAuth2UserInfo;
 import com.ssac.ssacbackend.repository.UserRepository;
+import com.ssac.ssacbackend.service.GuestMigrationService;
 import com.ssac.ssacbackend.service.TokenService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Component;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final TokenService tokenService;
+    private final GuestMigrationService guestMigrationService;
     private final UserRepository userRepository;
     private final CookieProperties cookieProperties;
 
@@ -50,6 +53,15 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             return;
         }
 
+        String guestId = extractGuestIdFromCookie(request);
+        if (guestId != null) {
+            log.debug("Kakao 로그인 시 guestId 쿠키 감지, 마이그레이션 실행: guestId={}", guestId);
+            guestMigrationService.migrateGuestData(guestId, user);
+            CookieUtils.clearGuestIdCookie(response, cookieProperties);
+        } else {
+            log.debug("Kakao 로그인: guestId 쿠키 없음, 마이그레이션 생략");
+        }
+
         TokenPair tokens = tokenService.issueTokens(user);
 
         CookieUtils.addAccessTokenCookie(response, tokens.accessToken(), cookieProperties);
@@ -57,5 +69,18 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         log.info("OAuth2 로그인 성공: userId={}, 토큰 발급 완료", user.getId());
         getRedirectStrategy().sendRedirect(request, response, "/");
+    }
+
+    private String extractGuestIdFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if ("guestId".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 }

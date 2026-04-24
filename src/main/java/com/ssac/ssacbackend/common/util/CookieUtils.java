@@ -14,6 +14,7 @@ public final class CookieUtils {
 
     public static final int ACCESS_TOKEN_MAX_AGE = 30 * 60;
     public static final int REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60;
+    public static final int GUEST_ID_MAX_AGE = 30 * 24 * 60 * 60;
 
     private CookieUtils() {}
 
@@ -33,6 +34,14 @@ public final class CookieUtils {
 
     public static void clearRefreshTokenCookie(HttpServletResponse response, CookieProperties props) {
         addCookie(response, "refreshToken", "", "/api/v1/auth", 0, props);
+    }
+
+    public static void addGuestIdCookie(HttpServletResponse response, String guestId, CookieProperties props) {
+        addCookie(response, "guestId", guestId, "/", GUEST_ID_MAX_AGE, props);
+    }
+
+    public static void clearGuestIdCookie(HttpServletResponse response, CookieProperties props) {
+        addCookie(response, "guestId", "", "/", 0, props);
     }
 
     private static void addCookie(

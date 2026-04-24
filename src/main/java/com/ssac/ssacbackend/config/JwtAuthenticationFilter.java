@@ -11,6 +11,8 @@ import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -39,12 +41,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = extractToken(request);
         if (token != null) {
-            jwtService.extractEmailIfValid(token).ifPresent(email -> {
-                UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("JWT 인증 완료: email={}", email);
-            });
+            jwtService.extractTokenInfoIfValid(token).ifPresentOrElse(
+                tokenInfo -> {
+                    GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + tokenInfo.role());
+                    UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                            tokenInfo.principal(), null, Collections.singletonList(authority));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    log.debug("JWT 인증 성공: principal={}, role={}, uri={}",
+                        tokenInfo.principal(), tokenInfo.role(), request.getRequestURI());
+                },
+                () -> log.warn("JWT 토큰 검증 실패 (서명 불일치 또는 만료): uri={}", request.getRequestURI())
+            );
+        } else {
+            log.debug("JWT 토큰 없음 (비인증 요청): uri={}", request.getRequestURI());
         }
 
         filterChain.doFilter(request, response);

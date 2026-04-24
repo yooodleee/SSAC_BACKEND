@@ -53,18 +53,35 @@ public class QuizAttemptService {
     /**
      * 퀴즈를 제출하고 응시 기록을 저장한다.
      *
-     * <p>서버에서 정답을 검증하고 점수를 계산한다.
-     * 응시 기록과 문항별 답안을 하나의 트랜잭션으로 저장한다.
-     *
      * @param email   JWT에서 추출한 사용자 이메일
      * @param request 제출 요청 (퀴즈 ID, 문항별 선택 답안)
-     * @return 저장된 응시 기록 요약
      */
     @Transactional
     public QuizAttemptSummaryResponse submitQuiz(String email, QuizSubmitRequest request) {
         log.debug("퀴즈 제출: email={}, quizId={}", email, request.quizId());
-
         User user = findUserByEmail(email);
+        QuizAttempt attempt = createAttempt(user, null, request);
+        log.info("퀴즈 제출 완료: email={}, quizId={}, score={}/{}",
+            email, request.quizId(), attempt.getEarnedScore(), attempt.getQuiz().getMaxScore());
+        return QuizAttemptSummaryResponse.from(attempt);
+    }
+
+    /**
+     * 비회원(Guest)의 퀴즈 응시 기록을 guestId로 저장한다. 로그인 시 회원 기록으로 전환된다.
+     *
+     * @param guestId JWT sub에서 추출한 임시 사용자 ID(UUID)
+     * @param request 제출 요청
+     */
+    @Transactional
+    public QuizAttemptSummaryResponse submitQuizAsGuest(String guestId, QuizSubmitRequest request) {
+        log.debug("Guest 퀴즈 제출: guestId={}, quizId={}", guestId, request.quizId());
+        QuizAttempt attempt = createAttempt(null, guestId, request);
+        log.info("Guest 퀴즈 제출 완료: guestId={}, quizId={}, score={}/{}",
+            guestId, request.quizId(), attempt.getEarnedScore(), attempt.getQuiz().getMaxScore());
+        return QuizAttemptSummaryResponse.from(attempt);
+    }
+
+    private QuizAttempt createAttempt(User user, String guestId, QuizSubmitRequest request) {
         Quiz quiz = quizRepository.findById(request.quizId())
             .orElseThrow(() -> BusinessException.notFound("퀴즈를 찾을 수 없습니다."));
 
@@ -72,7 +89,6 @@ public class QuizAttemptService {
         Map<Long, Question> questionMap = questions.stream()
             .collect(Collectors.toMap(Question::getId, q -> q));
 
-        // 1단계: 서버 채점 (DB 저장 전 점수 계산)
         int earnedScore = 0;
         int correctCount = 0;
         for (QuizSubmitRequest.AnswerItem item : request.answers()) {
@@ -87,34 +103,28 @@ public class QuizAttemptService {
             }
         }
 
-        // 2단계: 응시 기록 저장 (집계 값 포함)
         QuizAttempt attempt = QuizAttempt.builder()
             .user(user)
+            .guestId(guestId)
             .quiz(quiz)
             .earnedScore(earnedScore)
             .correctCount(correctCount)
             .build();
         quizAttemptRepository.save(attempt);
 
-        // 3단계: 문항별 답안 저장 (CascadeType.ALL로 함께 저장됨)
         for (QuizSubmitRequest.AnswerItem item : request.answers()) {
             Question question = questionMap.get(item.questionId());
             boolean correct = question.getCorrectAnswer().equals(item.selectedAnswer());
-            int earnedPoints = correct ? question.getPoints() : 0;
-
             AttemptAnswer answer = AttemptAnswer.builder()
                 .quizAttempt(attempt)
                 .question(question)
                 .selectedAnswer(item.selectedAnswer())
                 .correct(correct)
-                .earnedPoints(earnedPoints)
+                .earnedPoints(correct ? question.getPoints() : 0)
                 .build();
             attempt.addAnswer(answer);
         }
-
-        log.info("퀴즈 제출 완료: email={}, quizId={}, score={}/{}",
-            email, quiz.getId(), earnedScore, quiz.getMaxScore());
-        return QuizAttemptSummaryResponse.from(attempt);
+        return attempt;
     }
 
     /**

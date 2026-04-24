@@ -88,4 +88,9 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
         WHERE qa.user.email = :email
         """)
     List<Object[]> aggregateOverallStats(@Param("email") String email);
+
+    /**
+     * guestId로 응시 기록을 조회한다. Guest → User 전환 시 데이터 마이그레이션에 사용한다.
+     */
+    List<QuizAttempt> findByGuestId(String guestId);
 }

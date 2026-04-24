@@ -2,11 +2,13 @@ package com.ssac.ssacbackend.config;
 
 import com.ssac.ssacbackend.service.CustomOAuth2UserService;
 import com.ssac.ssacbackend.service.JwtService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -51,7 +53,29 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_PATHS).permitAll()
+                // 퀴즈 제출: 비회원(GUEST)도 허용
+                .requestMatchers(HttpMethod.POST, "/api/v1/quiz-attempts")
+                    .hasAnyRole("USER", "GUEST", "ADMIN")
+                // 퀴즈 기록/통계 조회: 로그인 회원만 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/quiz-attempts", "/api/v1/quiz-attempts/**")
+                    .hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedHandler((req, res, e) -> {
+                    res.setContentType("application/json;charset=UTF-8");
+                    res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    res.getWriter().write(
+                        "{\"success\":false,\"data\":null,"
+                        + "\"message\":\"로그인이 필요한 기능입니다.\",\"loginRequired\":true}");
+                })
+                .authenticationEntryPoint((req, res, e) -> {
+                    res.setContentType("application/json;charset=UTF-8");
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.getWriter().write(
+                        "{\"success\":false,\"data\":null,"
+                        + "\"message\":\"인증이 필요합니다.\",\"loginRequired\":true}");
+                })
             )
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))

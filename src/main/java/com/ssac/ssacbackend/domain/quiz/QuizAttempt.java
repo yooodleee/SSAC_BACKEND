@@ -37,6 +37,7 @@ import lombok.NoArgsConstructor;
     name = "quiz_attempts",
     indexes = {
         @Index(name = "idx_quiz_attempts_user_id", columnList = "user_id"),
+        @Index(name = "idx_quiz_attempts_guest_id", columnList = "guest_id"),
         @Index(name = "idx_quiz_attempts_attempted_at", columnList = "attempted_at")
     }
 )
@@ -49,8 +50,11 @@ public class QuizAttempt {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
+
+    @Column(name = "guest_id", length = 36)
+    private String guestId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)
@@ -75,8 +79,9 @@ public class QuizAttempt {
     private List<AttemptAnswer> answers = new ArrayList<>();
 
     @Builder
-    public QuizAttempt(User user, Quiz quiz, int earnedScore, int correctCount) {
+    public QuizAttempt(User user, String guestId, Quiz quiz, int earnedScore, int correctCount) {
         this.user = user;
+        this.guestId = guestId;
         this.quiz = quiz;
         this.earnedScore = earnedScore;
         this.correctCount = correctCount;
@@ -87,6 +92,14 @@ public class QuizAttempt {
      */
     public void addAnswer(AttemptAnswer answer) {
         this.answers.add(answer);
+    }
+
+    /**
+     * Guest 응시 기록을 회원 계정으로 이전한다. 로그인 전환 시 데이터 유지에 사용된다.
+     */
+    public void transferToUser(User user) {
+        this.user = user;
+        this.guestId = null;
     }
 
     @PrePersist

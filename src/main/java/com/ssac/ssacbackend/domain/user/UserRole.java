@@ -6,5 +6,5 @@ package com.ssac.ssacbackend.domain.user;
  * <p>JWT payload의 role claim에 사용된다.
  */
 public enum UserRole {
-    USER, ADMIN
+    USER, ADMIN, GUEST
 }
