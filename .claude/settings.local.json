@@ -31,7 +31,8 @@
       "Bash(curl:*)",
       "Bash(./gradlew compileJava)",
       "Bash(POST /api/v1/auth/reissue)",
-      "Bash(POST /api/v1/auth/logout)"
+      "Bash(POST /api/v1/auth/logout)",
+      "Bash(./gradlew bootRun)"
     ]
   }
 }

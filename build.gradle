@@ -70,6 +70,10 @@ tasks.named('bootRun') {
         '-Dstdout.encoding=UTF-8',
         '-Dstderr.encoding=UTF-8'
     ]
+    // 로컬 개발 시 application-local.properties를 자동으로 불러온다.
+    // 운영/CI 환경에서는 SPRING_PROFILES_ACTIVE 환경 변수로 재정의할 것.
+    systemProperty 'spring.profiles.active',
+        System.getenv('SPRING_PROFILES_ACTIVE') ?: 'local'
 }
 
 checkstyle {
