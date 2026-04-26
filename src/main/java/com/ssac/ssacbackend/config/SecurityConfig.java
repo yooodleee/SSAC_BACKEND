@@ -66,6 +66,9 @@ public class SecurityConfig {
                 // 개인화 추천: 로그인 회원만 허용 (GUEST 차단)
                 .requestMatchers(HttpMethod.GET, "/api/v1/recommendations")
                     .hasAnyRole("USER", "ADMIN")
+                // 알림/이어보기/세그먼트: 로그인 회원만 허용
+                .requestMatchers("/api/notification/**", "/api/resume/**", "/api/user/segment")
+                    .hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
@@ -73,15 +76,15 @@ public class SecurityConfig {
                     res.setContentType("application/json;charset=UTF-8");
                     res.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     res.getWriter().write(
-                        "{\"success\":false,\"data\":null,"
-                        + "\"message\":\"로그인이 필요한 기능입니다.\",\"loginRequired\":true}");
+                        "{\"status\":403,\"code\":\"FORBIDDEN\","
+                        + "\"message\":\"접근 권한이 없습니다.\"}");
                 })
                 .authenticationEntryPoint((req, res, e) -> {
                     res.setContentType("application/json;charset=UTF-8");
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     res.getWriter().write(
-                        "{\"success\":false,\"data\":null,"
-                        + "\"message\":\"인증이 필요합니다.\",\"loginRequired\":true}");
+                        "{\"status\":401,\"code\":\"UNAUTHORIZED\","
+                        + "\"message\":\"인증이 필요합니다.\"}");
                 })
             )
             .oauth2Login(oauth2 -> oauth2
