@@ -33,7 +33,8 @@
       "Bash(POST /api/v1/auth/reissue)",
       "Bash(POST /api/v1/auth/logout)",
       "Bash(./gradlew bootRun)",
-      "Bash(./gradlew compileJava --info)"
+      "Bash(./gradlew compileJava --info)",
+      "Bash(./gradlew cleanTest test)"
     ]
   }
 }

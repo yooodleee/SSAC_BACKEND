@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
         log.warn("비즈니스 예외 발생: status={}, message={}", e.getStatus(), e.getMessage());
         ErrorResponse body = ErrorResponse.of(
             e.getStatus().value(),
-            e.getStatus().name(),
+            e.getCode(),
             e.getMessage()
         );
         return ResponseEntity.status(e.getStatus()).body(body);
