@@ -103,7 +103,8 @@ class RbacIntegrationTest {
     void noToken_protectedApi_returns401() throws Exception {
         mockMvc.perform(get("/api/v1/users/me"))
             .andExpect(status().isUnauthorized())
-            .andExpect(jsonPath("$.success").value(false));
+            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
     }
 
     @Test
