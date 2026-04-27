@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -34,6 +35,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final GuestMigrationService guestMigrationService;
     private final UserRepository userRepository;
     private final CookieProperties cookieProperties;
+
+    @Value("${oauth2.default-redirect-uri:http://localhost:3000}")
+    private String defaultRedirectUri;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -71,7 +75,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String redirectTo = extractCookieValue(request, "redirectTo");
         CookieUtils.clearRedirectToCookie(response, cookieProperties);
 
-        String targetUrl = StringUtils.hasText(redirectTo) ? redirectTo : "/";
+        String targetUrl = StringUtils.hasText(redirectTo) ? redirectTo : defaultRedirectUri;
         log.info("OAuth2 로그인 성공: userId={}, 토큰 발급 완료, redirectTo={}", user.getId(), targetUrl);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
