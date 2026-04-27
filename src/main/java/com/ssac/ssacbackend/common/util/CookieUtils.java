@@ -44,6 +44,14 @@ public final class CookieUtils {
         addCookie(response, "guestId", "", "/", 0, props);
     }
 
+    public static void addRedirectToCookie(HttpServletResponse response, String redirectTo, CookieProperties props) {
+        addCookie(response, "redirectTo", redirectTo, "/", 5 * 60, props);
+    }
+
+    public static void clearRedirectToCookie(HttpServletResponse response, CookieProperties props) {
+        addCookie(response, "redirectTo", "", "/", 0, props);
+    }
+
     private static void addCookie(
         HttpServletResponse response,
         String name, String value, String path, long maxAge,

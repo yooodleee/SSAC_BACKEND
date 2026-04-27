@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.lang.Nullable;
 
 /**
  * 카카오 OAuth2 로그인 엔드포인트 Swagger 문서화용 더미 컨트롤러.
@@ -28,9 +29,13 @@ public class KakaoOAuthController {
     @Operation(
         summary = "카카오 로그인 시작",
         description = "카카오 OAuth 인증 페이지로 리다이렉트한다. "
+            + "redirectTo 파라미터를 전달하면 인증 후 해당 경로로 돌아간다(상대 경로만 허용). "
             + "실제 요청은 Spring Security OAuth2 필터가 처리한다."
     )
-    public void login() {
+    public void login(
+        @Parameter(description = "인증 후 돌아갈 경로 (예: /my-page). 생략 시 /로 이동.")
+        @RequestParam(required = false) @Nullable String redirectTo
+    ) {
         throw new UnsupportedOperationException("Spring Security OAuth2 필터가 처리합니다.");
     }
 
