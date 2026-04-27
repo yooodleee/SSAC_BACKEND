@@ -1,10 +1,8 @@
 package com.ssac.ssacbackend.controller;
 
-import com.ssac.ssacbackend.common.response.ApiResponse;
 import com.ssac.ssacbackend.common.util.CookieUtils;
 import com.ssac.ssacbackend.config.CookieProperties;
 import com.ssac.ssacbackend.dto.TokenPair;
-import com.ssac.ssacbackend.dto.response.LoginResponse;
 import com.ssac.ssacbackend.service.NaverOAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,7 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +34,9 @@ public class NaverOAuthController {
     private final NaverOAuthService naverOAuthService;
     private final CookieProperties cookieProperties;
 
+    @Value("${oauth2.default-redirect-uri:http://localhost:3000}")
+    private String defaultRedirectUri;
+
     /**
      * 네이버 OAuth 인증 페이지로 리다이렉트한다.
      *
@@ -56,26 +57,26 @@ public class NaverOAuthController {
      * 네이버 인증 코드를 JWT 토큰으로 교환한다.
      *
      * <p>state 검증 후 네이버 API에서 사용자 정보를 조회하고, 서비스 내부 사용자로 매핑하여
-     * Access Token을 발급한다. Refresh Token은 HttpOnly 쿠키로 전달된다.
+     * Access Token / Refresh Token을 HttpOnly 쿠키에 저장한 뒤 프론트엔드로 리다이렉트한다.
      * 신규 사용자라면 자동으로 회원 가입이 진행된다.
      *
      * @param code  네이버가 전달한 인증 코드
      * @param state CSRF 방어용 state 파라미터
-     * @return 발급된 Access Token
      */
     @GetMapping("/callback")
     @Operation(
         summary = "네이버 로그인 콜백",
-        description = "네이버 인증 코드를 받아 Access Token을 발급한다. "
-            + "Refresh Token은 HttpOnly 쿠키로 전달된다. 신규 사용자는 자동 가입된다. "
+        description = "네이버 인증 코드를 받아 Access Token과 Refresh Token을 HttpOnly 쿠키로 저장한 뒤 "
+            + "프론트엔드(oauth2.default-redirect-uri)로 리다이렉트한다. "
+            + "신규 사용자는 자동 가입된다. "
             + "guestId 쿠키가 있으면 비회원 퀴즈 기록을 회원 계정으로 자동 이전한다."
     )
-    public ResponseEntity<ApiResponse<LoginResponse>> callback(
+    public void callback(
         @Parameter(description = "네이버가 전달한 인증 코드") @RequestParam String code,
         @Parameter(description = "CSRF 방어용 state 파라미터") @RequestParam String state,
         @CookieValue(name = "guestId", required = false) String guestId,
         HttpServletResponse response
-    ) {
+    ) throws IOException {
         log.debug("네이버 콜백 수신: state={}, guestId={}", state, guestId);
         TokenPair tokens = naverOAuthService.processCallback(code, state, guestId);
 
@@ -86,9 +87,7 @@ public class NaverOAuthController {
             log.debug("네이버 로그인 후 guestId 쿠키 삭제: guestId={}", guestId);
         }
 
-        log.info("네이버 로그인 성공: 토큰 발급 완료");
-        return ResponseEntity.ok(
-            ApiResponse.success(new LoginResponse(tokens.accessToken(), "Bearer"))
-        );
+        log.info("네이버 로그인 성공: 토큰 발급 완료, redirectUri={}", defaultRedirectUri);
+        response.sendRedirect(defaultRedirectUri);
     }
 }
