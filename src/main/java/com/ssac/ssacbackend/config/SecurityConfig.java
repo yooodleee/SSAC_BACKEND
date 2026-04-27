@@ -35,6 +35,7 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final RateLimitingFilter rateLimitingFilter;
+    private final OAuth2RedirectFilter oAuth2RedirectFilter;
 
     private static final String[] PUBLIC_PATHS = {
         "/api-docs/**",
@@ -93,6 +94,7 @@ public class SecurityConfig {
                 .successHandler(oAuth2SuccessHandler)
                 .failureHandler(oAuth2FailureHandler)
             )
+            .addFilterBefore(oAuth2RedirectFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(
                 new JwtAuthenticationFilter(jwtService, userRepository),

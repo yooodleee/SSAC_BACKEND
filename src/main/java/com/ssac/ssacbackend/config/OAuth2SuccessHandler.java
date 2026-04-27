@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * OAuth2 로그인 성공 시 Access Token과 Refresh Token을 발급하고 쿠키에 담아 전달한다.
@@ -67,17 +68,25 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         CookieUtils.addAccessTokenCookie(response, tokens.accessToken(), cookieProperties);
         CookieUtils.addRefreshTokenCookie(response, tokens.refreshToken(), cookieProperties);
 
-        log.info("OAuth2 로그인 성공: userId={}, 토큰 발급 완료", user.getId());
-        getRedirectStrategy().sendRedirect(request, response, "/");
+        String redirectTo = extractCookieValue(request, "redirectTo");
+        CookieUtils.clearRedirectToCookie(response, cookieProperties);
+
+        String targetUrl = StringUtils.hasText(redirectTo) ? redirectTo : "/";
+        log.info("OAuth2 로그인 성공: userId={}, 토큰 발급 완료, redirectTo={}", user.getId(), targetUrl);
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
     private String extractGuestIdFromCookie(HttpServletRequest request) {
+        return extractCookieValue(request, "guestId");
+    }
+
+    private String extractCookieValue(HttpServletRequest request, String name) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             return null;
         }
         for (Cookie cookie : cookies) {
-            if ("guestId".equals(cookie.getName())) {
+            if (name.equals(cookie.getName())) {
                 return cookie.getValue();
             }
         }
