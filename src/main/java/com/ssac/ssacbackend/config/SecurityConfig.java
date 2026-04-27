@@ -4,6 +4,7 @@ import com.ssac.ssacbackend.repository.UserRepository;
 import com.ssac.ssacbackend.service.CustomOAuth2UserService;
 import com.ssac.ssacbackend.service.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -18,6 +19,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Spring Security 설정.
@@ -27,7 +31,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
-@EnableConfigurationProperties({JwtProperties.class, CookieProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, CookieProperties.class, CorsProperties.class})
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -36,6 +40,7 @@ public class SecurityConfig {
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final RateLimitingFilter rateLimitingFilter;
     private final OAuth2RedirectFilter oAuth2RedirectFilter;
+    private final CorsProperties corsProperties;
 
     private static final String[] PUBLIC_PATHS = {
         "/api-docs/**",
@@ -52,6 +57,7 @@ public class SecurityConfig {
         HttpSecurity http, JwtService jwtService, UserRepository userRepository)
         throws Exception {
         return http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -114,6 +120,18 @@ public class SecurityConfig {
         FilterRegistrationBean<RateLimitingFilter> registration = new FilterRegistrationBean<>(filter);
         registration.setEnabled(false);
         return registration;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(corsProperties.getAllowedOrigins());
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
