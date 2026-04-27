@@ -19,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * OAuth2 로그인 성공 시 Access Token과 Refresh Token을 발급하고 쿠키에 담아 전달한다.
@@ -69,15 +68,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         TokenPair tokens = tokenService.issueTokens(user);
 
-        CookieUtils.addAccessTokenCookie(response, tokens.accessToken(), cookieProperties);
-        CookieUtils.addRefreshTokenCookie(response, tokens.refreshToken(), cookieProperties);
-
-        String redirectTo = extractCookieValue(request, "redirectTo");
         CookieUtils.clearRedirectToCookie(response, cookieProperties);
 
-        String targetUrl = StringUtils.hasText(redirectTo) ? redirectTo : defaultRedirectUri;
-        log.info("OAuth2 로그인 성공: userId={}, 토큰 발급 완료, redirectTo={}", user.getId(), targetUrl);
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        String callbackUrl = defaultRedirectUri + "/auth/kakao/callback?token=" + tokens.accessToken();
+        log.info("OAuth2 로그인 성공: userId={}, 토큰 발급 완료, FE 콜백으로 리다이렉트", user.getId());
+        getRedirectStrategy().sendRedirect(request, response, callbackUrl);
     }
 
     private String extractGuestIdFromCookie(HttpServletRequest request) {

@@ -34,7 +34,9 @@
       "Bash(POST /api/v1/auth/logout)",
       "Bash(./gradlew bootRun)",
       "Bash(./gradlew compileJava --info)",
-      "Bash(./gradlew cleanTest test)"
+      "Bash(./gradlew cleanTest test)",
+      "Bash(OAuth2SuccessHandler.java)",
+      "Bash(http://localhost:3000/auth/kakao/callback?token={accessToken})"
     ]
   }
 }
