@@ -96,7 +96,10 @@ public class NaverOAuthService {
 
         if (guestId != null) {
             log.debug("네이버 로그인 시 guestId 감지, 마이그레이션 실행: guestId={}", guestId);
-            guestMigrationService.migrateGuestData(guestId, user);
+            boolean migrated = guestMigrationService.migrateGuestData(guestId, user);
+            if (!migrated) {
+                log.warn("Guest 마이그레이션 실패, 로그인 계속 진행: guestId={}", guestId);
+            }
         }
 
         TokenPair tokenPair = tokenService.issueTokens(user);

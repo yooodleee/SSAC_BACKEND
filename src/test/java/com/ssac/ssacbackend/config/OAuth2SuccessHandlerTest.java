@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -45,6 +46,7 @@ class OAuth2SuccessHandlerTest {
         cookieProperties.setSameSite("Lax");
 
         handler = new OAuth2SuccessHandler(tokenService, guestMigrationService, userRepository, cookieProperties);
+        ReflectionTestUtils.setField(handler, "defaultRedirectUri", "http://localhost:3000");
 
         user = mock(User.class);
         given(user.getId()).willReturn(1L);
@@ -54,19 +56,15 @@ class OAuth2SuccessHandlerTest {
     }
 
     @Test
-    @DisplayName("인증 성공 시 accessToken·refreshToken 쿠키를 설정하고 루트 경로로 리다이렉트한다")
-    void onAuthenticationSuccess_setsCookiesAndRedirects() throws IOException {
+    @DisplayName("인증 성공 시 프론트엔드 콜백 URL에 access token을 담아 리다이렉트한다")
+    void onAuthenticationSuccess_redirectsToFrontendCallbackWithToken() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         handler.onAuthenticationSuccess(request, response, buildAuthentication());
 
-        List<String> setCookieHeaders = response.getHeaders("Set-Cookie");
-        assertThat(setCookieHeaders).anyMatch(h -> h.startsWith("accessToken=access-token"));
-        assertThat(setCookieHeaders).anyMatch(h -> h.startsWith("refreshToken=refresh-token"));
-        assertThat(setCookieHeaders).allMatch(h -> h.contains("HttpOnly"));
-        assertThat(setCookieHeaders).allMatch(h -> h.contains("SameSite=Lax"));
-        assertThat(response.getRedirectedUrl()).isEqualTo("/");
+        assertThat(response.getRedirectedUrl())
+            .startsWith("http://localhost:3000/auth/kakao/callback?token=access-token");
     }
 
     @Test

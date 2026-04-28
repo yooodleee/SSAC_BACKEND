@@ -128,6 +128,24 @@ public class QuizAttemptService {
     }
 
     /**
+     * 비회원(Guest)의 퀴즈 응시 기록 목록을 guestId 기준으로 조회한다.
+     *
+     * @param guestId JWT sub에서 추출한 임시 사용자 ID(UUID)
+     */
+    @Transactional(readOnly = true)
+    public Page<QuizAttemptSummaryResponse> getGuestHistory(
+        String guestId, int page, int size, AttemptSortType sortType) {
+        log.debug("Guest 퀴즈 기록 조회: guestId={}, page={}, size={}, sort={}", guestId, page, size, sortType);
+
+        Sort sort = buildSort(sortType);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return quizAttemptRepository
+            .findByGuestIdPagedWithQuiz(guestId, pageable)
+            .map(QuizAttemptSummaryResponse::from);
+    }
+
+    /**
      * 사용자의 퀴즈 응시 기록 목록을 페이지네이션과 정렬 옵션으로 조회한다.
      *
      * <p>JOIN FETCH로 quiz를 함께 로드하여 N+1 문제를 방지한다.

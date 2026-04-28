@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +51,10 @@ public class SecurityConfig {
         "/api/v1/auth/**",
         "/login/**",
         "/oauth2/**",
-        "/api/news"
+        "/api/news",
+        "/api/news/**",
+        "/api/quiz",
+        "/api/quiz/**"
     };
 
     @Bean
@@ -68,6 +73,9 @@ public class SecurityConfig {
                 // 퀴즈 제출: 비회원(GUEST)도 허용
                 .requestMatchers(HttpMethod.POST, "/api/v1/quiz-attempts")
                     .hasAnyRole("USER", "GUEST", "ADMIN")
+                // 비회원 퀴즈 기록 조회: GUEST 본인 기록만 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/quiz-attempts/guest")
+                    .hasAnyRole("USER", "GUEST", "ADMIN")
                 // 퀴즈 기록/통계 조회: 로그인 회원만 허용
                 .requestMatchers(HttpMethod.GET, "/api/v1/quiz-attempts", "/api/v1/quiz-attempts/**")
                     .hasAnyRole("USER", "ADMIN")
@@ -83,9 +91,18 @@ public class SecurityConfig {
                 .accessDeniedHandler((req, res, e) -> {
                     res.setContentType("application/json;charset=UTF-8");
                     res.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    res.getWriter().write(
-                        "{\"status\":403,\"code\":\"FORBIDDEN\","
-                        + "\"message\":\"접근 권한이 없습니다.\"}");
+                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                    boolean isGuest = auth != null && auth.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_GUEST"));
+                    if (isGuest) {
+                        res.getWriter().write(
+                            "{\"status\":403,\"code\":\"GUEST_NOT_ALLOWED\","
+                            + "\"message\":\"로그인이 필요한 기능입니다.\"}");
+                    } else {
+                        res.getWriter().write(
+                            "{\"status\":403,\"code\":\"FORBIDDEN\","
+                            + "\"message\":\"접근 권한이 없습니다.\"}");
+                    }
                 })
                 .authenticationEntryPoint((req, res, e) -> {
                     res.setContentType("application/json;charset=UTF-8");
