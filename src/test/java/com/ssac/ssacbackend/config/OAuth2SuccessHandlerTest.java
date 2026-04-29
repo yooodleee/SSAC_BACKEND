@@ -54,24 +54,20 @@ class OAuth2SuccessHandlerTest {
     }
 
     @Test
-    @DisplayName("인증 성공 시 accessToken·refreshToken 쿠키를 설정하고 루트 경로로 리다이렉트한다")
-    void onAuthenticationSuccess_setsCookiesAndRedirects() throws IOException {
+    @DisplayName("인증 성공 시 FE 콜백 URL로 리다이렉트한다")
+    void onAuthenticationSuccessSetsCookiesAndRedirects() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         handler.onAuthenticationSuccess(request, response, buildAuthentication());
 
-        List<String> setCookieHeaders = response.getHeaders("Set-Cookie");
-        assertThat(setCookieHeaders).anyMatch(h -> h.startsWith("accessToken=access-token"));
-        assertThat(setCookieHeaders).anyMatch(h -> h.startsWith("refreshToken=refresh-token"));
-        assertThat(setCookieHeaders).allMatch(h -> h.contains("HttpOnly"));
-        assertThat(setCookieHeaders).allMatch(h -> h.contains("SameSite=Lax"));
-        assertThat(response.getRedirectedUrl()).isEqualTo("/");
+        assertThat(response.getRedirectedUrl())
+            .contains("/auth/kakao/callback?token=access-token");
     }
 
     @Test
     @DisplayName("guestId 쿠키가 없으면 마이그레이션을 호출하지 않는다")
-    void onAuthenticationSuccess_noGuestIdCookie_doesNotMigrate() throws IOException {
+    void onAuthenticationSuccessNoGuestIdCookieDoesNotMigrate() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -82,7 +78,7 @@ class OAuth2SuccessHandlerTest {
 
     @Test
     @DisplayName("guestId 쿠키가 있으면 마이그레이션을 실행하고 guestId 쿠키를 삭제한다")
-    void onAuthenticationSuccess_withGuestIdCookie_migratesAndClearsCookie() throws IOException {
+    void onAuthenticationSuccessWithGuestIdCookieMigratesAndClearsCookie() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setCookies(new jakarta.servlet.http.Cookie("guestId", "test-guest-uuid"));
         MockHttpServletResponse response = new MockHttpServletResponse();

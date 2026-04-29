@@ -27,7 +27,7 @@ class GuestMigrationServiceTest {
 
     @Test
     @DisplayName("guestId로 저장된 응시 기록이 있으면 각 기록을 User로 이전한다")
-    void migrateGuestData_withRecords_transfersAllToUser() {
+    void migrateGuestDataWithRecordsTransfersAllToUser() {
         String guestId = "test-guest-uuid";
         User user = mock(User.class);
         QuizAttempt attempt1 = mock(QuizAttempt.class);
@@ -42,7 +42,7 @@ class GuestMigrationServiceTest {
 
     @Test
     @DisplayName("guestId로 저장된 응시 기록이 없으면 transferToUser를 호출하지 않는다")
-    void migrateGuestData_noRecords_doesNotCallTransfer() {
+    void migrateGuestDataNoRecordsDoesNotCallTransfer() {
         String guestId = "test-guest-uuid";
         User user = mock(User.class);
         given(quizAttemptRepository.findByGuestId(guestId)).willReturn(List.of());
@@ -54,7 +54,7 @@ class GuestMigrationServiceTest {
 
     @Test
     @DisplayName("마이그레이션 대상 guestId로만 조회하고 다른 guestId의 기록은 건드리지 않는다")
-    void migrateGuestData_queriesOnlyTargetGuestId() {
+    void migrateGuestDataQueriesOnlyTargetGuestId() {
         String guestId = "target-guest";
         User user = mock(User.class);
         given(quizAttemptRepository.findByGuestId(guestId)).willReturn(List.of());

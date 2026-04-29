@@ -43,7 +43,7 @@ class QuizAttemptServiceGuestTest {
 
     @Test
     @DisplayName("submitQuizAsGuest는 user 없이 guestId로 응시 기록을 저장한다")
-    void submitQuizAsGuest_savesAttemptWithGuestIdAndNoUser() {
+    void submitQuizAsGuestSavesAttemptWithGuestIdAndNoUser() {
         String guestId = "test-guest-uuid";
         Quiz quiz = buildQuiz(1L, 20, 2);
         Question q1 = buildQuestion(1L, quiz, "A", 10);
@@ -71,7 +71,7 @@ class QuizAttemptServiceGuestTest {
 
     @Test
     @DisplayName("submitQuizAsGuest는 서버 채점 결과를 정확히 계산해 저장한다")
-    void submitQuizAsGuest_calculatesScoreCorrectly() {
+    void submitQuizAsGuestCalculatesScoreCorrectly() {
         String guestId = "test-guest-uuid";
         Quiz quiz = buildQuiz(1L, 20, 2);
         Question q1 = buildQuestion(1L, quiz, "A", 10);
@@ -96,7 +96,7 @@ class QuizAttemptServiceGuestTest {
 
     @Test
     @DisplayName("submitQuizAsGuest는 모든 문항이 오답이면 점수 0을 저장한다")
-    void submitQuizAsGuest_allWrong_savesZeroScore() {
+    void submitQuizAsGuestAllWrongSavesZeroScore() {
         String guestId = "test-guest-uuid";
         Quiz quiz = buildQuiz(1L, 20, 2);
         Question q1 = buildQuestion(1L, quiz, "A", 10);
