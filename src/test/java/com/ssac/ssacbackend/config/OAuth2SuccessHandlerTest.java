@@ -25,6 +25,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class OAuth2SuccessHandlerTest {
 
@@ -45,6 +46,7 @@ class OAuth2SuccessHandlerTest {
         cookieProperties.setSameSite("Lax");
 
         handler = new OAuth2SuccessHandler(tokenService, guestMigrationService, userRepository, cookieProperties);
+        ReflectionTestUtils.setField(handler, "defaultRedirectUri", "http://localhost:3000");
 
         user = mock(User.class);
         given(user.getId()).willReturn(1L);
@@ -54,15 +56,15 @@ class OAuth2SuccessHandlerTest {
     }
 
     @Test
-    @DisplayName("인증 성공 시 FE 콜백 URL로 리다이렉트한다")
-    void onAuthenticationSuccessSetsCookiesAndRedirects() throws IOException {
+    @DisplayName("인증 성공 시 프론트엔드 콜백 URL에 access token을 담아 리다이렉트한다")
+    void onAuthenticationSuccessRedirectsToFrontendCallbackWithToken() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         handler.onAuthenticationSuccess(request, response, buildAuthentication());
 
         assertThat(response.getRedirectedUrl())
-            .contains("/auth/kakao/callback?token=access-token");
+            .startsWith("http://localhost:3000/auth/kakao/callback?token=access-token");
     }
 
     @Test

@@ -36,7 +36,12 @@
       "Bash(./gradlew compileJava --info)",
       "Bash(./gradlew cleanTest test)",
       "Bash(OAuth2SuccessHandler.java)",
-      "Bash(http://localhost:3000/auth/kakao/callback?token={accessToken})"
+      "Bash(http://localhost:3000/auth/kakao/callback?token={accessToken})",
+      "Bash(GuestMigrationService)",
+      "Bash(GET /api/news/**)",
+      "Bash(GET /api/quiz/**)",
+      "Bash(GUEST_NOT_ALLOWED)",
+      "Bash(\\\\\"로그인이 필요한 기능입니다.\\\\\")"
     ]
   }
 }

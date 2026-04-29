@@ -79,6 +79,31 @@ public class QuizAttemptController {
     }
 
     @Operation(
+        summary = "비회원 퀴즈 응시 기록 조회",
+        description = """
+            [호출 화면] 비회원 퀴즈 풀기 후 내 기록 확인
+            [권한 조건] Guest 토큰 필요 (POST /api/v1/auth/guest 로 발급)
+            [특이 동작] JWT의 guestId를 기준으로 본인의 기록만 반환한다.
+            """,
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @GetMapping("/guest")
+    public ResponseEntity<ApiResponse<Page<QuizAttemptSummaryResponse>>> getGuestHistory(
+        Authentication authentication,
+        @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "페이지 크기", example = "10")
+        @RequestParam(defaultValue = "10") int size,
+        @Parameter(description = "정렬 기준 (LATEST: 최신 순, SCORE: 점수 순)")
+        @RequestParam(defaultValue = "LATEST") AttemptSortType sort) {
+        log.debug("Guest 퀴즈 기록 조회: guestId={}, page={}, size={}, sort={}",
+            authentication.getName(), page, size, sort);
+        Page<QuizAttemptSummaryResponse> result =
+            quizAttemptService.getGuestHistory(authentication.getName(), page, size, sort);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    @Operation(
         summary = "퀴즈 응시 기록 목록 조회",
         description = """
             [호출 화면] 프로필 > 내 퀴즈 기록 페이지 진입 시 호출.

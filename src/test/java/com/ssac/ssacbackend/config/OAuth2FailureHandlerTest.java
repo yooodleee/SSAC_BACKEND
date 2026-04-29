@@ -16,7 +16,7 @@ class OAuth2FailureHandlerTest {
     @DisplayName("인증 실패 시 에러 메시지를 쿼리 파라미터에 담아 루트 경로로 리다이렉트한다")
     void onAuthenticationFailureRedirectsWithError() throws IOException {
         // given
-        CookieProperties cookieProperties = new CookieProperties();
+        CookieProperties cookieProperties = mock(CookieProperties.class);
         OAuth2FailureHandler handler = new OAuth2FailureHandler(cookieProperties);
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();

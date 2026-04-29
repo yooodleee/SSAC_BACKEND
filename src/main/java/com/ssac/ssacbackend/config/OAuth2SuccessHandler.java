@@ -60,7 +60,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String guestId = extractGuestIdFromCookie(request);
         if (guestId != null) {
             log.debug("Kakao 로그인 시 guestId 쿠키 감지, 마이그레이션 실행: guestId={}", guestId);
-            guestMigrationService.migrateGuestData(guestId, user);
+            boolean migrated = guestMigrationService.migrateGuestData(guestId, user);
+            if (!migrated) {
+                log.warn("Guest 마이그레이션 실패, 로그인 계속 진행: guestId={}", guestId);
+            }
             CookieUtils.clearGuestIdCookie(response, cookieProperties);
         } else {
             log.debug("Kakao 로그인: guestId 쿠키 없음, 마이그레이션 생략");
