@@ -33,7 +33,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 @Configuration
 @EnableWebSecurity
-@EnableConfigurationProperties({JwtProperties.class, CookieProperties.class, CorsProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, CookieProperties.class, CorsProperties.class,
+    AbTestProperties.class})
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -54,7 +55,9 @@ public class SecurityConfig {
         "/api/news",
         "/api/news/**",
         "/api/quiz",
-        "/api/quiz/**"
+        "/api/quiz/**",
+        "/api/events/menu-click",
+        "/api/ab-test/menu"
     };
 
     @Bean
