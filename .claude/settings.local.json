@@ -41,7 +41,12 @@
       "Bash(GET /api/news/**)",
       "Bash(GET /api/quiz/**)",
       "Bash(GUEST_NOT_ALLOWED)",
-      "Bash(\\\\\"로그인이 필요한 기능입니다.\\\\\")"
+      "Bash(\\\\\"로그인이 필요한 기능입니다.\\\\\")",
+      "Bash(./gradlew compileJava --no-daemon)",
+      "Bash(./gradlew checkstyleMain --no-daemon)",
+      "Bash(POST /api/events/menu-click)",
+      "Bash(GET /api/v1/admin/menu-stats)",
+      "Bash(GET /api/ab-test/menu)"
     ]
   }
 }
