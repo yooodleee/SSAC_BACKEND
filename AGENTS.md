@@ -1,4 +1,4 @@
-# AGENTS.md — SSAC Backend 에이전트 진입점
+1# AGENTS.md — SSAC Backend 에이전트 진입점
 
 ## 이 저장소는 무엇인가
 

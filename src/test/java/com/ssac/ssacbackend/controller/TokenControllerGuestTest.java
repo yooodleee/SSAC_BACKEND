@@ -37,10 +37,10 @@ class TokenControllerGuestTest {
 
     @Test
     @DisplayName("POST /auth/guest는 200과 함께 Guest Access Token을 응답 바디에 반환한다")
-    void issueGuestToken_returnsAccessTokenInBody() {
+    void issueGuestTokenReturnsAccessTokenInBody() {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        ResponseEntity<ApiResponse<LoginResponse>> result = controller.issueGuestToken(response);
+        ResponseEntity<ApiResponse<LoginResponse>> result = controller.issueGuestToken(null, response);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isNotNull();
@@ -51,10 +51,10 @@ class TokenControllerGuestTest {
 
     @Test
     @DisplayName("POST /auth/guest는 accessToken HttpOnly 쿠키를 설정한다")
-    void issueGuestToken_setsAccessTokenCookie() {
+    void issueGuestTokenSetsAccessTokenCookie() {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        controller.issueGuestToken(response);
+        controller.issueGuestToken(null, response);
 
         List<String> cookies = response.getHeaders("Set-Cookie");
         assertThat(cookies).anyMatch(h -> h.startsWith("accessToken=guest-access-token"));
@@ -64,10 +64,10 @@ class TokenControllerGuestTest {
 
     @Test
     @DisplayName("POST /auth/guest는 guestId HttpOnly 쿠키를 설정한다")
-    void issueGuestToken_setsGuestIdCookie() {
+    void issueGuestTokenSetsGuestIdCookie() {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        controller.issueGuestToken(response);
+        controller.issueGuestToken(null, response);
 
         List<String> cookies = response.getHeaders("Set-Cookie");
         assertThat(cookies).anyMatch(h -> h.startsWith("guestId=") && h.contains("HttpOnly"));
@@ -75,16 +75,28 @@ class TokenControllerGuestTest {
 
     @Test
     @DisplayName("POST /auth/guest는 매 호출마다 다른 guestId 쿠키를 발급한다")
-    void issueGuestToken_generatesUniqueGuestIdEachTime() {
+    void issueGuestTokenGeneratesUniqueGuestIdEachTime() {
         MockHttpServletResponse response1 = new MockHttpServletResponse();
         MockHttpServletResponse response2 = new MockHttpServletResponse();
 
-        controller.issueGuestToken(response1);
-        controller.issueGuestToken(response2);
+        controller.issueGuestToken(null, response1);
+        controller.issueGuestToken(null, response2);
 
         String guestId1 = extractGuestId(response1);
         String guestId2 = extractGuestId(response2);
         assertThat(guestId1).isNotEqualTo(guestId2);
+    }
+
+    @Test
+    @DisplayName("POST /auth/guest 호출 시 기존 guestId 쿠키가 있으면 이를 재사용한다")
+    void issueGuestTokenReusesExistingGuestId() {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        String existingGuestId = "old-guest-id";
+
+        controller.issueGuestToken(existingGuestId, response);
+
+        String issuedGuestId = extractGuestId(response);
+        assertThat(issuedGuestId).isEqualTo(existingGuestId);
     }
 
     private String extractGuestId(MockHttpServletResponse response) {

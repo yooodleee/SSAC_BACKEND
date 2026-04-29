@@ -1,12 +1,15 @@
 package com.ssac.ssacbackend.service;
 
 import com.ssac.ssacbackend.domain.quiz.QuizAttempt;
+import com.ssac.ssacbackend.domain.user.MigrationFailure;
 import com.ssac.ssacbackend.domain.user.User;
+import com.ssac.ssacbackend.repository.MigrationFailureRepository;
 import com.ssac.ssacbackend.repository.QuizAttemptRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -21,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class GuestMigrationService {
 
     private final QuizAttemptRepository quizAttemptRepository;
+    private final MigrationFailureRepository migrationFailureRepository;
 
     @Transactional
     public void migrateGuestData(String guestId, User user) {
@@ -37,7 +41,27 @@ public class GuestMigrationService {
         } catch (Exception e) {
             log.error("Guest 데이터 마이그레이션 실패: guestId={}, userId={}, 원인={}",
                 guestId, user.getId(), e.getMessage(), e);
+            recordMigrationFailure(guestId, user.getId(), e.getMessage());
             throw e;
+        }
+    }
+
+    /**
+     * 마이그레이션 실패를 별도 트랜잭션으로 기록한다.
+     * 부모 트랜잭션이 롤백되어도 실패 기록은 남아야 하므로 REQUIRES_NEW 사용.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordMigrationFailure(String guestId, Long userId, String message) {
+        try {
+            MigrationFailure failure = MigrationFailure.builder()
+                .guestId(guestId)
+                .userId(userId)
+                .errorMessage(message)
+                .build();
+            migrationFailureRepository.save(failure);
+            log.info("마이그레이션 실패 기록 저장 완료: guestId={}", guestId);
+        } catch (Exception e) {
+            log.error("마이그레이션 실패 기록 저장 중 오류 발생: {}", e.getMessage(), e);
         }
     }
 }

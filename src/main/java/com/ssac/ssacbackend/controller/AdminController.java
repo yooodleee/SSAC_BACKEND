@@ -42,8 +42,9 @@ public class AdminController {
     @Operation(
         summary = "전체 사용자 목록 조회",
         description = """
-            [권한 조건] ADMIN만 접근 가능
-            [특이 동작] 페이지네이션 지원. 가입일시 내림차순 정렬.
+            [호출 화면] 관리자 대시보드 > 사용자 관리 탭
+            [권한 조건] ADMIN 역할 전용.
+            [특이 동작] 페이지네이션 지원. 가입일시 내림차순 정렬. 비회원(GUEST)은 목록에 포함되지 않음.
             """,
         security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -51,7 +52,7 @@ public class AdminController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200", description = "목록 조회 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "403", description = "ADMIN 권한 없음")
+            responseCode = "403", description = "접근 권한 없음 (ADMIN 전용)")
     })
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<Page<UserSummaryResponse>>> listUsers(
@@ -70,7 +71,8 @@ public class AdminController {
     @Operation(
         summary = "사용자 권한 변경",
         description = """
-            [권한 조건] ADMIN만 접근 가능
+            [호출 화면] 관리자 대시보드 > 사용자 상세 정보 > 권한 수정 팝업
+            [권한 조건] ADMIN 역할 전용.
             [특이 동작] 변경된 권한은 해당 사용자의 다음 API 요청부터 즉시 반영된다. GUEST 역할 부여 불가.
             """,
         security = @SecurityRequirement(name = "bearerAuth")
@@ -81,7 +83,7 @@ public class AdminController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "400", description = "잘못된 역할 또는 유효성 검사 실패"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "403", description = "ADMIN 권한 없음"),
+            responseCode = "403", description = "접근 권한 없음 (ADMIN 전용)"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "404", description = "사용자를 찾을 수 없음")
     })
