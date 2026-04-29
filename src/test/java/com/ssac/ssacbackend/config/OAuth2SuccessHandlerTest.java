@@ -19,13 +19,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class OAuth2SuccessHandlerTest {
 
@@ -57,7 +57,7 @@ class OAuth2SuccessHandlerTest {
 
     @Test
     @DisplayName("인증 성공 시 프론트엔드 콜백 URL에 access token을 담아 리다이렉트한다")
-    void onAuthenticationSuccess_redirectsToFrontendCallbackWithToken() throws IOException {
+    void onAuthenticationSuccessRedirectsToFrontendCallbackWithToken() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -69,7 +69,7 @@ class OAuth2SuccessHandlerTest {
 
     @Test
     @DisplayName("guestId 쿠키가 없으면 마이그레이션을 호출하지 않는다")
-    void onAuthenticationSuccess_noGuestIdCookie_doesNotMigrate() throws IOException {
+    void onAuthenticationSuccessNoGuestIdCookieDoesNotMigrate() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -80,7 +80,7 @@ class OAuth2SuccessHandlerTest {
 
     @Test
     @DisplayName("guestId 쿠키가 있으면 마이그레이션을 실행하고 guestId 쿠키를 삭제한다")
-    void onAuthenticationSuccess_withGuestIdCookie_migratesAndClearsCookie() throws IOException {
+    void onAuthenticationSuccessWithGuestIdCookieMigratesAndClearsCookie() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setCookies(new jakarta.servlet.http.Cookie("guestId", "test-guest-uuid"));
         MockHttpServletResponse response = new MockHttpServletResponse();

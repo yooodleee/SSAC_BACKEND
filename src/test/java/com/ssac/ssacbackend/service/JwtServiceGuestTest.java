@@ -25,7 +25,7 @@ class JwtServiceGuestTest {
 
     @Test
     @DisplayName("generateGuestToken은 GUEST role과 guestId를 sub로 담은 JWT를 생성한다")
-    void generateGuestToken_containsGuestRoleAndGuestId() {
+    void generateGuestTokenContainsGuestRoleAndGuestId() {
         String guestId = UUID.randomUUID().toString();
 
         String token = jwtService.generateGuestToken(guestId);
@@ -39,7 +39,7 @@ class JwtServiceGuestTest {
 
     @Test
     @DisplayName("GUEST 토큰에는 email claim이 없어 extractEmailIfValid는 빈 Optional을 반환한다")
-    void generateGuestToken_hasNoEmailClaim() {
+    void generateGuestTokenHasNoEmailClaim() {
         String token = jwtService.generateGuestToken(UUID.randomUUID().toString());
 
         assertThat(jwtService.extractEmailIfValid(token)).isEmpty();
@@ -47,7 +47,7 @@ class JwtServiceGuestTest {
 
     @Test
     @DisplayName("USER 토큰에서 extractTokenInfoIfValid는 email을 principal로 USER를 role로 반환한다")
-    void extractTokenInfoIfValid_userToken_returnsEmailAndUserRole() {
+    void extractTokenInfoIfValidUserTokenReturnsEmailAndUserRole() {
         String token = jwtService.generateAccessToken(1L, "user@test.com", "USER");
 
         Optional<TokenInfo> info = jwtService.extractTokenInfoIfValid(token);
@@ -59,7 +59,7 @@ class JwtServiceGuestTest {
 
     @Test
     @DisplayName("ADMIN 토큰에서 extractTokenInfoIfValid는 email을 principal로 ADMIN을 role로 반환한다")
-    void extractTokenInfoIfValid_adminToken_returnsEmailAndAdminRole() {
+    void extractTokenInfoIfValidAdminTokenReturnsEmailAndAdminRole() {
         String token = jwtService.generateAccessToken(2L, "admin@test.com", "ADMIN");
 
         Optional<TokenInfo> info = jwtService.extractTokenInfoIfValid(token);
@@ -71,7 +71,7 @@ class JwtServiceGuestTest {
 
     @Test
     @DisplayName("서명이 다른 유효하지 않은 토큰은 빈 Optional을 반환한다")
-    void extractTokenInfoIfValid_invalidToken_returnsEmpty() {
+    void extractTokenInfoIfValidInvalidTokenReturnsEmpty() {
         Optional<TokenInfo> result = jwtService.extractTokenInfoIfValid("invalid.token.value");
 
         assertThat(result).isEmpty();
@@ -79,7 +79,7 @@ class JwtServiceGuestTest {
 
     @Test
     @DisplayName("다른 secret으로 서명된 토큰은 빈 Optional을 반환한다")
-    void extractTokenInfoIfValid_differentSecretToken_returnsEmpty() {
+    void extractTokenInfoIfValidDifferentSecretTokenReturnsEmpty() {
         JwtProperties otherProps = new JwtProperties();
         otherProps.setSecret("another-secret-key-completely-different-!!");
         otherProps.setExpirationMs(1_800_000L);

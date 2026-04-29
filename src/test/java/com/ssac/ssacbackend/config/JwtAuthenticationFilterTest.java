@@ -45,7 +45,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     @DisplayName("GUEST 토큰이면 SecurityContext에 guestId를 principal로, ROLE_GUEST를 authority로 설정한다")
-    void doFilter_guestToken_setsGuestRoleAndGuestIdAsPrincipal() throws Exception {
+    void doFilterGuestTokenSetsGuestRoleAndGuestIdAsPrincipal() throws Exception {
         String guestId = UUID.randomUUID().toString();
         String token = jwtService.generateGuestToken(guestId);
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -63,7 +63,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     @DisplayName("USER 토큰이면 SecurityContext에 email을 principal로, ROLE_USER를 authority로 설정한다")
-    void doFilter_userToken_setsUserRoleAndEmailAsPrincipal() throws Exception {
+    void doFilterUserTokenSetsUserRoleAndEmailAsPrincipal() throws Exception {
         String email = "user@test.com";
         User mockUser = mock(User.class);
         when(mockUser.getRole()).thenReturn(UserRole.USER);
@@ -86,7 +86,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     @DisplayName("ADMIN 토큰이면 SecurityContext에 ROLE_ADMIN을 설정한다")
-    void doFilter_adminToken_setsAdminRole() throws Exception {
+    void doFilterAdminTokenSetsAdminRole() throws Exception {
         String email = "admin@test.com";
         User mockUser = mock(User.class);
         when(mockUser.getRole()).thenReturn(UserRole.ADMIN);
@@ -108,7 +108,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     @DisplayName("토큰이 없으면 SecurityContext에 인증 정보를 설정하지 않는다")
-    void doFilter_noToken_doesNotSetAuthentication() throws Exception {
+    void doFilterNoTokenDoesNotSetAuthentication() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
 
         filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
@@ -118,7 +118,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     @DisplayName("유효하지 않은 토큰이면 SecurityContext에 인증 정보를 설정하지 않는다")
-    void doFilter_invalidToken_doesNotSetAuthentication() throws Exception {
+    void doFilterInvalidTokenDoesNotSetAuthentication() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer totally.invalid.token");
 
@@ -129,7 +129,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     @DisplayName("accessToken 쿠키에 GUEST 토큰이 있어도 동일하게 ROLE_GUEST를 설정한다")
-    void doFilter_guestTokenInCookie_setsGuestRole() throws Exception {
+    void doFilterGuestTokenInCookieSetsGuestRole() throws Exception {
         String guestId = UUID.randomUUID().toString();
         String token = jwtService.generateGuestToken(guestId);
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -147,7 +147,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     @DisplayName("로그아웃된 사용자의 토큰은 invalidatedBefore 이후에 발급되지 않았으면 인증을 거부한다")
-    void doFilter_invalidatedToken_doesNotSetAuthentication() throws Exception {
+    void doFilterInvalidatedTokenDoesNotSetAuthentication() throws Exception {
         String email = "user@test.com";
         User mockUser = mock(User.class);
         when(mockUser.getRole()).thenReturn(UserRole.USER);

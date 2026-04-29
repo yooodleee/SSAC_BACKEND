@@ -47,7 +47,7 @@ class RecommendationServiceTest {
 
     @Test
     @DisplayName("응시 기록이 없는 신규 사용자에게는 최신 퀴즈 기본 추천을 반환한다")
-    void newUser_returnsDefaultRecommendation() {
+    void newUserReturnsDefaultRecommendation() {
         given(userRepository.findByEmail(EMAIL)).willReturn(Optional.of(mock(User.class)));
         given(quizAttemptRepository.existsByUserEmail(EMAIL)).willReturn(false);
 
@@ -68,7 +68,7 @@ class RecommendationServiceTest {
 
     @Test
     @DisplayName("신규 사용자 추천 목록이 비어있으면 빈 추천을 반환한다")
-    void newUser_noQuizzes_returnsEmptyList() {
+    void newUserNoQuizzesReturnsEmptyList() {
         given(userRepository.findByEmail(EMAIL)).willReturn(Optional.of(mock(User.class)));
         given(quizAttemptRepository.existsByUserEmail(EMAIL)).willReturn(false);
         given(quizRepository.findByOrderByCreatedAtDesc(any(Pageable.class)))
@@ -84,7 +84,7 @@ class RecommendationServiceTest {
 
     @Test
     @DisplayName("정답률이 70% 미만인 퀴즈는 RETRY로 추천된다")
-    void existingUser_lowAccuracyAttempt_returnsRetryRecommendation() {
+    void existingUserLowAccuracyAttemptReturnsRetryRecommendation() {
         given(userRepository.findByEmail(EMAIL)).willReturn(Optional.of(mock(User.class)));
         given(quizAttemptRepository.existsByUserEmail(EMAIL)).willReturn(true);
 
@@ -107,7 +107,7 @@ class RecommendationServiceTest {
 
     @Test
     @DisplayName("정답률이 70% 이상인 퀴즈는 RETRY로 추천되지 않는다")
-    void existingUser_highAccuracyAttempt_notRecommendedAsRetry() {
+    void existingUserHighAccuracyAttemptNotRecommendedAsRetry() {
         given(userRepository.findByEmail(EMAIL)).willReturn(Optional.of(mock(User.class)));
         given(quizAttemptRepository.existsByUserEmail(EMAIL)).willReturn(true);
 
@@ -128,7 +128,7 @@ class RecommendationServiceTest {
 
     @Test
     @DisplayName("미시도 퀴즈는 UNTRIED로 추천된다")
-    void existingUser_untriedQuiz_returnsUntriedRecommendation() {
+    void existingUserUntriedQuizReturnsUntriedRecommendation() {
         given(userRepository.findByEmail(EMAIL)).willReturn(Optional.of(mock(User.class)));
         given(quizAttemptRepository.existsByUserEmail(EMAIL)).willReturn(true);
         given(quizAttemptRepository.findByUserEmailSinceWithQuiz(eq(EMAIL), any(LocalDateTime.class)))
@@ -148,7 +148,7 @@ class RecommendationServiceTest {
 
     @Test
     @DisplayName("RETRY와 UNTRIED가 동시에 존재하면 함께 반환된다")
-    void existingUser_mixedRecommendations() {
+    void existingUserMixedRecommendations() {
         given(userRepository.findByEmail(EMAIL)).willReturn(Optional.of(mock(User.class)));
         given(quizAttemptRepository.existsByUserEmail(EMAIL)).willReturn(true);
 
@@ -173,7 +173,7 @@ class RecommendationServiceTest {
 
     @Test
     @DisplayName("동일 퀴즈가 RETRY와 UNTRIED 양쪽에 해당해도 중복 포함되지 않는다")
-    void existingUser_sameQuizNotDuplicated() {
+    void existingUserSameQuizNotDuplicated() {
         given(userRepository.findByEmail(EMAIL)).willReturn(Optional.of(mock(User.class)));
         given(quizAttemptRepository.existsByUserEmail(EMAIL)).willReturn(true);
 
@@ -195,7 +195,7 @@ class RecommendationServiceTest {
 
     @Test
     @DisplayName("존재하지 않는 사용자 이메일로 조회하면 404 예외가 발생한다")
-    void unknownEmail_throwsNotFoundException() {
+    void unknownEmailThrowsNotFoundException() {
         given(userRepository.findByEmail("none@test.com")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> recommendationService.getRecommendations("none@test.com"))

@@ -1,12 +1,14 @@
 package com.ssac.ssacbackend.repository;
 
 import com.ssac.ssacbackend.domain.quiz.QuizAttempt;
+import com.ssac.ssacbackend.domain.user.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -90,6 +92,11 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
     List<Object[]> aggregateOverallStats(@Param("email") String email);
 
     /**
+     * guestId로 응시 기록을 조회한다. Guest → User 전환 시 데이터 마이그레이션에 사용한다.
+     */
+    List<QuizAttempt> findByGuestId(String guestId);
+
+    /**
      * guestId로 응시 기록을 quiz 정보와 함께 조회한다. Guest → User 전환 시 마이그레이션에 사용한다.
      */
     @Query("SELECT qa FROM QuizAttempt qa JOIN FETCH qa.quiz WHERE qa.guestId = :guestId")
@@ -108,8 +115,16 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
      * 특정 사용자의 응시 기록 중 지정된 quizId 목록에 해당하는 기록을 조회한다. 마이그레이션 시 중복 감지에 사용한다.
      */
     @Query("SELECT qa FROM QuizAttempt qa JOIN FETCH qa.quiz WHERE qa.user = :user AND qa.quiz.id IN :quizIds")
-    List<QuizAttempt> findByUserAndQuizIds(@Param("user") com.ssac.ssacbackend.domain.user.User user,
-        @Param("quizIds") List<Long> quizIds);
+    List<QuizAttempt> findByUserAndQuizIds(@Param("user") User user, @Param("quizIds") List<Long> quizIds);
+
+    /**
+     * 특정 시점 이전에 생성된 Guest 응시 기록을 삭제한다.
+     *
+     * @param threshold 이 시점 이전( < )의 기록만 삭제
+     */
+    @Modifying
+    @Query("DELETE FROM QuizAttempt qa WHERE qa.guestId IS NOT NULL AND qa.attemptedAt < :threshold")
+    void deleteByGuestIdIsNotNullAndAttemptedAtBefore(@Param("threshold") LocalDateTime threshold);
 
     /**
      * 사용자의 응시 기록이 하나라도 존재하는지 확인한다. 신규 사용자 판별에 사용한다.

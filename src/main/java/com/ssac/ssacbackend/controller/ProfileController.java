@@ -43,15 +43,17 @@ public class ProfileController {
     @Operation(
         summary = "내 프로필 조회",
         description = """
-            [호출 화면] 마이페이지 진입 시
-            [권한 조건] 로그인 필수 (JWT Bearer 토큰)
-            [특이 동작] 토큰의 이메일로 사용자를 식별하며 타인 프로필 조회 불가
+            [호출 화면] 마이페이지 진입 시 호출.
+            [권한 조건] 로그인 회원 전용 (USER, ADMIN). 비회원(GUEST) 접근 불가.
+            [특이 동작] 토큰의 이메일로 사용자를 식별하며 타인 프로필 조회 불가.
             """,
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200", description = "프로필 조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "403", description = "loginRequired: true (회원 로그인 필요)"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "404", description = "사용자를 찾을 수 없음")
     })
@@ -66,10 +68,9 @@ public class ProfileController {
     @Operation(
         summary = "닉네임 수정",
         description = """
-            [호출 화면] 마이페이지 > 닉네임 수정
-            [권한 조건] 로그인 필수 (JWT Bearer 토큰)
-            [특이 동작] 닉네임 중복 시 409, 유효성 검사 실패 시 400 반환.
-            닉네임 정책: 2~20자, 한글/영문/숫자/언더스코어/하이픈만 허용
+            [호출 화면] 마이페이지 > 프로필 수정 섹션에서 닉네임 수정 시 호출.
+            [권한 조건] 로그인 회원 전용 (USER, ADMIN).
+            [특이 동작] 닉네임 중복 시 409 반환. 닉네임 정책: 2~20자, 특수문자 제한.
             """,
         security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -78,6 +79,8 @@ public class ProfileController {
             responseCode = "200", description = "닉네임 수정 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "400", description = "닉네임 유효성 검사 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "403", description = "loginRequired: true (회원 로그인 필요)"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "404", description = "사용자를 찾을 수 없음"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -96,11 +99,9 @@ public class ProfileController {
     @Operation(
         summary = "전체 디바이스 로그아웃",
         description = """
-            [호출 화면] 마이페이지 > 전체 기기에서 로그아웃
-            [권한 조건] 로그인 필수 (JWT Bearer 토큰)
-            [특이 동작] 해당 계정으로 발급된 모든 Refresh Token을 일괄 무효화한다.
-            모든 기기에서 발급된 Access Token도 다음 요청부터 차단된다.
-            accessToken, refreshToken, guestId 쿠키를 즉시 삭제한다.
+            [호출 화면] 마이페이지 > 설정 > 보안 관리 > 모든 기기에서 로그아웃 클릭 시.
+            [권한 조건] 로그인 회원 전용 (USER, ADMIN).
+            [특이 동작] 해당 계정으로 발급된 모든 Refresh Token을 무효화하고 관련 쿠키를 모두 삭제한다.
             """,
         security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -108,7 +109,7 @@ public class ProfileController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200", description = "전체 디바이스 로그아웃 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "401", description = "인증 토큰 없음")
+            responseCode = "403", description = "loginRequired: true (회원 로그인 필요)")
     })
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logoutAll(

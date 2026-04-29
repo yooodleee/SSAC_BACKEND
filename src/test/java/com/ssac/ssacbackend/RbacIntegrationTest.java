@@ -100,7 +100,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("토큰 없이 보호된 API 호출 시 401을 응답받는다")
-    void noToken_protectedApi_returns401() throws Exception {
+    void noTokenProtectedApiReturns401() throws Exception {
         mockMvc.perform(get("/api/v1/users/me"))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.status").value(401))
@@ -109,7 +109,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("토큰 없이 Admin API 호출 시 401을 응답받는다")
-    void noToken_adminApi_returns401() throws Exception {
+    void noTokenAdminApiReturns401() throws Exception {
         mockMvc.perform(get("/api/v1/admin/users"))
             .andExpect(status().isUnauthorized());
     }
@@ -118,7 +118,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("USER 토큰으로 본인 프로필 조회 시 200을 응답받는다")
-    void userToken_ownProfile_returns200() throws Exception {
+    void userTokenOwnProfileReturns200() throws Exception {
         String token = jwtService.generateAccessToken(user.getId(), user.getEmail(), "USER");
 
         mockMvc.perform(get("/api/v1/users/me")
@@ -130,7 +130,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("ADMIN 토큰으로 사용자 목록 조회 시 200과 사용자 목록을 응답받는다")
-    void adminToken_listUsers_returns200() throws Exception {
+    void adminTokenListUsersReturns200() throws Exception {
         String token = jwtService.generateAccessToken(adminUser.getId(), adminUser.getEmail(), "ADMIN");
 
         mockMvc.perform(get("/api/v1/admin/users")
@@ -142,7 +142,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("ADMIN 토큰으로 사용자 권한 변경 시 200과 변경된 사용자 정보를 응답받는다")
-    void adminToken_updateRole_returns200() throws Exception {
+    void adminTokenUpdateRoleReturns200() throws Exception {
         String token = jwtService.generateAccessToken(adminUser.getId(), adminUser.getEmail(), "ADMIN");
 
         mockMvc.perform(patch("/api/v1/admin/users/" + user.getId() + "/role")
@@ -157,7 +157,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("USER 토큰으로 Admin API 접근 시 403을 응답받는다")
-    void userToken_adminApi_returns403() throws Exception {
+    void userTokenAdminApiReturns403() throws Exception {
         String token = jwtService.generateAccessToken(user.getId(), user.getEmail(), "USER");
 
         mockMvc.perform(get("/api/v1/admin/users")
@@ -167,7 +167,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("GUEST 토큰으로 Admin API 접근 시 403을 응답받는다")
-    void guestToken_adminApi_returns403() throws Exception {
+    void guestTokenAdminApiReturns403() throws Exception {
         String token = jwtService.generateGuestToken("guest-id-abc");
 
         mockMvc.perform(get("/api/v1/admin/users")
@@ -177,7 +177,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("GUEST 토큰으로 퀴즈 기록 목록 조회 시 403을 응답받는다")
-    void guestToken_quizHistory_returns403() throws Exception {
+    void guestTokenQuizHistoryReturns403() throws Exception {
         String token = jwtService.generateGuestToken("guest-id-abc");
 
         mockMvc.perform(get("/api/v1/quiz-attempts")
@@ -189,7 +189,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("로그아웃 후 기존 Access Token으로 API 호출 시 401을 응답받는다")
-    void afterLogout_oldAccessToken_returns401() throws Exception {
+    void afterLogoutOldAccessTokenReturns401() throws Exception {
         TokenPair tokens = tokenService.issueTokens(user);
         String accessToken = tokens.accessToken();
         String refreshToken = tokens.refreshToken();
@@ -212,7 +212,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("로그아웃 후 Refresh Token으로 재발급 시도 시 400을 응답받는다")
-    void afterLogout_refreshTokenReissue_returns400() throws Exception {
+    void afterLogoutRefreshTokenReissueReturns400() throws Exception {
         TokenPair tokens = tokenService.issueTokens(user);
 
         // 로그아웃
@@ -230,7 +230,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("유효한 Refresh Token으로 Access Token 재발급 시 200과 새 토큰을 응답받는다")
-    void validRefreshToken_reissue_returns200() throws Exception {
+    void validRefreshTokenReissueReturns200() throws Exception {
         TokenPair tokens = tokenService.issueTokens(user);
 
         mockMvc.perform(post("/api/v1/auth/reissue")
@@ -245,7 +245,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("ADMIN이 USER의 권한을 ADMIN으로 변경하면 기존 토큰으로도 다음 요청부터 즉시 반영된다")
-    void roleChange_immediatelyReflected_withSameToken() throws Exception {
+    void roleChangeImmediatelyReflectedWithSameToken() throws Exception {
         // USER 토큰 생성 (JWT payload에는 role=USER 가 기록됨)
         String userToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), "USER");
         String adminToken = jwtService.generateAccessToken(adminUser.getId(), adminUser.getEmail(), "ADMIN");
@@ -270,7 +270,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("ADMIN이 ADMIN의 권한을 USER로 낮추면 기존 토큰의 Admin API 접근이 즉시 차단된다")
-    void roleDowngrade_immediatelyReflected_withSameToken() throws Exception {
+    void roleDowngradeImmediatelyReflectedWithSameToken() throws Exception {
         String adminToken = jwtService.generateAccessToken(adminUser.getId(), adminUser.getEmail(), "ADMIN");
         String selfAdminToken = jwtService.generateAccessToken(adminUser.getId(), adminUser.getEmail(), "ADMIN");
 
@@ -296,7 +296,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("USER가 다른 사용자의 응시 기록 ID로 접근해도 본인 것이 아니면 404를 응답받는다")
-    void userToken_othersAttemptId_returns404() throws Exception {
+    void userTokenOthersAttemptIdReturns404() throws Exception {
         // user는 응시 기록이 없으므로, 존재하지 않는 ID 접근 시도
         String token = jwtService.generateAccessToken(user.getId(), user.getEmail(), "USER");
         Long nonExistentAttemptId = 99999L;
@@ -310,7 +310,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("ADMIN이 사용자에게 GUEST 역할 부여 시도 시 400을 응답받는다")
-    void adminToken_assignGuestRole_returns400() throws Exception {
+    void adminTokenAssignGuestRoleReturns400() throws Exception {
         String token = jwtService.generateAccessToken(adminUser.getId(), adminUser.getEmail(), "ADMIN");
 
         mockMvc.perform(patch("/api/v1/admin/users/" + user.getId() + "/role")
@@ -324,7 +324,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("단일 기기 로그아웃 응답에 accessToken, refreshToken, guestId 쿠키 삭제 헤더가 포함된다")
-    void logout_clearsAllCookies() throws Exception {
+    void logoutClearsAllCookies() throws Exception {
         TokenPair tokens = tokenService.issueTokens(user);
 
         mockMvc.perform(post("/api/v1/auth/logout")
@@ -346,7 +346,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("전체 디바이스 로그아웃 후 모든 세션의 Access Token이 차단된다")
-    void logoutAll_invalidatesAllSessions() throws Exception {
+    void logoutAllInvalidatesAllSessions() throws Exception {
         // 세션 1과 세션 2의 토큰을 각각 발급
         TokenPair session1 = tokenService.issueTokens(user);
         TokenPair session2 = tokenService.issueTokens(user);
@@ -374,7 +374,7 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("전체 디바이스 로그아웃 후 모든 세션의 Refresh Token으로 재발급이 불가능하다")
-    void logoutAll_revokesAllRefreshTokens() throws Exception {
+    void logoutAllRevokesAllRefreshTokens() throws Exception {
         TokenPair session1 = tokenService.issueTokens(user);
         TokenPair session2 = tokenService.issueTokens(user);
 
@@ -396,14 +396,14 @@ class RbacIntegrationTest {
 
     @Test
     @DisplayName("전체 디바이스 로그아웃은 인증 토큰 없이 호출 시 401을 응답받는다")
-    void logoutAll_withoutToken_returns401() throws Exception {
+    void logoutAllWithoutTokenReturns401() throws Exception {
         mockMvc.perform(post("/api/v1/users/me/logout"))
             .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("전체 디바이스 로그아웃 응답에 accessToken, refreshToken, guestId 쿠키 삭제 헤더가 포함된다")
-    void logoutAll_clearsAllCookies() throws Exception {
+    void logoutAllClearsAllCookies() throws Exception {
         TokenPair tokens = tokenService.issueTokens(user);
 
         mockMvc.perform(post("/api/v1/users/me/logout")

@@ -73,16 +73,22 @@ public class TokenController {
     @Operation(
         summary = "비회원 토큰 발급",
         description = "로그인 없이 서비스를 이용할 수 있는 임시 Guest 토큰을 발급한다. "
-            + "이후 로그인 시 퀴즈 기록이 회원 계정으로 자동 이전된다."
+            + "기존 guestId 쿠키가 있다면 재사용하고, 없다면 새로 생성한다."
     )
-    public ResponseEntity<ApiResponse<LoginResponse>> issueGuestToken(HttpServletResponse response) {
-        String guestId = UUID.randomUUID().toString();
+    public ResponseEntity<ApiResponse<LoginResponse>> issueGuestToken(
+        @CookieValue(name = "guestId", required = false) String existingGuestId,
+        HttpServletResponse response
+    ) {
+        String guestId = (existingGuestId != null && !existingGuestId.isBlank())
+            ? existingGuestId
+            : UUID.randomUUID().toString();
+
         String accessToken = jwtService.generateGuestToken(guestId);
 
         CookieUtils.addAccessTokenCookie(response, accessToken, cookieProperties);
         CookieUtils.addGuestIdCookie(response, guestId, cookieProperties);
 
-        log.info("Guest 토큰 발급: guestId={}", guestId);
+        log.info("Guest 토큰 발급: guestId={}, reused={}", guestId, existingGuestId != null);
         return ResponseEntity.ok(ApiResponse.success(new LoginResponse(accessToken, "Bearer")));
     }
 

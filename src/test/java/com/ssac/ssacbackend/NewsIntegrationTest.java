@@ -48,7 +48,7 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("GET /api/news는 인증 없이 200을 응답한다")
-    void getNews_noAuth_returns200() throws Exception {
+    void getNewsNoAuthReturns200() throws Exception {
         mockMvc.perform(get("/api/news"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
@@ -59,14 +59,14 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("sort 파라미터 없이 요청하면 latest 기본값으로 동작한다")
-    void getNews_noSortParam_usesLatestDefault() throws Exception {
+    void getNewsNoSortParamUsesLatestDefault() throws Exception {
         mockMvc.perform(get("/api/news"))
             .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("sort=latest 요청 시 publishedAt 내림차순으로 응답한다")
-    void getNews_sortLatest_returnsPublishedAtDesc() throws Exception {
+    void getNewsSortLatestReturnsPublishedAtDesc() throws Exception {
         LocalDateTime older = LocalDateTime.now().minusDays(2);
         LocalDateTime newer = LocalDateTime.now().minusDays(1);
         newsRepository.save(News.builder().title("오래된 뉴스").summary("요약1")
@@ -82,7 +82,7 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("sort=popularity 요청 시 viewCount 내림차순으로 응답한다")
-    void getNews_sortPopularity_returnsViewCountDesc() throws Exception {
+    void getNewsSortPopularityReturnsViewCountDesc() throws Exception {
         newsRepository.save(News.builder().title("조회수 낮음").summary("요약1")
             .viewCount(10).publishedAt(LocalDateTime.now()).build());
         newsRepository.save(News.builder().title("조회수 높음").summary("요약2")
@@ -96,7 +96,7 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("viewCount가 같으면 publishedAt 내림차순으로 정렬된다")
-    void getNews_sortPopularity_tieBreakByPublishedAt() throws Exception {
+    void getNewsSortPopularityTieBreakByPublishedAt() throws Exception {
         LocalDateTime older = LocalDateTime.now().minusDays(2);
         LocalDateTime newer = LocalDateTime.now().minusDays(1);
         newsRepository.save(News.builder().title("동점 오래된").summary("요약1")
@@ -114,7 +114,7 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("허용되지 않는 sort 값은 400과 INVALID_SORT_PARAMETER 코드를 응답한다")
-    void getNews_invalidSort_returns400WithCode() throws Exception {
+    void getNewsInvalidSortReturns400WithCode() throws Exception {
         mockMvc.perform(get("/api/news?sort=invalid"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.status").value(400))
@@ -124,7 +124,7 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("size가 최대값(100)을 초과하면 400과 PAGE_SIZE_EXCEEDED 코드를 응답한다")
-    void getNews_sizeExceedsMax_returns400WithCode() throws Exception {
+    void getNewsSizeExceedsMaxReturns400WithCode() throws Exception {
         mockMvc.perform(get("/api/news?size=101"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.status").value(400))
@@ -135,7 +135,7 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("결과가 없으면 totalCount:0, hasNext:false, contents:[] 를 응답한다")
-    void getNews_noData_returnsEmptyResult() throws Exception {
+    void getNewsNoDataReturnsEmptyResult() throws Exception {
         mockMvc.perform(get("/api/news"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.totalCount").value(0))
@@ -145,7 +145,7 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("마지막 페이지이면 hasNext:false를 응답한다")
-    void getNews_lastPage_hasNextFalse() throws Exception {
+    void getNewsLastPageHasNextFalse() throws Exception {
         for (int i = 0; i < 3; i++) {
             newsRepository.save(News.builder().title("뉴스" + i).summary("요약")
                 .viewCount(0).publishedAt(LocalDateTime.now()).build());
@@ -159,7 +159,7 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("다음 페이지가 있으면 hasNext:true를 응답한다")
-    void getNews_notLastPage_hasNextTrue() throws Exception {
+    void getNewsNotLastPageHasNextTrue() throws Exception {
         for (int i = 0; i < 5; i++) {
             newsRepository.save(News.builder().title("뉴스" + i).summary("요약")
                 .viewCount(0).publishedAt(LocalDateTime.now()).build());
@@ -174,7 +174,7 @@ class NewsIntegrationTest {
 
     @Test
     @DisplayName("응답에는 id, title, summary, viewCount, publishedAt 필드가 포함된다")
-    void getNews_responseContainsRequiredFields() throws Exception {
+    void getNewsResponseContainsRequiredFields() throws Exception {
         newsRepository.save(News.builder().title("제목").summary("요약")
             .viewCount(42).publishedAt(LocalDateTime.now()).build());
 

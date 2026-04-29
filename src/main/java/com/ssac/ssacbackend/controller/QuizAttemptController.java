@@ -46,9 +46,9 @@ public class QuizAttemptController {
     @Operation(
         summary = "퀴즈 제출",
         description = """
-            [호출 화면] 퀴즈 풀기 완료 후
-            [권한 조건] 로그인 필수 (JWT Bearer 토큰)
-            [특이 동작] 서버에서 정답 검증 및 점수 계산. 결과를 즉시 반환한다.
+            [호출 화면] 퀴즈 풀기 완료 후 결과 확인 단계에서 호출.
+            [권한 조건] 로그인 필수 (JWT Bearer 토큰), 비회원(GUEST) 가능.
+            [특이 동작] 서버에서 정답 검증 및 점수 계산 후 기록을 저장한다. GUEST로 제출 시 이후 로그인 시 자동 이전된다.
             """,
         security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -57,6 +57,8 @@ public class QuizAttemptController {
             responseCode = "201", description = "퀴즈 제출 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "400", description = "잘못된 문항 ID 또는 유효성 검사 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "403", description = "접근 권한 없음 (GUEST/USER/ADMIN 외)"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "404", description = "퀴즈를 찾을 수 없음")
     })
@@ -104,15 +106,17 @@ public class QuizAttemptController {
     @Operation(
         summary = "퀴즈 응시 기록 목록 조회",
         description = """
-            [호출 화면] 프로필 > 퀴즈 기록
-            [권한 조건] 로그인 필수 (JWT Bearer 토큰)
-            [특이 동작] 페이지네이션 및 정렬(LATEST/SCORE)을 지원한다.
+            [호출 화면] 프로필 > 내 퀴즈 기록 페이지 진입 시 호출.
+            [권한 조건] 로그인 회원 전용 (USER, ADMIN). 비회원(GUEST) 접근 불가.
+            [특이 동작] 페이지네이션 및 정렬(LATEST/SCORE)을 지원한다. 본인의 기록만 조회 가능하다.
             """,
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200", description = "기록 목록 조회 성공")
+            responseCode = "200", description = "기록 목록 조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "403", description = "loginRequired: true (회원 로그인 필요)")
     })
     @GetMapping
     public ResponseEntity<ApiResponse<Page<QuizAttemptSummaryResponse>>> getHistory(
@@ -133,15 +137,17 @@ public class QuizAttemptController {
     @Operation(
         summary = "퀴즈 응시 상세 결과 조회",
         description = """
-            [호출 화면] 퀴즈 기록 > 상세 보기
-            [권한 조건] 로그인 필수 (JWT Bearer 토큰)
-            [특이 동작] 문항별 선택 답안, 정답, 정답 여부를 모두 반환한다. 본인 기록만 조회 가능.
+            [호출 화면] 퀴즈 기록 목록에서 특정 항목 클릭 시 상세 보기.
+            [권한 조건] 로그인 회원 전용 (USER, ADMIN). 비회원(GUEST) 접근 불가.
+            [특이 동작] 문항별 선택 답안, 정답 여부, 획득 점수를 상세히 반환한다.
             """,
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200", description = "상세 결과 조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "403", description = "loginRequired: true (회원 로그인 필요)"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "404", description = "응시 기록을 찾을 수 없음")
     })
@@ -159,15 +165,17 @@ public class QuizAttemptController {
     @Operation(
         summary = "사용자 퀴즈 통계 조회",
         description = """
-            [호출 화면] 프로필 > 학습 통계
-            [권한 조건] 로그인 필수 (JWT Bearer 토큰)
-            [특이 동작] 누적 통계와 기간별(일간/주간/월간) 통계를 함께 반환한다.
+            [호출 화면] 프로필 > 학습 통계 탭 진입 시 호출.
+            [권한 조건] 로그인 회원 전용 (USER, ADMIN). 비회원(GUEST) 접근 불가.
+            [특이 동작] 누적 통계와 지정된 기간(DAILY/WEEKLY/MONTHLY)의 추이 데이터를 반환한다.
             """,
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200", description = "통계 조회 성공")
+            responseCode = "200", description = "통계 조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "403", description = "loginRequired: true (회원 로그인 필요)")
     })
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<UserStatsResponse>> getStats(
