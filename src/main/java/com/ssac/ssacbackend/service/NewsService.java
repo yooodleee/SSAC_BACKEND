@@ -1,10 +1,13 @@
 package com.ssac.ssacbackend.service;
 
 import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.domain.news.News;
+import com.ssac.ssacbackend.domain.news.NewsView;
 import com.ssac.ssacbackend.dto.request.NewsSortType;
 import com.ssac.ssacbackend.dto.response.NewsItemResponse;
 import com.ssac.ssacbackend.dto.response.NewsListResponse;
 import com.ssac.ssacbackend.repository.NewsRepository;
+import com.ssac.ssacbackend.repository.NewsViewRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,6 +41,23 @@ public class NewsService {
     private static final int DEFAULT_PAGE_SIZE = 20;
 
     private final NewsRepository newsRepository;
+    private final NewsViewRepository newsViewRepository;
+
+    /**
+     * 뉴스 상세 조회 및 조회 이벤트 기록.
+     *
+     * <p>조회마다 {@link NewsView}를 저장하며, 이 데이터는 배치 집계로 viewCount에 반영된다.
+     *
+     * @param newsId 조회할 뉴스 ID
+     * @throws BusinessException 뉴스가 존재하지 않을 경우 NOT_FOUND
+     */
+    @Transactional
+    public NewsItemResponse getNewsDetail(Long newsId) {
+        News news = newsRepository.findById(newsId)
+            .orElseThrow(() -> BusinessException.notFound("뉴스를 찾을 수 없습니다."));
+        newsViewRepository.save(NewsView.builder().news(news).build());
+        return NewsItemResponse.from(news);
+    }
 
     @Transactional(readOnly = true)
     public NewsListResponse getNews(NewsSortType sortType, int page, int size) {

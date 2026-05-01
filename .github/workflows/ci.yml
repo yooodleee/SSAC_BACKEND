@@ -33,14 +33,37 @@ jobs:
       - name: Checkstyle
         run: ./gradlew checkstyleMain --no-daemon
 
-      # CI 체크 3: 전체 테스트 (ArchUnit 포함)
-      - name: 테스트
-        run: ./gradlew test --no-daemon
+      # CI 체크 3: 전체 테스트 + 커버리지 측정 (ArchUnit 포함)
+      - name: 테스트 실행 및 커버리지 측정
+        run: ./gradlew test jacocoTestReport --no-daemon
         env:
-          # 테스트용 인메모리 DB 사용 시 여기에 환경변수 추가
           SPRING_PROFILES_ACTIVE: test
 
-      # CI 체크 4: 테스트 결과 업로드 (실패 시 확인용)
+      # CI 체크 4: 커버리지 기준 검증 (서비스 레이어 70% 미달 시 빌드 실패)
+      - name: 커버리지 기준 검증
+        run: ./gradlew jacocoTestCoverageVerification --no-daemon
+
+      # CI 체크 5: 커버리지 리포트 아티팩트 업로드
+      - name: 커버리지 리포트 업로드
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report
+          path: build/reports/jacoco/
+
+      # CI 체크 6: PR 커버리지 코멘트 자동 게시
+      - name: PR 커버리지 코멘트
+        uses: madrapps/jacoco-report@v1.6.1
+        if: github.event_name == 'pull_request'
+        with:
+          paths: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 70
+          min-coverage-changed-files: 70
+          title: '서비스 레이어 테스트 커버리지 리포트'
+          update-comment: true
+
+      # CI 체크 7: 테스트 결과 업로드 (실패 시 확인용)
       - name: 테스트 결과 업로드
         uses: actions/upload-artifact@v4
         if: failure()
@@ -48,9 +71,12 @@ jobs:
           name: test-results
           path: build/reports/tests/
 
-# CI 체크 5항목 (현재 4개 자동화, 1개는 PR 템플릿으로 사람이 확인):
+# CI 체크 항목 요약:
 # 1. ✅ 컴파일 통과 (gradlew build -x test)
 # 2. ✅ Checkstyle 통과 (gradlew checkstyleMain)
-# 3. ✅ 테스트 통과 - ArchUnit 의존성 규칙 포함 (gradlew test)
-# 4. ✅ 테스트 결과 아티팩트 보존
-# 5. 👤 보안/비밀키 하드코딩 — PR 템플릿 리뷰어 체크리스트로 강제
+# 3. ✅ 테스트 통과 + 커버리지 리포트 생성 (gradlew test jacocoTestReport)
+# 4. ✅ 서비스 레이어 라인 커버리지 70% 이상 (gradlew jacocoTestCoverageVerification)
+# 5. ✅ 커버리지 리포트 아티팩트 보존 (항상 실행)
+# 6. ✅ PR 커버리지 코멘트 자동 게시 (madrapps/jacoco-report)
+# 7. ✅ 테스트 결과 아티팩트 보존 (실패 시)
+# 8. 👤 보안/비밀키 하드코딩 — PR 템플릿 리뷰어 체크리스트로 강제
