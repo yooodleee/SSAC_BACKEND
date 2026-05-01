@@ -46,7 +46,12 @@
       "Bash(./gradlew checkstyleMain --no-daemon)",
       "Bash(POST /api/events/menu-click)",
       "Bash(GET /api/v1/admin/menu-stats)",
-      "Bash(GET /api/ab-test/menu)"
+      "Bash(GET /api/ab-test/menu)",
+      "Bash(Dockerfile)",
+      "Bash(.dockerignore)",
+      "Bash(docker-compose.yml)",
+      "Bash(docker-compose.dev.yml)",
+      "Bash(docker-compose.prod.yml)"
     ]
   }
 }
