@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '4.0.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'checkstyle'
+    id 'jacoco'
 }
 
 group = 'com.ssac'
@@ -84,4 +85,42 @@ checkstyle {
     configFile = file('config/checkstyle/checkstyle.xml')
     ignoreFailures = false
     showViolations = true
+}
+
+// ── 코드 커버리지 (JaCoCo) ───────────────────────────────────────────────────
+// 서비스 레이어(com.ssac.*.service.*) 기준 라인 커버리지 70% 이상 강제.
+// CI: ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+jacoco {
+    toolVersion = '0.8.11'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    // 서비스 레이어만 리포트 대상으로 제한
+    classDirectories.setFrom(
+        files(classDirectories.files.collect {
+            fileTree(dir: it, include: ['**/service/**'])
+        })
+    )
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            // 서비스 패키지 전체에 대해 라인 커버리지 70% 이상 강제.
+            // 기준 하향 시 팀 합의 및 PR 리뷰 필수 (docs/quality.md 참고)
+            includes = ['com.ssac.ssacbackend.service.*']
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.70
+            }
+        }
+    }
 }
