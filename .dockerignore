@@ -1,0 +1,34 @@
+# Gradle 캐시 및 빌드 산출물
+.gradle/
+build/
+
+# IDE 설정
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# 환경 변수 (절대 이미지에 포함되면 안 됨)
+.env
+.env.local
+.env.*.local
+
+# 문서
+docs/
+README.md
+HELP.md
+AGENTS.md
+GEMINI.md
+
+# Docker 파일 자체
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# 로컬 전용 설정
+src/main/resources/application-local.properties
