@@ -57,7 +57,10 @@ public class SecurityConfig {
         "/api/quiz",
         "/api/quiz/**",
         "/api/events/menu-click",
-        "/api/ab-test/menu"
+        "/api/ab-test/menu",
+        // Actuator: 로드밸런서 헬스체크 및 일반 정보는 공개
+        "/actuator/health",
+        "/actuator/info"
     };
 
     @Bean
@@ -71,6 +74,9 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_PATHS).permitAll()
+                // Actuator: metrics는 ADMIN 전용, 나머지는 인증 필요(미인증 시 401)
+                .requestMatchers("/actuator/metrics", "/actuator/metrics/**").hasRole("ADMIN")
+                .requestMatchers("/actuator/**").authenticated()
                 // 관리자 전용: 사용자 목록 조회 및 권한 관리
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 // 퀴즈 제출: 비회원(GUEST)도 허용
@@ -125,6 +131,11 @@ public class SecurityConfig {
             .addFilterBefore(
                 new JwtAuthenticationFilter(jwtService, userRepository),
                 UsernamePasswordAuthenticationFilter.class
+            )
+            // MDC 필터: JWT 인증 이후 실행하여 인증된 userId를 정확히 추출
+            .addFilterAfter(
+                new MdcLoggingFilter(),
+                JwtAuthenticationFilter.class
             )
             .build();
     }
