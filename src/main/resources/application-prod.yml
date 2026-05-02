@@ -1,0 +1,101 @@
+# ── 운영 환경(prod) 프로파일 ────────────────────────────────────────────────────
+# SPRING_PROFILES_ACTIVE=prod 로 기동될 때 활성화된다.
+#
+# 보안 원칙:
+#   - 모든 민감 값(DB 비밀번호, JWT 시크릿 등)은 환경 변수로 주입한다.
+#   - 기본값(: 이후 fallback)을 명시하지 않아 변수 누락 시 즉시 기동 실패한다.
+#   - 예: ${DB_PASSWORD} → 누락 시 "Could not resolve placeholder 'DB_PASSWORD'" 오류 발생
+#
+# 환경 변수 목록: docs/decisions/007-environment-profiles.md 참고
+
+# ── 데이터소스 ─────────────────────────────────────────────────────────────────
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=true&requireSSL=true
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # ── HikariCP 커넥션 풀 ──────────────────────────────────────────────────────
+    hikari:
+      pool-name: SsacHikariPool
+      maximum-pool-size: 20       # 최대 커넥션 수
+      minimum-idle: 5             # 최소 유휴 커넥션 수
+      connection-timeout: 30000   # 커넥션 획득 대기 시간 (30초)
+      idle-timeout: 600000        # 유휴 커넥션 유지 시간 (10분)
+      max-lifetime: 1800000       # 커넥션 최대 수명 (30분)
+      leak-detection-threshold: 60000  # 커넥션 누수 감지 임곗값 (1분)
+
+  # ── JPA ──────────────────────────────────────────────────────────────────────
+  jpa:
+    show-sql: false               # SQL 로그 비활성화
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: validate          # 운영 환경 DDL 자동 실행 금지 — Flyway가 스키마 관리
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  # ── OAuth2 (Kakao) ──────────────────────────────────────────────────────────
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: ${KAKAO_REDIRECT_URI}
+
+# ── JWT ────────────────────────────────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_ACCESS_EXPIRATION:1800000}
+  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# ── Naver OAuth ────────────────────────────────────────────────────────────────
+naver:
+  oauth:
+    client-id: ${NAVER_CLIENT_ID}
+    client-secret: ${NAVER_CLIENT_SECRET}
+    redirect-uri: ${NAVER_REDIRECT_URI}
+
+# ── CORS ───────────────────────────────────────────────────────────────────────
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
+# ── OAuth2 리디렉션 ────────────────────────────────────────────────────────────
+oauth2:
+  default-redirect-uri: ${OAUTH2_DEFAULT_REDIRECT_URI}
+
+# ── Actuator ──────────────────────────────────────────────────────────────────
+# 운영 환경: 로드밸런서 헬스체크·정보 조회만 공개. metrics는 노출하지 않는다.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never   # 운영 환경 헬스 상세 정보 비공개 (DB/Redis 정보 노출 방지)
+
+# ── 서버 보안 ─────────────────────────────────────────────────────────────────
+server:
+  error:
+    include-stacktrace: never   # 스택 트레이스 외부 노출 금지
+    include-message: never      # 에러 메시지 외부 노출 금지
+
+# ── 로깅 ──────────────────────────────────────────────────────────────────────
+# logback-spring.xml의 prod 프로파일 JSON 구조화 로깅과 연계한다.
+logging:
+  level:
+    root: WARN
+    com.ssac: INFO                 # 서비스 패키지는 INFO 유지 (운영 모니터링 최소 요건)
+    org.hibernate.SQL: OFF         # SQL 로그 완전 비활성화
+    org.springframework.web: WARN
