@@ -21,6 +21,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      # Alpine 이미지에는 curl이 없으므로 wget 사용
+      # /actuator/health는 인증 없이 공개 접근 허용 (로드밸런서 헬스체크 용도)
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   # ── MySQL 8.0 ─────────────────────────────────────────────────────────────────
   db:

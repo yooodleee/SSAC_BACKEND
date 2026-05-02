@@ -51,7 +51,11 @@
       "Bash(.dockerignore)",
       "Bash(docker-compose.yml)",
       "Bash(docker-compose.dev.yml)",
-      "Bash(docker-compose.prod.yml)"
+      "Bash(docker-compose.prod.yml)",
+      "Bash(application.properties)",
+      "Bash(SecurityConfig.java)",
+      "Bash(MdcLoggingFilter.java)",
+      "Bash(logback-spring.xml)"
     ]
   }
 }

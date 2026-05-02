@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--
+        로그 레벨 정책
+        ─────────────────────────────────────────────────────────────────────────
+        개발(local/dev) : DEBUG  — 상세 디버그 정보 출력
+        스테이징/운영    : WARN   — 경고 이상만 출력 (INFO는 ssac 패키지 한정)
+        테스트(test)    : WARN   — 테스트 출력 최소화
+        ─────────────────────────────────────────────────────────────────────────
+
+        보안 주의사항
+        ─────────────────────────────────────────────────────────────────────────
+        MDC에는 traceId, userId(사용자 식별자), requestId만 포함한다.
+        이메일, 전화번호, Access/Refresh Token 전체 값은 절대 로깅하지 않는다.
+        ─────────────────────────────────────────────────────────────────────────
+    -->
+
+    <!-- ── JSON 구조화 로깅 (docker, prod 프로파일) ──────────────────────────────── -->
+    <!-- ELK Stack(Logstash) 및 AWS CloudWatch Logs 수집 가능한 JSON 형식 출력       -->
+    <springProfile name="docker,prod">
+
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+            </encoder>
+        </appender>
+
+        <!-- ssac 애플리케이션 코드: INFO 이상 출력 -->
+        <logger name="com.ssac" level="INFO" additivity="false">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </logger>
+
+        <!-- 루트 로거: WARN 이상만 출력 (프레임워크 노이즈 최소화) -->
+        <root level="WARN">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+
+    </springProfile>
+
+    <!-- ── Plain Text 로깅 (local, dev 프로파일) ─────────────────────────────────── -->
+    <!-- 개발자 가독성을 위해 컬러 없는 일반 텍스트 형식 사용                           -->
+    <springProfile name="local,dev">
+
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [traceId=%X{traceId}] [userId=%X{userId}] %logger{36} - %msg%n</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <!-- ssac 애플리케이션 코드: DEBUG 출력 -->
+        <logger name="com.ssac" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <!-- SQL 로깅: Hibernate SQL 확인용 (운영 환경에서는 제거) -->
+        <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+    </springProfile>
+
+    <!-- ── Plain Text 로깅 (test 프로파일) ──────────────────────────────────────── -->
+    <!-- 테스트 출력 최소화: WARN 이상만 출력                                          -->
+    <springProfile name="test">
+
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+    </springProfile>
+
+</configuration>
