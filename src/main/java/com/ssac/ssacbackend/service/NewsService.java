@@ -1,6 +1,8 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.news.News;
 import com.ssac.ssacbackend.dto.request.NewsSortType;
 import com.ssac.ssacbackend.dto.response.NewsItemResponse;
@@ -56,7 +58,7 @@ public class NewsService {
     @Transactional
     public NewsItemResponse getNewsDetail(Long newsId) {
         News news = newsRepository.findById(newsId)
-            .orElseThrow(() -> BusinessException.notFound("뉴스를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.NEWS_NOT_FOUND));
         viewCountStore.record(news);
         return NewsItemResponse.from(news);
     }
@@ -64,7 +66,7 @@ public class NewsService {
     @Transactional(readOnly = true)
     public NewsListResponse getNews(NewsSortType sortType, int page, int size) {
         if (size > MAX_PAGE_SIZE) {
-            throw BusinessException.pageSizeExceeded(MAX_PAGE_SIZE);
+            throw new BadRequestException(ErrorCode.PAGE_SIZE_EXCEEDED, "size는 최대 " + MAX_PAGE_SIZE + "까지 허용됩니다.");
         }
 
         Pageable pageable = PageRequest.of(page - 1, size, buildSort(sortType));

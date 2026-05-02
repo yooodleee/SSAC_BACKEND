@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.notification.Notification;
 import com.ssac.ssacbackend.dto.response.NotificationItemResponse;
 import com.ssac.ssacbackend.dto.response.NotificationListResponse;
@@ -40,7 +41,7 @@ public class NotificationService {
     public void markAsRead(Long notificationId, String email) {
         Notification notification = notificationRepository
             .findByIdAndUserEmail(notificationId, email)
-            .orElseThrow(() -> BusinessException.notFound("알림을 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.NOTIFICATION_NOT_FOUND));
         notification.markAsRead();
     }
 

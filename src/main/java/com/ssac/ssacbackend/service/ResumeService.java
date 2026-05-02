@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.content.ContentProgress;
 import com.ssac.ssacbackend.dto.response.ResumeContentResponse;
 import com.ssac.ssacbackend.dto.response.ResumeResponse;
@@ -38,7 +39,7 @@ public class ResumeService {
         String lastPosition, int progressRate) {
         ContentProgress cp = contentProgressRepository
             .findByIdAndUserEmail(id, email)
-            .orElseThrow(() -> BusinessException.notFound("진행 중인 콘텐츠를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.CONTENT_NOT_FOUND));
         cp.updateProgress(lastPosition, progressRate);
         return ResumeContentResponse.from(cp);
     }

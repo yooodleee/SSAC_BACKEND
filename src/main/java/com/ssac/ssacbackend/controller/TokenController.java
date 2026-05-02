@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.controller;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.response.ApiResponse;
 import com.ssac.ssacbackend.common.util.CookieUtils;
 import com.ssac.ssacbackend.config.CookieProperties;
@@ -52,7 +53,7 @@ public class TokenController {
         HttpServletResponse response
     ) {
         if (refreshToken == null) {
-            throw BusinessException.badRequest("Refresh Token이 없습니다.");
+            throw new BadRequestException(ErrorCode.TOKEN_MISSING);
         }
 
         TokenPair tokens = tokenService.reissue(refreshToken);

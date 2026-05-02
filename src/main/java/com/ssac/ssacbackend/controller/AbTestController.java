@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.controller;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.response.ApiResponse;
 import com.ssac.ssacbackend.dto.response.AbTestGroupResponse;
 import com.ssac.ssacbackend.service.AbTestService;
@@ -9,7 +10,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,10 +61,6 @@ public class AbTestController {
         if (guestId != null && !guestId.isBlank()) {
             return "guest:" + guestId;
         }
-        throw new BusinessException(
-            "userId 또는 guestId 중 하나는 반드시 필요합니다.",
-            HttpStatus.BAD_REQUEST,
-            "INVALID_EVENT_DATA"
-        );
+        throw new BadRequestException(ErrorCode.INVALID_EVENT_DATA);
     }
 }

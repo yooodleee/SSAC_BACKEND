@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.quiz.Quiz;
 import com.ssac.ssacbackend.domain.quiz.QuizAttempt;
 import com.ssac.ssacbackend.dto.response.RecommendationResponse;
@@ -59,7 +60,7 @@ public class RecommendationService {
     public RecommendationResponse getRecommendations(String email) {
         log.debug("추천 조회: email={}", email);
         userRepository.findByEmail(email)
-            .orElseThrow(() -> BusinessException.notFound("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
         boolean hasAnyAttempt = quizAttemptRepository.existsByUserEmail(email);
 
