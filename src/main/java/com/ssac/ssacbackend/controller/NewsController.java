@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.controller;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.response.ApiResponse;
 import com.ssac.ssacbackend.dto.request.NewsSortType;
 import com.ssac.ssacbackend.dto.response.NewsListResponse;
@@ -51,7 +52,7 @@ public class NewsController {
     ) {
         NewsSortType sortType = parseSortType(sort);
         if (page < 1) {
-            throw BusinessException.badRequest("page는 1 이상이어야 합니다.");
+            throw new BadRequestException(ErrorCode.INVALID_INPUT, "page는 1 이상이어야 합니다.");
         }
         log.debug("뉴스 목록 조회: sort={}, page={}, size={}", sort, page, size);
         return ResponseEntity.ok(ApiResponse.success(newsService.getNews(sortType, page, size)));
@@ -61,7 +62,7 @@ public class NewsController {
         try {
             return NewsSortType.valueOf(sort.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw BusinessException.invalidSortParameter();
+            throw new BadRequestException(ErrorCode.INVALID_SORT_PARAMETER);
         }
     }
 }

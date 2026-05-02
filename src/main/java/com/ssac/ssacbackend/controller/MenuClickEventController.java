@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.controller;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.dto.request.MenuClickRequest;
 import com.ssac.ssacbackend.service.MenuClickEventService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,11 +49,7 @@ public class MenuClickEventController {
     @PostMapping("/menu-click")
     public ResponseEntity<Void> recordMenuClick(@RequestBody @Valid MenuClickRequest request) {
         if (!request.hasIdentifier()) {
-            throw new BusinessException(
-                "유효하지 않은 이벤트 데이터입니다.",
-                HttpStatus.BAD_REQUEST,
-                "INVALID_EVENT_DATA"
-            );
+            throw new BadRequestException(ErrorCode.INVALID_EVENT_DATA);
         }
         menuClickEventService.saveAsync(request);
         return ResponseEntity.noContent().build();

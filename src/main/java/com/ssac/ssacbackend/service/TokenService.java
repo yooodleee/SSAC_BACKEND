@@ -1,6 +1,8 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.config.JwtProperties;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.TokenPair;
@@ -54,12 +56,12 @@ public class TokenService {
     public TokenPair reissue(String rawRefreshToken) {
         String tokenHash = hashToken(rawRefreshToken);
         Long userId = tokenStore.findUserIdByHash(tokenHash)
-            .orElseThrow(() -> BusinessException.badRequest("유효하지 않은 Refresh Token입니다."));
+            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
         tokenStore.revoke(tokenHash);
 
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> BusinessException.notFound("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
         String newAccessToken = jwtService.generateAccessToken(
             user.getId(), user.getEmail(), user.getRole().name()
@@ -96,7 +98,7 @@ public class TokenService {
      */
     public void logoutAll(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> BusinessException.notFound("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
         tokenStore.revokeAll(user.getId());
         user.invalidateTokens();
         log.info("전체 디바이스 로그아웃 완료: userId={}", user.getId());

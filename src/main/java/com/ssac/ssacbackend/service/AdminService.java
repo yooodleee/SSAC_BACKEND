@@ -1,6 +1,8 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserRole;
 import com.ssac.ssacbackend.dto.response.UserSummaryResponse;
@@ -45,10 +47,10 @@ public class AdminService {
     @Transactional
     public UserSummaryResponse updateUserRole(Long userId, UserRole newRole) {
         if (newRole == UserRole.GUEST) {
-            throw BusinessException.badRequest("GUEST 역할은 직접 부여할 수 없습니다.");
+            throw new BadRequestException(ErrorCode.ROLE_ASSIGNMENT_INVALID);
         }
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> BusinessException.notFound("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
         user.updateRole(newRole);
         log.info("사용자 권한 변경: userId={}, newRole={}", userId, newRole);
         return UserSummaryResponse.from(user);

@@ -4,70 +4,53 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * 비즈니스 규칙 위반 시 던지는 최상위 예외.
+ * 비즈니스 규칙 위반 시 던지는 최상위 추상 예외.
  *
- * <p>메시지는 사용자에게 노출될 수 있으므로 한국어로 작성한다.
- * RuntimeException을 직접 던지지 말고 이 클래스를 사용한다.
- *
- * <p>code를 명시하지 않으면 HttpStatus.name()이 기본 코드로 사용된다.
+ * <p>직접 인스턴스화하지 않고 세분화된 하위 클래스를 사용한다.
+ * <ul>
+ *   <li>{@link BadRequestException}    — 400 Bad Request</li>
+ *   <li>{@link UnauthorizedException}  — 401 Unauthorized</li>
+ *   <li>{@link ForbiddenException}     — 403 Forbidden</li>
+ *   <li>{@link NotFoundException}      — 404 Not Found</li>
+ *   <li>{@link ConflictException}      — 409 Conflict</li>
+ * </ul>
  *
  * <p>변경 기준: docs/conventions.md#예외-처리
  */
 @Getter
-public class BusinessException extends RuntimeException {
+public abstract class BusinessException extends RuntimeException {
 
-    private final HttpStatus status;
-    private final String code;
+    private final ErrorCode errorCode;
+    private final HttpStatus httpStatus;
 
-    public BusinessException(String message, HttpStatus status) {
-        this(message, status, status.name());
+    protected BusinessException(ErrorCode errorCode, HttpStatus httpStatus) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
+        this.httpStatus = httpStatus;
     }
 
-    public BusinessException(String message, HttpStatus status, String code) {
+    /**
+     * ErrorCode 기본 메시지 대신 커스텀 메시지를 사용할 때 사용한다.
+     *
+     * <p>사용 예: 동적 값(ID, 최댓값 등)을 메시지에 포함해야 할 때.
+     */
+    protected BusinessException(ErrorCode errorCode, HttpStatus httpStatus, String message) {
         super(message);
-        this.status = status;
-        this.code = code;
-    }
-
-    public static BusinessException notFound(String message) {
-        return new BusinessException(message, HttpStatus.NOT_FOUND);
-    }
-
-    public static BusinessException conflict(String message) {
-        return new BusinessException(message, HttpStatus.CONFLICT);
-    }
-
-    public static BusinessException badRequest(String message) {
-        return new BusinessException(message, HttpStatus.BAD_REQUEST);
-    }
-
-    public static BusinessException unauthorized(String message) {
-        return new BusinessException(message, HttpStatus.UNAUTHORIZED);
-    }
-
-    public static BusinessException forbidden(String message) {
-        return new BusinessException(message, HttpStatus.FORBIDDEN);
+        this.errorCode = errorCode;
+        this.httpStatus = httpStatus;
     }
 
     /**
-     * 허용되지 않는 sort 파라미터 에러.
+     * HttpStatus 반환 — 기존 테스트와의 호환성을 위해 유지.
      */
-    public static BusinessException invalidSortParameter() {
-        return new BusinessException(
-            "허용되지 않는 정렬 기준입니다.",
-            HttpStatus.BAD_REQUEST,
-            "INVALID_SORT_PARAMETER"
-        );
+    public HttpStatus getStatus() {
+        return httpStatus;
     }
 
     /**
-     * size 파라미터 최댓값 초과 에러.
+     * ErrorCode 문자열 반환 — 기존 테스트와의 호환성을 위해 유지.
      */
-    public static BusinessException pageSizeExceeded(int maxSize) {
-        return new BusinessException(
-            "size는 최대 " + maxSize + "까지 허용됩니다.",
-            HttpStatus.BAD_REQUEST,
-            "PAGE_SIZE_EXCEEDED"
-        );
+    public String getCode() {
+        return errorCode.getCode();
     }
 }

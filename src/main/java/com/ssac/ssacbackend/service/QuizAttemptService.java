@@ -1,6 +1,8 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.quiz.AttemptAnswer;
 import com.ssac.ssacbackend.domain.quiz.Question;
 import com.ssac.ssacbackend.domain.quiz.Quiz;
@@ -83,7 +85,7 @@ public class QuizAttemptService {
 
     private QuizAttempt createAttempt(User user, String guestId, QuizSubmitRequest request) {
         Quiz quiz = quizRepository.findById(request.quizId())
-            .orElseThrow(() -> BusinessException.notFound("퀴즈를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.QUIZ_NOT_FOUND));
 
         List<Question> questions = questionRepository.findByQuizIdOrderByQuestionOrder(quiz.getId());
         Map<Long, Question> questionMap = questions.stream()
@@ -94,8 +96,7 @@ public class QuizAttemptService {
         for (QuizSubmitRequest.AnswerItem item : request.answers()) {
             Question question = questionMap.get(item.questionId());
             if (question == null) {
-                throw BusinessException.badRequest(
-                    "퀴즈에 속하지 않는 문항입니다: questionId=" + item.questionId());
+                throw new BadRequestException(ErrorCode.QUIZ_QUESTION_MISMATCH, "퀴즈에 속하지 않는 문항입니다: questionId=" + item.questionId());
             }
             if (question.getCorrectAnswer().equals(item.selectedAnswer())) {
                 earnedScore += question.getPoints();
@@ -185,7 +186,7 @@ public class QuizAttemptService {
 
         QuizAttempt attempt = quizAttemptRepository
             .findDetailByIdAndUserEmail(attemptId, email)
-            .orElseThrow(() -> BusinessException.notFound("응시 기록을 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.QUIZ_ATTEMPT_NOT_FOUND));
 
         return QuizAttemptDetailResponse.from(attempt);
     }
@@ -234,7 +235,7 @@ public class QuizAttemptService {
 
     private User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
-            .orElseThrow(() -> BusinessException.notFound("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
     }
 
     private Sort buildSort(AttemptSortType sortType) {

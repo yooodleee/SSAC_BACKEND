@@ -1,6 +1,8 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.ConflictException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.response.ProfileResponse;
 import com.ssac.ssacbackend.repository.UserRepository;
@@ -45,7 +47,7 @@ public class ProfileService {
         User user = findUserByEmail(email);
 
         if (!user.getNickname().equals(nickname) && userRepository.existsByNickname(nickname)) {
-            throw BusinessException.conflict("이미 사용 중인 닉네임입니다.");
+            throw new ConflictException(ErrorCode.NICKNAME_DUPLICATED);
         }
 
         user.updateNickname(nickname);
@@ -54,6 +56,6 @@ public class ProfileService {
 
     private User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
-            .orElseThrow(() -> BusinessException.notFound("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
     }
 }

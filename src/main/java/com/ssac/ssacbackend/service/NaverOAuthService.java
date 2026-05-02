@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.config.NaverOAuthProperties;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.domain.social.SocialAccount;
@@ -110,10 +111,10 @@ public class NaverOAuthService {
     private void validateState(String state) {
         Instant created = stateStore.remove(state);
         if (created == null) {
-            throw BusinessException.badRequest("유효하지 않은 state 파라미터입니다.");
+            throw new BadRequestException(ErrorCode.OAUTH_STATE_INVALID);
         }
         if (Instant.now().isAfter(created.plusSeconds(STATE_TTL_SECONDS))) {
-            throw BusinessException.badRequest("만료된 state 파라미터입니다. 다시 로그인해 주세요.");
+            throw new BadRequestException(ErrorCode.OAUTH_STATE_EXPIRED);
         }
     }
 
@@ -130,7 +131,7 @@ public class NaverOAuthService {
         NaverTokenResponse response = restTemplate.getForObject(tokenUrl, NaverTokenResponse.class);
         if (response == null || response.getAccessToken() == null) {
             log.error("네이버 토큰 교환 실패: code={}", code);
-            throw BusinessException.badRequest("네이버 인증에 실패했습니다.");
+            throw new BadRequestException(ErrorCode.OAUTH_AUTH_FAILED);
         }
         return response;
     }
@@ -146,7 +147,7 @@ public class NaverOAuthService {
 
         if (response == null || !"00".equals(response.getResultcode())) {
             log.error("네이버 프로필 조회 실패");
-            throw BusinessException.badRequest("네이버 프로필 정보를 가져오는 데 실패했습니다.");
+            throw new BadRequestException(ErrorCode.OAUTH_PROFILE_FAILED);
         }
         return response.getResponse();
     }
