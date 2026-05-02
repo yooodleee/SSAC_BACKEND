@@ -2,12 +2,10 @@ package com.ssac.ssacbackend.service;
 
 import com.ssac.ssacbackend.common.exception.BusinessException;
 import com.ssac.ssacbackend.domain.news.News;
-import com.ssac.ssacbackend.domain.news.NewsView;
 import com.ssac.ssacbackend.dto.request.NewsSortType;
 import com.ssac.ssacbackend.dto.response.NewsItemResponse;
 import com.ssac.ssacbackend.dto.response.NewsListResponse;
 import com.ssac.ssacbackend.repository.NewsRepository;
-import com.ssac.ssacbackend.repository.NewsViewRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,6 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>page는 1부터 시작 (1-based)</li>
  *   <li>size 최댓값: {@value #MAX_PAGE_SIZE}</li>
  * </ul>
+ *
+ * <p>조회 이벤트 기록은 {@link ViewCountStore} 인터페이스에만 의존하므로
+ * Redis 전환 시 이 클래스의 수정 없이 구현체 Bean 교체만으로 동작한다.
  */
 @Service
 @RequiredArgsConstructor
@@ -41,12 +42,13 @@ public class NewsService {
     private static final int DEFAULT_PAGE_SIZE = 20;
 
     private final NewsRepository newsRepository;
-    private final NewsViewRepository newsViewRepository;
+    private final ViewCountStore viewCountStore;
 
     /**
      * 뉴스 상세 조회 및 조회 이벤트 기록.
      *
-     * <p>조회마다 {@link NewsView}를 저장하며, 이 데이터는 배치 집계로 viewCount에 반영된다.
+     * <p>조회마다 {@link ViewCountStore#record}를 호출하며,
+     * 이 데이터는 배치 집계로 viewCount에 반영된다.
      *
      * @param newsId 조회할 뉴스 ID
      * @throws BusinessException 뉴스가 존재하지 않을 경우 NOT_FOUND
@@ -55,7 +57,7 @@ public class NewsService {
     public NewsItemResponse getNewsDetail(Long newsId) {
         News news = newsRepository.findById(newsId)
             .orElseThrow(() -> BusinessException.notFound("뉴스를 찾을 수 없습니다."));
-        newsViewRepository.save(NewsView.builder().news(news).build());
+        viewCountStore.record(news);
         return NewsItemResponse.from(news);
     }
 

@@ -2,19 +2,16 @@ package com.ssac.ssacbackend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
 import com.ssac.ssacbackend.common.exception.BusinessException;
 import com.ssac.ssacbackend.domain.news.News;
-import com.ssac.ssacbackend.domain.news.NewsView;
 import com.ssac.ssacbackend.dto.request.NewsSortType;
 import com.ssac.ssacbackend.dto.response.NewsItemResponse;
 import com.ssac.ssacbackend.dto.response.NewsListResponse;
 import com.ssac.ssacbackend.repository.NewsRepository;
-import com.ssac.ssacbackend.repository.NewsViewRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +33,7 @@ class NewsServiceTest {
     @Mock
     private NewsRepository newsRepository;
     @Mock
-    private NewsViewRepository newsViewRepository;
+    private ViewCountStore viewCountStore;
 
     @InjectMocks
     private NewsService newsService;
@@ -116,7 +113,6 @@ class NewsServiceTest {
     void 존재하는_뉴스_ID_상세_조회_성공() {
         News news = buildNews(10L, "상세 뉴스", 42);
         given(newsRepository.findById(10L)).willReturn(Optional.of(news));
-        given(newsViewRepository.save(any(NewsView.class))).willAnswer(inv -> inv.getArgument(0));
 
         NewsItemResponse response = newsService.getNewsDetail(10L);
 
@@ -125,15 +121,14 @@ class NewsServiceTest {
     }
 
     @Test
-    @DisplayName("뉴스 상세 조회 시 NewsView가 저장되어 조회 이벤트가 기록된다")
+    @DisplayName("뉴스 상세 조회 시 ViewCountStore.record가 호출되어 조회 이벤트가 기록된다")
     void 뉴스_상세_조회_시_조회_이벤트_저장() {
         News news = buildNews(10L, "이벤트 뉴스", 5);
         given(newsRepository.findById(10L)).willReturn(Optional.of(news));
-        given(newsViewRepository.save(any(NewsView.class))).willAnswer(inv -> inv.getArgument(0));
 
         newsService.getNewsDetail(10L);
 
-        then(newsViewRepository).should().save(any(NewsView.class));
+        then(viewCountStore).should().record(news);
     }
 
     @Test
