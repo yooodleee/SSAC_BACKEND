@@ -253,6 +253,58 @@ jobs:
           fi
           echo "✅ Contract 버전 갱신 확인: $PREV -> $CURRENT"
 
+      # ── 알림: Contract 변경 시 FE 저장소에 이슈 생성 ────────────────────────
+      # contract/error-contract.yml이 이 PR에서 변경된 경우에만 실행된다.
+      # FE_NOTIFY_TOKEN: ssac-org/SSAC_FRONTEND에 issue:write 권한을 가진 PAT
+      # (Settings → Secrets → Actions → FE_NOTIFY_TOKEN 으로 등록)
+      - name: FE 저장소에 Contract 변경 알림
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.FE_NOTIFY_TOKEN }}
+          script: |
+            // Contract 파일 변경 여부를 PR 파일 목록으로 확인
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const contractChanged = files.some(
+              f => f.filename === 'contract/error-contract.yml'
+            );
+            if (!contractChanged) {
+              console.log('contract/error-contract.yml 변경 없음 — FE 알림 생략');
+              return;
+            }
+
+            const pr = context.payload.pull_request;
+            const body = [
+              'BE ErrorCode가 변경되었습니다.',
+              '변경된 Contract 파일을 확인하고 FE 매핑 테이블을 업데이트해주세요.',
+              '',
+              '**변경 내용**',
+              `- PR: [${pr.title}](${pr.html_url})`,
+              `- 브랜치: \`${pr.head.ref}\``,
+              `- 커밋: ${pr.head.sha.slice(0, 7)}`,
+              '',
+              '**확인 파일**',
+              `- [\`contract/error-contract.yml\`](${pr.html_url}/files)`,
+            ].join('\n');
+
+            try {
+              await github.rest.issues.create({
+                owner: 'ssac-org',
+                repo: 'SSAC_FRONTEND',
+                title: '[Contract 변경] ErrorCode 업데이트 필요',
+                body: body,
+                labels: ['contract-update'],
+              });
+              console.log('FE 저장소에 이슈 생성 완료');
+            } catch (err) {
+              core.warning(`FE 이슈 생성 실패 (FE_NOTIFY_TOKEN 설정 여부 확인): ${err.message}`);
+            }
+
 # CI 체크 항목 요약:
 # ── build-and-test ──
 # 1. ✅ 컴파일 통과 (gradlew build -x test)
@@ -271,5 +323,6 @@ jobs:
 # 12. ✅ ErrorCode Enum ↔ Contract 정합성 검증 (gradlew validateErrorContract)
 # 13. ✅ Contract 파일 미커밋 변경사항 탐지 (git diff)
 # 14. ✅ ErrorCode 변경 시 Contract 버전 갱신 여부 확인
+# 15. ✅ Contract 변경 시 FE 저장소(ssac-org/SSAC_FRONTEND)에 이슈 생성 (FE_NOTIFY_TOKEN 필요)
 # ──────────────────────────────────────────────────────────────────────────────
 # 👤 보안/비밀키 하드코딩 — PR 템플릿 리뷰어 체크리스트로 강제
