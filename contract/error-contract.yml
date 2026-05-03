@@ -1,0 +1,138 @@
+# ErrorCode Contract
+#
+# ErrorCode Enum(com.ssac.ssacbackend.common.exception.ErrorCode)의 공식 계약 파일.
+# Enum에 코드를 추가/수정/삭제할 때 반드시 이 파일도 함께 갱신해야 한다.
+#
+# 버전 규칙:
+#   추가      → Patch 증가 (1.0.0 -> 1.0.1)
+#   수정      → Minor 증가 (1.0.0 -> 1.1.0)
+#   삭제/변경 → Major 증가 (1.0.0 -> 2.0.0)
+#
+# 검증: ./gradlew validateErrorContract
+version: "1.0.0"
+updatedAt: "2026-05-03"
+errors:
+  - code: "COMMON-001"
+    status: 400
+    message: "잘못된 입력값입니다."
+    domain: "COMMON"
+
+  - code: "COMMON-002"
+    status: 400
+    message: "페이지 크기가 최대값을 초과했습니다."
+    domain: "COMMON"
+
+  - code: "COMMON-003"
+    status: 400
+    message: "허용되지 않는 정렬 기준입니다."
+    domain: "COMMON"
+
+  - code: "SERVER-001"
+    status: 500
+    message: "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+    domain: "SERVER"
+
+  - code: "AUTH-001"
+    status: 401
+    message: "인증이 필요합니다."
+    domain: "AUTH"
+
+  - code: "AUTH-002"
+    status: 401
+    message: "토큰이 만료되었습니다."
+    domain: "AUTH"
+
+  - code: "AUTH-003"
+    status: 401
+    message: "유효하지 않은 토큰입니다."
+    domain: "AUTH"
+
+  - code: "AUTH-004"
+    status: 403
+    message: "접근 권한이 없습니다."
+    domain: "AUTH"
+
+  - code: "AUTH-005"
+    status: 401
+    message: "Refresh Token이 없습니다."
+    domain: "AUTH"
+
+  - code: "AUTH-006"
+    status: 400
+    message: "유효하지 않은 state 파라미터입니다."
+    domain: "AUTH"
+
+  - code: "AUTH-007"
+    status: 400
+    message: "만료된 state 파라미터입니다. 다시 로그인해 주세요."
+    domain: "AUTH"
+
+  - code: "AUTH-008"
+    status: 400
+    message: "OAuth 인증에 실패했습니다."
+    domain: "AUTH"
+
+  - code: "AUTH-009"
+    status: 400
+    message: "OAuth 프로필 정보를 가져오는 데 실패했습니다."
+    domain: "AUTH"
+
+  - code: "USER-001"
+    status: 404
+    message: "존재하지 않는 사용자입니다."
+    domain: "USER"
+
+  - code: "USER-002"
+    status: 409
+    message: "이미 사용 중인 닉네임입니다."
+    domain: "USER"
+
+  - code: "USER-003"
+    status: 400
+    message: "사용할 수 없는 닉네임입니다."
+    domain: "USER"
+
+  - code: "USER-004"
+    status: 400
+    message: "해당 역할은 직접 부여할 수 없습니다."
+    domain: "USER"
+
+  - code: "NEWS-001"
+    status: 404
+    message: "존재하지 않는 뉴스입니다."
+    domain: "NEWS"
+
+  - code: "NOTI-001"
+    status: 404
+    message: "존재하지 않는 알림입니다."
+    domain: "NOTI"
+
+  - code: "QUIZ-001"
+    status: 404
+    message: "존재하지 않는 퀴즈입니다."
+    domain: "QUIZ"
+
+  - code: "QUIZ-002"
+    status: 404
+    message: "존재하지 않는 응시 기록입니다."
+    domain: "QUIZ"
+
+  - code: "QUIZ-003"
+    status: 400
+    message: "퀴즈에 속하지 않는 문항입니다."
+    domain: "QUIZ"
+
+  - code: "CONTENT-001"
+    status: 404
+    message: "진행 중인 콘텐츠를 찾을 수 없습니다."
+    domain: "CONTENT"
+
+  - code: "EVENT-001"
+    status: 400
+    message: "userId 또는 guestId 중 하나는 반드시 필요합니다."
+    domain: "EVENT"
+
+  - code: "GUEST-001"
+    status: 403
+    message: "로그인이 필요한 기능입니다."
+    domain: "GUEST"

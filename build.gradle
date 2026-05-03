@@ -128,3 +128,16 @@ jacocoTestCoverageVerification {
         }
     }
 }
+
+// ── ErrorCode Contract 검증 ──────────────────────────────────────────────────
+// ErrorCode Enum과 contract/error-contract.yml 간 정합성을 검증한다.
+// CI: ./gradlew validateErrorContract
+// 실패 시: contract/error-contract.yml을 갱신한 후 다시 실행하세요.
+task validateErrorContract(type: JavaExec) {
+    description = 'ErrorCode Enum과 Contract 파일 정합성 검증'
+    group = 'verification'
+    dependsOn compileJava
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.ssac.tool.ErrorContractValidator'
+    jvmArgs '-Dfile.encoding=UTF-8'
+}
