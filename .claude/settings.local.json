@@ -55,7 +55,13 @@
       "Bash(application.properties)",
       "Bash(SecurityConfig.java)",
       "Bash(MdcLoggingFilter.java)",
-      "Bash(logback-spring.xml)"
+      "Bash(logback-spring.xml)",
+      "Bash(find:*)",
+      "Bash(ErrorCode.java)",
+      "Bash(status)",
+      "Bash(contract/error-contract.yml)",
+      "Bash(com/ssac/tool/ErrorContractValidator.java)",
+      "Bash(validateErrorContract)"
     ]
   }
 }

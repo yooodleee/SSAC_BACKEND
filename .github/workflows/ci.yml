@@ -184,6 +184,75 @@ jobs:
           fi
           echo "✅ prod 프로파일 필수 보안 설정 모두 확인"
 
+  # ──────────────────────────────────────────────────────────────────────────────
+  # error-contract-validation: ErrorCode Enum ↔ contract/error-contract.yml 정합성 검증
+  # build-and-test, profile-validation과 병렬 실행 (독립적)
+  # ──────────────────────────────────────────────────────────────────────────────
+  error-contract-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Java 17 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Gradle 캐시
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+
+      - name: 빌드 (테스트 제외)
+        run: ./gradlew build -x test --no-daemon
+
+      # ── 검증 1: ErrorCode Enum ↔ Contract 정합성 ────────────────────────────
+      - name: ErrorCode Contract 정합성 검증
+        run: ./gradlew validateErrorContract --no-daemon
+
+      # ── 검증 2: Contract 파일 커밋 여부 확인 ────────────────────────────────
+      # validateErrorContract는 파일을 수정하지 않으므로,
+      # 이 단계가 실패하면 다른 CI 단계가 contract 파일을 변조한 것이다.
+      - name: Contract 파일 변경 여부 확인
+        run: |
+          git diff --exit-code contract/error-contract.yml \
+            && echo "✅ contract/error-contract.yml 변경 없음" \
+            || (echo "❌ contract/error-contract.yml이 커밋되지 않은 변경사항을 포함합니다." && exit 1)
+
+      # ── 검증 3: ErrorCode 변경 시 Contract 버전 갱신 여부 확인 ──────────────
+      # ErrorCode.java가 이 PR에서 변경된 경우 contract 파일의 version도 올라야 한다.
+      - name: Contract 파일 버전 갱신 여부 확인
+        run: |
+          ERRORCODE_FILE="src/main/java/com/ssac/ssacbackend/common/exception/ErrorCode.java"
+          CONTRACT_FILE="contract/error-contract.yml"
+
+          CHANGED=$(git diff origin/master...HEAD -- "$ERRORCODE_FILE" 2>/dev/null || true)
+          if [ -z "$CHANGED" ]; then
+            echo "ℹ️ ErrorCode.java 변경 없음, version 갱신 불필요"
+            exit 0
+          fi
+
+          CURRENT=$(grep 'version:' "$CONTRACT_FILE" | head -1 \
+            | sed 's/.*version: *"\(.*\)"/\1/')
+          PREV=$(git show origin/master:"$CONTRACT_FILE" 2>/dev/null \
+            | grep 'version:' | head -1 \
+            | sed 's/.*version: *"\(.*\)"/\1/' || echo "0.0.0")
+
+          if [ "$CURRENT" = "$PREV" ]; then
+            echo "❌ ErrorCode.java가 변경되었지만 contract/error-contract.yml의 version이 갱신되지 않았습니다."
+            echo "  현재 version: $CURRENT (이전과 동일)"
+            echo "  버전 규칙: 추가 → Patch, 수정 → Minor, 삭제/변경 → Major"
+            exit 1
+          fi
+          echo "✅ Contract 버전 갱신 확인: $PREV -> $CURRENT"
+
 # CI 체크 항목 요약:
 # ── build-and-test ──
 # 1. ✅ 컴파일 통과 (gradlew build -x test)
@@ -198,5 +267,9 @@ jobs:
 # 9. ✅ application-prod.yml 파일 존재 여부 확인
 # 10. ✅ prod 프로파일 하드코딩 시크릿 탐지
 # 11. ✅ prod 프로파일 필수 보안 설정 (ddl-auto, stacktrace, show-sql) 확인
+# ── error-contract-validation ──
+# 12. ✅ ErrorCode Enum ↔ Contract 정합성 검증 (gradlew validateErrorContract)
+# 13. ✅ Contract 파일 미커밋 변경사항 탐지 (git diff)
+# 14. ✅ ErrorCode 변경 시 Contract 버전 갱신 여부 확인
 # ──────────────────────────────────────────────────────────────────────────────
 # 👤 보안/비밀키 하드코딩 — PR 템플릿 리뷰어 체크리스트로 강제
