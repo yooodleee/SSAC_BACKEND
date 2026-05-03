@@ -1,3 +1,7 @@
+<!-- ErrorCode(Enum) 추가/수정/삭제 PR은 이 템플릿 대신 아래 링크를 사용하세요:
+     PR URL 뒤에 ?template=errorcode-change.md 를 붙이거나
+     GitHub PR 생성 화면에서 "errorcode-change" 템플릿을 선택하세요. -->
+
 ## 관련 이슈
 
 - Closes #
