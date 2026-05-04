@@ -54,7 +54,7 @@ class MenuClickEventServiceTest {
     @Test
     @DisplayName("전체 사용자 수가 0이면 CTR은 0.0이다")
     void 사용자_수_0일_때_CTR_0() {
-        List<Object[]> rows = List.of(new Object[]{"menu-01", "홈", 10L});
+        List<Object[]> rows = List.<Object[]>of(new Object[]{"menu-01", "홈", 10L});
         given(repository.countDistinctUsersSince(any(LocalDateTime.class))).willReturn(0L);
         given(repository.countByMenuIdSince(any(LocalDateTime.class))).willReturn(rows);
 
@@ -78,7 +78,7 @@ class MenuClickEventServiceTest {
     @DisplayName("CTR이 소수점 둘째 자리까지 반올림된다")
     void CTR_소수점_둘째_자리_반올림() {
         // clickCount=1, totalUsers=3 → 1/3*100 ≈ 33.33
-        List<Object[]> rows = List.of(new Object[]{"menu-01", "홈", 1L});
+        List<Object[]> rows = List.<Object[]>of(new Object[]{"menu-01", "홈", 1L});
         given(repository.countDistinctUsersSince(any(LocalDateTime.class))).willReturn(3L);
         given(repository.countByMenuIdSince(any(LocalDateTime.class))).willReturn(rows);
 

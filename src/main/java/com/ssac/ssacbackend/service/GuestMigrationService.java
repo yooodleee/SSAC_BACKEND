@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>OAuth2/Naver 로그인 성공 시 guestId 쿠키가 존재하면 호출된다.
  * 동일 퀴즈에 중복 기록이 있으면 최신 기록을 우선 유지하고 나머지는 삭제한다.
  * 마이그레이션 실패 시 실패 내역을 별도 테이블에 기록하고 예외를 전파하지 않아 로그인 흐름이 유지된다.
+ *
+ * <p>{@link MigrationResult} 레코드를 반환하여 이전된 퀴즈 수를 호출자가 응답에 포함할 수 있다.
  */
 @Slf4j
 @Service
@@ -31,18 +33,30 @@ public class GuestMigrationService {
     private final MigrationFailureRepository migrationFailureRepository;
 
     /**
+     * Guest 마이그레이션 결과를 담는 값 객체.
+     *
+     * @param success    마이그레이션 성공 여부
+     * @param quizCount  이전된 퀴즈 시도 수
+     */
+    public record MigrationResult(boolean success, int quizCount) {
+        public static MigrationResult failure() {
+            return new MigrationResult(false, 0);
+        }
+    }
+
+    /**
      * Guest 퀴즈 기록을 회원 계정으로 이전한다.
      *
-     * @return 마이그레이션 성공 여부 (실패 시에도 로그인은 계속 진행됨)
+     * @return 마이그레이션 결과 (실패 시에도 로그인은 계속 진행됨)
      */
     @Transactional
-    public boolean migrateGuestData(String guestId, User user) {
+    public MigrationResult migrateGuestData(String guestId, User user) {
         log.debug("Guest 마이그레이션 시작: guestId={}, userId={}", guestId, user.getId());
         try {
             List<QuizAttempt> guestAttempts = quizAttemptRepository.findByGuestIdWithQuiz(guestId);
             if (guestAttempts.isEmpty()) {
                 log.debug("마이그레이션 대상 없음: guestId={}", guestId);
-                return true;
+                return new MigrationResult(true, 0);
             }
             List<Long> guestQuizIds = guestAttempts.stream()
                 .map(qa -> qa.getQuiz().getId())
@@ -88,12 +102,12 @@ public class GuestMigrationService {
 
             log.info("Guest 데이터 마이그레이션 완료: guestId={}, userId={}, 이전={}, 삭제(중복)={}",
                 guestId, user.getId(), transferCount, toDelete.size());
-            return true;
+            return new MigrationResult(true, transferCount);
         } catch (Exception e) {
             log.error("Guest 데이터 마이그레이션 실패: guestId={}, userId={}, 원인={}",
                 guestId, user.getId(), e.getMessage(), e);
             recordMigrationFailure(guestId, user.getId(), e.getMessage());
-            return false;
+            return MigrationResult.failure();
         }
     }
 

@@ -2,6 +2,7 @@ package com.ssac.ssacbackend.controller;
 
 import com.ssac.ssacbackend.common.util.CookieUtils;
 import com.ssac.ssacbackend.config.CookieProperties;
+import com.ssac.ssacbackend.dto.NaverLoginResult;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.service.NaverOAuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -66,10 +67,10 @@ public class NaverOAuthController {
     @GetMapping("/callback")
     @Operation(
         summary = "네이버 로그인 콜백",
-        description = "네이버 인증 코드를 받아 Access Token과 Refresh Token을 HttpOnly 쿠키로 저장한 뒤 "
-            + "프론트엔드(oauth2.default-redirect-uri)로 리다이렉트한다. "
-            + "신규 사용자는 자동 가입된다. "
-            + "guestId 쿠키가 있으면 비회원 퀴즈 기록을 회원 계정으로 자동 이전한다."
+        description = "네이버 인증 코드를 처리한다. "
+            + "기존 회원이면 Access/Refresh Token을 HttpOnly 쿠키로 저장 후 프론트엔드로 리다이렉트한다. "
+            + "신규 회원이면 isNewUser=true와 tempToken 파라미터와 함께 회원 가입 플로우로 리다이렉트한다. "
+            + "guestId 쿠키가 있으면 기존 회원의 경우 비회원 퀴즈 기록을 자동 이전한다."
     )
     public void callback(
         @Parameter(description = "네이버가 전달한 인증 코드") @RequestParam String code,
@@ -78,16 +79,25 @@ public class NaverOAuthController {
         HttpServletResponse response
     ) throws IOException {
         log.debug("네이버 콜백 수신: state={}, guestId={}", state, guestId);
-        TokenPair tokens = naverOAuthService.processCallback(code, state, guestId);
+        NaverLoginResult result = naverOAuthService.processCallback(code, state, guestId);
 
-        CookieUtils.addAccessTokenCookie(response, tokens.accessToken(), cookieProperties);
-        CookieUtils.addRefreshTokenCookie(response, tokens.refreshToken(), cookieProperties);
-        if (guestId != null) {
-            CookieUtils.clearGuestIdCookie(response, cookieProperties);
-            log.debug("네이버 로그인 후 guestId 쿠키 삭제: guestId={}", guestId);
+        if (result.isNewUser()) {
+            // 신규 회원: 회원 가입 플로우로 리다이렉트
+            log.info("네이버 신규 회원 리다이렉트: tempToken 발급 완료");
+            response.sendRedirect(defaultRedirectUri
+                + "/auth/naver/callback?isNewUser=true&tempToken=" + result.tempToken()
+                + "&provider=NAVER");
+        } else {
+            // 기존 회원: 토큰 쿠키 설정 후 리다이렉트
+            TokenPair tokens = result.tokenPair();
+            CookieUtils.addAccessTokenCookie(response, tokens.accessToken(), cookieProperties);
+            CookieUtils.addRefreshTokenCookie(response, tokens.refreshToken(), cookieProperties);
+            if (guestId != null) {
+                CookieUtils.clearGuestIdCookie(response, cookieProperties);
+                log.debug("네이버 로그인 후 guestId 쿠키 삭제: guestId={}", guestId);
+            }
+            log.info("네이버 기존 회원 로그인 성공: 토큰 발급 완료, redirectUri={}", defaultRedirectUri);
+            response.sendRedirect(defaultRedirectUri + "?isNewUser=false");
         }
-
-        log.info("네이버 로그인 성공: 토큰 발급 완료, redirectUri={}", defaultRedirectUri);
-        response.sendRedirect(defaultRedirectUri);
     }
 }

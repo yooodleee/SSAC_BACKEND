@@ -50,6 +50,10 @@ public class SecurityConfig {
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/api/v1/auth/**",
+        // 회원 가입 플로우 (약관 동의, 닉네임 설정, 닉네임 중복 확인)
+        "/api/auth/terms",
+        "/api/auth/register",
+        "/api/auth/nickname/check",
         "/login/**",
         "/oauth2/**",
         "/api/news",

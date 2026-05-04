@@ -7,5 +7,6 @@ package com.ssac.ssacbackend.domain.social;
  */
 public enum OAuthProvider {
 
+    KAKAO,
     NAVER
 }

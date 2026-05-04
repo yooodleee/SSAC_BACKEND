@@ -8,10 +8,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.repository.UserRepository;
 import com.ssac.ssacbackend.service.GuestMigrationService;
+import com.ssac.ssacbackend.service.PendingRegistrationService;
 import com.ssac.ssacbackend.service.TokenService;
 import java.io.IOException;
 import java.util.HashMap;
@@ -32,6 +34,7 @@ class OAuth2SuccessHandlerTest {
     private TokenService tokenService;
     private GuestMigrationService guestMigrationService;
     private UserRepository userRepository;
+    private PendingRegistrationService pendingRegistrationService;
     private OAuth2SuccessHandler handler;
     private User user;
 
@@ -40,12 +43,14 @@ class OAuth2SuccessHandlerTest {
         tokenService = mock(TokenService.class);
         guestMigrationService = mock(GuestMigrationService.class);
         userRepository = mock(UserRepository.class);
+        pendingRegistrationService = mock(PendingRegistrationService.class);
 
         CookieProperties cookieProperties = new CookieProperties();
         cookieProperties.setSecure(false);
         cookieProperties.setSameSite("Lax");
 
-        handler = new OAuth2SuccessHandler(tokenService, guestMigrationService, userRepository, cookieProperties);
+        handler = new OAuth2SuccessHandler(
+            tokenService, guestMigrationService, userRepository, pendingRegistrationService, cookieProperties);
         ReflectionTestUtils.setField(handler, "defaultRedirectUri", "http://localhost:3000");
 
         user = mock(User.class);
@@ -56,7 +61,7 @@ class OAuth2SuccessHandlerTest {
     }
 
     @Test
-    @DisplayName("인증 성공 시 프론트엔드 콜백 URL에 access token을 담아 리다이렉트한다")
+    @DisplayName("기존 회원 인증 성공 시 프론트엔드 콜백 URL에 access token과 isNewUser=false를 담아 리다이렉트한다")
     void onAuthenticationSuccessRedirectsToFrontendCallbackWithToken() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -65,6 +70,25 @@ class OAuth2SuccessHandlerTest {
 
         assertThat(response.getRedirectedUrl())
             .startsWith("http://localhost:3000/auth/kakao/callback?token=access-token");
+    }
+
+    @Test
+    @DisplayName("신규 회원은 isNewUser=true와 tempToken을 포함한 URL로 리다이렉트한다")
+    void onAuthenticationSuccessNewUserRedirectsWithTempToken() throws IOException {
+        given(userRepository.findByProviderAndProviderId("kakao", "12345")).willReturn(Optional.empty());
+        given(pendingRegistrationService.create(eq(OAuthProvider.KAKAO), eq("12345"), any()))
+            .willReturn("temp-token-123");
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        handler.onAuthenticationSuccess(request, response, buildAuthentication());
+
+        assertThat(response.getRedirectedUrl())
+            .contains("isNewUser=true")
+            .contains("tempToken=temp-token-123")
+            .contains("provider=KAKAO");
+        verify(tokenService, never()).issueTokens(any());
     }
 
     @Test
@@ -81,6 +105,9 @@ class OAuth2SuccessHandlerTest {
     @Test
     @DisplayName("guestId 쿠키가 있으면 마이그레이션을 실행하고 guestId 쿠키를 삭제한다")
     void onAuthenticationSuccessWithGuestIdCookieMigratesAndClearsCookie() throws IOException {
+        given(guestMigrationService.migrateGuestData(any(), any()))
+            .willReturn(new GuestMigrationService.MigrationResult(true, 2));
+
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setCookies(new jakarta.servlet.http.Cookie("guestId", "test-guest-uuid"));
         MockHttpServletResponse response = new MockHttpServletResponse();

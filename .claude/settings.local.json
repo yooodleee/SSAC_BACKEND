@@ -61,7 +61,10 @@
       "Bash(status)",
       "Bash(contract/error-contract.yml)",
       "Bash(com/ssac/tool/ErrorContractValidator.java)",
-      "Bash(validateErrorContract)"
+      "Bash(validateErrorContract)",
+      "Bash(xargs grep:*)",
+      "Bash(./gradlew compileTestJava)",
+      "Bash(git stash:*)"
     ]
   }
 }

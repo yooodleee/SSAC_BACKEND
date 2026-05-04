@@ -1,17 +1,20 @@
 package com.ssac.ssacbackend.config;
 
 import com.ssac.ssacbackend.common.util.CookieUtils;
+import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.KakaoUserInfo;
 import com.ssac.ssacbackend.dto.response.OAuth2UserInfo;
 import com.ssac.ssacbackend.repository.UserRepository;
 import com.ssac.ssacbackend.service.GuestMigrationService;
+import com.ssac.ssacbackend.service.PendingRegistrationService;
 import com.ssac.ssacbackend.service.TokenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,9 +24,12 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 /**
- * OAuth2 로그인 성공 시 Access Token과 Refresh Token을 발급하고 쿠키에 담아 전달한다.
+ * 카카오 OAuth2 로그인 성공 시 신규/기존 회원을 분기 처리한다.
  *
- * <p>Access Token은 accessToken 쿠키에, Refresh Token은 refreshToken HttpOnly 쿠키에 저장한다.
+ * <ul>
+ *   <li>기존 회원: Access Token / Refresh Token을 발급하고 FE 콜백으로 리다이렉트한다.</li>
+ *   <li>신규 회원: tempToken을 생성하고 FE 회원 가입 플로우로 리다이렉트한다.</li>
+ * </ul>
  */
 @Slf4j
 @Component
@@ -33,6 +39,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final TokenService tokenService;
     private final GuestMigrationService guestMigrationService;
     private final UserRepository userRepository;
+    private final PendingRegistrationService pendingRegistrationService;
     private final CookieProperties cookieProperties;
 
     @Value("${oauth2.default-redirect-uri:http://localhost:3000}")
@@ -46,22 +53,45 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         OAuth2UserInfo oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
         String providerId = oAuth2UserInfo.getProviderId();
 
-        User user = userRepository.findByProviderAndProviderId("kakao", providerId)
-            .orElseGet(() -> {
-                log.warn("OAuth2 로그인 성공했으나 DB에서 사용자를 찾을 수 없음: providerId={}", providerId);
-                return null;
-            });
+        Optional<User> userOpt = userRepository.findByProviderAndProviderId("kakao", providerId);
 
-        if (user == null) {
-            response.sendRedirect("/?error=user_not_found");
-            return;
+        if (userOpt.isEmpty()) {
+            // 신규 회원: tempToken 발급 후 회원 가입 플로우로 리다이렉트
+            handleNewUser(request, response, oAuth2UserInfo);
+        } else {
+            // 기존 회원: 토큰 발급 후 로그인 완료
+            handleExistingUser(request, response, userOpt.get());
+        }
+    }
+
+    private void handleNewUser(HttpServletRequest request, HttpServletResponse response,
+        OAuth2UserInfo userInfo) throws IOException {
+
+        String email = userInfo.getEmail();
+        if (email == null || email.isBlank()) {
+            email = userInfo.getProviderId() + "@kakao.com";
         }
 
-        String guestId = extractGuestIdFromCookie(request);
+        String tempToken = pendingRegistrationService.create(
+            OAuthProvider.KAKAO, userInfo.getProviderId(), email);
+
+        log.info("카카오 신규 회원 감지, tempToken 발급: providerId={}", userInfo.getProviderId());
+
+        CookieUtils.clearRedirectToCookie(response, cookieProperties);
+        String redirectUrl = defaultRedirectUri
+            + "/auth/kakao/callback?isNewUser=true&tempToken=" + tempToken + "&provider=KAKAO";
+        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+    }
+
+    private void handleExistingUser(HttpServletRequest request, HttpServletResponse response,
+        User user) throws IOException {
+
+        String guestId = extractCookieValue(request, "guestId");
         if (guestId != null) {
             log.debug("Kakao 로그인 시 guestId 쿠키 감지, 마이그레이션 실행: guestId={}", guestId);
-            boolean migrated = guestMigrationService.migrateGuestData(guestId, user);
-            if (!migrated) {
+            GuestMigrationService.MigrationResult migrationResult =
+                guestMigrationService.migrateGuestData(guestId, user);
+            if (!migrationResult.success()) {
                 log.warn("Guest 마이그레이션 실패, 로그인 계속 진행: guestId={}", guestId);
             }
             CookieUtils.clearGuestIdCookie(response, cookieProperties);
@@ -72,14 +102,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         TokenPair tokens = tokenService.issueTokens(user);
 
         CookieUtils.clearRedirectToCookie(response, cookieProperties);
-
-        String callbackUrl = defaultRedirectUri + "/auth/kakao/callback?token=" + tokens.accessToken();
-        log.info("OAuth2 로그인 성공: userId={}, 토큰 발급 완료, FE 콜백으로 리다이렉트", user.getId());
+        String callbackUrl = defaultRedirectUri
+            + "/auth/kakao/callback?token=" + tokens.accessToken() + "&isNewUser=false";
+        log.info("카카오 기존 회원 로그인 성공: userId={}", user.getId());
         getRedirectStrategy().sendRedirect(request, response, callbackUrl);
-    }
-
-    private String extractGuestIdFromCookie(HttpServletRequest request) {
-        return extractCookieValue(request, "guestId");
     }
 
     private String extractCookieValue(HttpServletRequest request, String name) {
