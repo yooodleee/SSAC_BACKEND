@@ -61,7 +61,11 @@ public enum ErrorCode {
     INVALID_EVENT_DATA("EVENT-001", 400, "userId 또는 guestId 중 하나는 반드시 필요합니다."),
 
     // ── Guest (GUEST) ──────────────────────────────────────────────────────────
-    GUEST_NOT_ALLOWED("GUEST-001", 403, "로그인이 필요한 기능입니다.");
+    GUEST_NOT_ALLOWED("GUEST-001", 403, "로그인이 필요한 기능입니다."),
+
+    // ── 회원 가입 약관 (TERMS) ────────────────────────────────────────────────
+    TERMS_REQUIRED("TERMS-001", 400, "필수 약관에 동의해주세요."),
+    REGISTRATION_SESSION_EXPIRED("TERMS-002", 401, "회원가입 세션이 만료되었습니다. 다시 시도해주세요.");
 
     private final String code;
     private final int status;

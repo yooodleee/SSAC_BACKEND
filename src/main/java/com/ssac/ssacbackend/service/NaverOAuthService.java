@@ -6,12 +6,12 @@ import com.ssac.ssacbackend.config.NaverOAuthProperties;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.domain.social.SocialAccount;
 import com.ssac.ssacbackend.domain.user.User;
+import com.ssac.ssacbackend.dto.NaverLoginResult;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.NaverProfileResponse;
 import com.ssac.ssacbackend.dto.response.NaverTokenResponse;
 import com.ssac.ssacbackend.repository.SocialAccountRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
-import org.springframework.lang.Nullable;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ public class NaverOAuthService {
     private final SocialAccountRepository socialAccountRepository;
     private final TokenService tokenService;
     private final GuestMigrationService guestMigrationService;
+    private final PendingRegistrationService pendingRegistrationService;
     private final PasswordEncoder passwordEncoder;
     private final RestTemplate restTemplate;
 
@@ -76,36 +78,50 @@ public class NaverOAuthService {
     }
 
     /**
-     * 네이버 콜백을 처리하고 Access Token / Refresh Token 쌍을 발급한다.
+     * 네이버 콜백을 처리하여 신규/기존 회원을 분기한다.
      *
-     * <p>state 검증 → 인증 코드 교환 → 프로필 조회 → 사용자 조회/생성 → Guest 마이그레이션 순으로 진행된다.
+     * <ul>
+     *   <li>기존 회원: Guest 마이그레이션 수행 후 Access/Refresh Token을 발급한다.</li>
+     *   <li>신규 회원: DB에 저장하지 않고 tempToken을 생성하여 회원 가입 플로우로 안내한다.</li>
+     * </ul>
      *
      * @param code    네이버가 전달한 인증 코드
      * @param state   CSRF 방어용 state 파라미터
      * @param guestId 비회원 상태에서 쌓인 데이터를 이전할 guestId (없으면 null)
-     * @return Access Token / Refresh Token 쌍
+     * @return 신규/기존 회원 분기 결과
      */
     @Transactional
-    public TokenPair processCallback(String code, String state, @Nullable String guestId) {
+    public NaverLoginResult processCallback(String code, String state, @Nullable String guestId) {
         validateState(state);
 
         NaverTokenResponse tokenResponse = exchangeCodeForToken(code, state);
         NaverProfileResponse.NaverUserDetail profile = fetchNaverProfile(tokenResponse.getAccessToken());
 
-        User user = findOrCreateUser(profile);
-        log.debug("네이버 사용자 조회/생성 완료: userId={}", user.getId());
-
-        if (guestId != null) {
-            log.debug("네이버 로그인 시 guestId 감지, 마이그레이션 실행: guestId={}", guestId);
-            boolean migrated = guestMigrationService.migrateGuestData(guestId, user);
-            if (!migrated) {
-                log.warn("Guest 마이그레이션 실패, 로그인 계속 진행: guestId={}", guestId);
-            }
-        }
-
-        TokenPair tokenPair = tokenService.issueTokens(user);
-        log.info("네이버 로그인 처리 완료: userId={}", user.getId());
-        return tokenPair;
+        return socialAccountRepository
+            .findByProviderAndProviderUserId(OAuthProvider.NAVER, profile.getId())
+            .map(SocialAccount::getUser)
+            .map(user -> {
+                // 기존 회원: Guest 마이그레이션 후 토큰 발급
+                if (guestId != null) {
+                    log.debug("네이버 로그인 시 guestId 감지, 마이그레이션 실행: guestId={}", guestId);
+                    GuestMigrationService.MigrationResult migrationResult =
+                        guestMigrationService.migrateGuestData(guestId, user);
+                    if (!migrationResult.success()) {
+                        log.warn("Guest 마이그레이션 실패, 로그인 계속 진행: guestId={}", guestId);
+                    }
+                }
+                TokenPair tokenPair = tokenService.issueTokens(user);
+                log.info("네이버 기존 회원 로그인 완료: userId={}", user.getId());
+                return NaverLoginResult.existingUser(tokenPair);
+            })
+            .orElseGet(() -> {
+                // 신규 회원: tempToken 발급
+                String email = resolveEmail(profile);
+                String tempToken = pendingRegistrationService.create(
+                    OAuthProvider.NAVER, profile.getId(), email);
+                log.info("네이버 신규 회원 감지, tempToken 발급: naverId={}", profile.getId());
+                return NaverLoginResult.newUser(tempToken);
+            });
     }
 
     private void validateState(String state) {
@@ -150,36 +166,6 @@ public class NaverOAuthService {
             throw new BadRequestException(ErrorCode.OAUTH_PROFILE_FAILED);
         }
         return response.getResponse();
-    }
-
-    private User findOrCreateUser(NaverProfileResponse.NaverUserDetail profile) {
-        return socialAccountRepository
-            .findByProviderAndProviderUserId(OAuthProvider.NAVER, profile.getId())
-            .map(SocialAccount::getUser)
-            .orElseGet(() -> createUserWithSocialAccount(profile));
-    }
-
-    private User createUserWithSocialAccount(NaverProfileResponse.NaverUserDetail profile) {
-        String email = resolveEmail(profile);
-        String nickname = resolveUniqueNickname(profile.getNickname());
-        String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
-
-        User user = User.builder()
-            .email(email)
-            .password(dummyPassword)
-            .nickname(nickname)
-            .build();
-        userRepository.save(user);
-
-        SocialAccount socialAccount = SocialAccount.builder()
-            .provider(OAuthProvider.NAVER)
-            .providerUserId(profile.getId())
-            .user(user)
-            .build();
-        socialAccountRepository.save(socialAccount);
-
-        log.info("소셜 회원 가입 완료: provider=NAVER, naverId={}", profile.getId());
-        return user;
     }
 
     private String resolveEmail(NaverProfileResponse.NaverUserDetail profile) {

@@ -63,6 +63,18 @@ public class User {
     @Column
     private LocalDateTime invalidatedBefore;
 
+    @Column
+    private LocalDateTime serviceTermAgreedAt;
+
+    @Column
+    private LocalDateTime privacyTermAgreedAt;
+
+    @Column
+    private LocalDateTime ageVerificationAgreedAt;
+
+    @Column
+    private LocalDateTime marketingTermAgreedAt;
+
     @Builder
     public User(String email, String password, String nickname, String provider,
         String providerId, UserRole role) {
@@ -94,6 +106,24 @@ public class User {
      */
     public void invalidateTokens() {
         this.invalidatedBefore = LocalDateTime.now();
+    }
+
+    /**
+     * 약관 동의 일시를 저장한다. 회원 가입 완료 시 호출한다.
+     *
+     * @param serviceTermAgreedAt      서비스 이용약관 동의 일시
+     * @param privacyTermAgreedAt      개인정보 처리방침 동의 일시
+     * @param ageVerificationAgreedAt  만 14세 이상 확인 동의 일시
+     * @param marketingTermAgreedAt    마케팅 수신 동의 일시 (선택, null 허용)
+     */
+    public void agreeTerms(LocalDateTime serviceTermAgreedAt,
+                           LocalDateTime privacyTermAgreedAt,
+                           LocalDateTime ageVerificationAgreedAt,
+                           LocalDateTime marketingTermAgreedAt) {
+        this.serviceTermAgreedAt = serviceTermAgreedAt;
+        this.privacyTermAgreedAt = privacyTermAgreedAt;
+        this.ageVerificationAgreedAt = ageVerificationAgreedAt;
+        this.marketingTermAgreedAt = marketingTermAgreedAt;
     }
 
     @PrePersist
