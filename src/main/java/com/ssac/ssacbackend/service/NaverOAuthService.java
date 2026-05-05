@@ -11,7 +11,6 @@ import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.NaverProfileResponse;
 import com.ssac.ssacbackend.dto.response.NaverTokenResponse;
 import com.ssac.ssacbackend.repository.SocialAccountRepository;
-import com.ssac.ssacbackend.repository.UserRepository;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +20,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.lang.Nullable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -42,16 +40,12 @@ public class NaverOAuthService {
     private static final String NAVER_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
     private static final String NAVER_PROFILE_URL = "https://openapi.naver.com/v1/nid/me";
     private static final long STATE_TTL_SECONDS = 600L;
-    private static final int MAX_NICKNAME_BASE_LENGTH = 16;
-    private static final int NICKNAME_SUFFIX_BOUND = 10000;
 
     private final NaverOAuthProperties naverOAuthProperties;
-    private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
     private final TokenService tokenService;
     private final GuestMigrationService guestMigrationService;
     private final PendingRegistrationService pendingRegistrationService;
-    private final PasswordEncoder passwordEncoder;
     private final RestTemplate restTemplate;
 
     private final ConcurrentHashMap<String, Instant> stateStore = new ConcurrentHashMap<>();
@@ -146,7 +140,10 @@ public class NaverOAuthService {
 
         NaverTokenResponse response = restTemplate.getForObject(tokenUrl, NaverTokenResponse.class);
         if (response == null || response.getAccessToken() == null) {
-            log.error("네이버 토큰 교환 실패: code={}", code);
+            String naverError = response != null ? response.getError() : "null_response";
+            String naverErrorDesc = response != null ? response.getErrorDescription() : "";
+            log.error("네이버 토큰 교환 실패: code={}, naverError={}, description={}",
+                code, naverError, naverErrorDesc);
             throw new BadRequestException(ErrorCode.OAUTH_AUTH_FAILED);
         }
         return response;
@@ -173,37 +170,6 @@ public class NaverOAuthService {
             return profile.getEmail();
         }
         return "naver_" + profile.getId() + "@social.local";
-    }
-
-    private String resolveUniqueNickname(String rawNickname) {
-        String base = sanitizeNickname(rawNickname);
-        if (!userRepository.existsByNickname(base)) {
-            return base;
-        }
-        String truncated = base.length() > MAX_NICKNAME_BASE_LENGTH
-            ? base.substring(0, MAX_NICKNAME_BASE_LENGTH) : base;
-        for (int i = 0; i < 10; i++) {
-            String candidate = truncated
-                + String.format("%04d", (int) (Math.random() * NICKNAME_SUFFIX_BOUND));
-            if (!userRepository.existsByNickname(candidate)) {
-                return candidate;
-            }
-        }
-        return "user" + (System.currentTimeMillis() % 100000);
-    }
-
-    private String sanitizeNickname(String nickname) {
-        if (nickname == null || nickname.isBlank()) {
-            return "naver사용자";
-        }
-        String sanitized = nickname.replaceAll("[^a-zA-Z0-9가-힣_-]", "");
-        if (sanitized.length() > 20) {
-            sanitized = sanitized.substring(0, 20);
-        }
-        if (sanitized.length() < 2) {
-            return "naver사용자";
-        }
-        return sanitized;
     }
 
     private void purgeExpiredStates() {

@@ -64,7 +64,13 @@
       "Bash(validateErrorContract)",
       "Bash(xargs grep:*)",
       "Bash(./gradlew compileTestJava)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(NaverOAuthController.callback)",
+      "Bash(?isNewUser=false)",
+      "Bash(/auth/naver/callback?isNewUser=false)",
+      "Bash(NaverOAuthService)",
+      "Bash(PasswordEncoder)",
+      "Bash(./gradlew compileJava --quiet)"
     ]
   }
 }

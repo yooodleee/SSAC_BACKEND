@@ -49,9 +49,14 @@ public class NaverOAuthController {
         description = "네이버 OAuth 인증 페이지로 리다이렉트한다. state 파라미터로 CSRF를 방어한다."
     )
     public void login(HttpServletResponse response) throws IOException {
-        String authorizationUrl = naverOAuthService.generateAuthorizationUrl();
-        log.debug("네이버 로그인 리다이렉트: url={}", authorizationUrl);
-        response.sendRedirect(authorizationUrl);
+        try {
+            String authorizationUrl = naverOAuthService.generateAuthorizationUrl();
+            log.debug("네이버 로그인 리다이렉트: url={}", authorizationUrl);
+            response.sendRedirect(authorizationUrl);
+        } catch (Exception e) {
+            log.error("네이버 로그인 URL 생성 실패: {}", e.getMessage());
+            response.sendRedirect(defaultRedirectUri + "/auth/naver/callback?loginError=server_error");
+        }
     }
 
     /**
@@ -60,9 +65,13 @@ public class NaverOAuthController {
      * <p>state 검증 후 네이버 API에서 사용자 정보를 조회하고, 서비스 내부 사용자로 매핑하여
      * Access Token / Refresh Token을 HttpOnly 쿠키에 저장한 뒤 프론트엔드로 리다이렉트한다.
      * 신규 사용자라면 자동으로 회원 가입이 진행된다.
+     * 네이버가 error 파라미터와 함께 콜백하는 경우(사용자 거부, 보안 검증 등)
+     * 프론트엔드 에러 페이지로 리다이렉트한다.
      *
-     * @param code  네이버가 전달한 인증 코드
-     * @param state CSRF 방어용 state 파라미터
+     * @param code             네이버가 전달한 인증 코드 (에러 응답 시 absent)
+     * @param state            CSRF 방어용 state 파라미터
+     * @param error            네이버 에러 코드 (정상 응답 시 absent)
+     * @param errorDescription 네이버 에러 설명 (정상 응답 시 absent)
      */
     @GetMapping("/callback")
     @Operation(
@@ -70,16 +79,39 @@ public class NaverOAuthController {
         description = "네이버 인증 코드를 처리한다. "
             + "기존 회원이면 Access/Refresh Token을 HttpOnly 쿠키로 저장 후 프론트엔드로 리다이렉트한다. "
             + "신규 회원이면 isNewUser=true와 tempToken 파라미터와 함께 회원 가입 플로우로 리다이렉트한다. "
-            + "guestId 쿠키가 있으면 기존 회원의 경우 비회원 퀴즈 기록을 자동 이전한다."
+            + "guestId 쿠키가 있으면 기존 회원의 경우 비회원 퀴즈 기록을 자동 이전한다. "
+            + "네이버가 error 파라미터를 전달하는 경우 FE 에러 페이지로 리다이렉트한다."
     )
     public void callback(
-        @Parameter(description = "네이버가 전달한 인증 코드") @RequestParam String code,
-        @Parameter(description = "CSRF 방어용 state 파라미터") @RequestParam String state,
+        @Parameter(description = "네이버가 전달한 인증 코드") @RequestParam(required = false) String code,
+        @Parameter(description = "CSRF 방어용 state 파라미터") @RequestParam(required = false) String state,
+        @Parameter(description = "네이버 에러 코드 (사용자 거부 등)") @RequestParam(required = false) String error,
+        @Parameter(description = "네이버 에러 설명") @RequestParam(name = "error_description", required = false) String errorDescription,
         @CookieValue(name = "guestId", required = false) String guestId,
         HttpServletResponse response
     ) throws IOException {
+        // 네이버가 에러를 반환한 경우: access_denied (사용자 거부), 보안 검증 실패 등
+        if (error != null) {
+            log.warn("네이버 OAuth 에러 콜백: error={}, description={}", error, errorDescription);
+            response.sendRedirect(defaultRedirectUri + "/auth/naver/callback?loginError=" + error);
+            return;
+        }
+
+        if (code == null || code.isBlank() || state == null || state.isBlank()) {
+            log.warn("네이버 콜백: 필수 파라미터 누락 (code={}, state={})", code, state);
+            response.sendRedirect(defaultRedirectUri + "/auth/naver/callback?loginError=invalid_request");
+            return;
+        }
+
         log.debug("네이버 콜백 수신: state={}, guestId={}", state, guestId);
-        NaverLoginResult result = naverOAuthService.processCallback(code, state, guestId);
+        NaverLoginResult result;
+        try {
+            result = naverOAuthService.processCallback(code, state, guestId);
+        } catch (Exception e) {
+            log.error("네이버 로그인 처리 중 오류 발생: {}", e.getMessage());
+            response.sendRedirect(defaultRedirectUri + "/auth/naver/callback?loginError=server_error");
+            return;
+        }
 
         if (result.isNewUser()) {
             // 신규 회원: 회원 가입 플로우로 리다이렉트
@@ -97,7 +129,7 @@ public class NaverOAuthController {
                 log.debug("네이버 로그인 후 guestId 쿠키 삭제: guestId={}", guestId);
             }
             log.info("네이버 기존 회원 로그인 성공: 토큰 발급 완료, redirectUri={}", defaultRedirectUri);
-            response.sendRedirect(defaultRedirectUri + "?isNewUser=false");
+            response.sendRedirect(defaultRedirectUri + "/auth/naver/callback?isNewUser=false");
         }
     }
 }

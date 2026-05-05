@@ -54,6 +54,8 @@ public class SecurityConfig {
         "/api/auth/terms",
         "/api/auth/register",
         "/api/auth/nickname/check",
+        // 개발 환경 전용 모의 엔드포인트 (prod 프로파일에서는 Bean 자체가 없음)
+        "/api/auth/dev/**",
         "/login/**",
         "/oauth2/**",
         "/api/news",
