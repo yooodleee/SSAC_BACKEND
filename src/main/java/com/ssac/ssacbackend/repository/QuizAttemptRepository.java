@@ -132,4 +132,6 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
      * @param email 사용자 이메일
      */
     boolean existsByUserEmail(String email);
+
+    void deleteByUser(User user);
 }

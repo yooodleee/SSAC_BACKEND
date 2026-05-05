@@ -18,4 +18,6 @@ public interface SocialAccountRepository extends JpaRepository<SocialAccount, Lo
      */
     Optional<SocialAccount> findByProviderAndProviderUserId(
         OAuthProvider provider, String providerUserId);
+
+    void deleteByUser(com.ssac.ssacbackend.domain.user.User user);
 }

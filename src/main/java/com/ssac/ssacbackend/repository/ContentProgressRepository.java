@@ -27,4 +27,6 @@ public interface ContentProgressRepository extends JpaRepository<ContentProgress
      * 사용자의 완료된 콘텐츠 수를 반환한다(세그먼트 산정용).
      */
     long countByUserEmailAndProgressRateGreaterThanEqual(String email, int progressRate);
+
+    void deleteByUserEmail(String email);
 }
