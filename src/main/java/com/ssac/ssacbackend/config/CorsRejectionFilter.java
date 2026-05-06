@@ -41,7 +41,7 @@ public class CorsRejectionFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String origin = request.getHeader("Origin");
 
-        if (origin != null && !isAllowedOrigin(origin)) {
+        if (origin != null && !isAllowedOrigin(origin) && !isOAuth2Path(request)) {
             List<String> allowedOrigins = corsProperties.getAllowedOrigins();
             log.warn("CORS 거부: requestedOrigin={} | allowedOrigins={} | method={} | path={}",
                 origin, allowedOrigins, request.getMethod(), request.getRequestURI());
@@ -65,5 +65,18 @@ public class CorsRejectionFilter extends OncePerRequestFilter {
 
     private boolean isAllowedOrigin(String origin) {
         return corsProperties.getAllowedOrigins().contains(origin);
+    }
+
+    /**
+     * OAuth2 인증 경로는 CORS 검사에서 제외한다.
+     *
+     * <p>브라우저는 Kakao(HTTPS) → localhost(HTTP) 리다이렉트 시 'Origin: null'을 전송한다.
+     * Spring Security가 처리하는 OAuth2 경로에 커스텀 CORS 필터를 적용하면
+     * 콜백 요청이 403으로 차단되어 인증 흐름이 깨진다.
+     * Spring Security 내장 CORS 설정이 이 경로를 처리한다.
+     */
+    private boolean isOAuth2Path(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.startsWith("/oauth2/") || uri.startsWith("/login/oauth2/");
     }
 }
