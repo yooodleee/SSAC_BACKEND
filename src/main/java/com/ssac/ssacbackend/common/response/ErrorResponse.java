@@ -25,6 +25,7 @@ public record ErrorResponse(
     String code,
     String message,
     List<FieldError> errors,
+    String traceId,
     String timestamp
 ) {
 
@@ -40,7 +41,14 @@ public record ErrorResponse(
      * 일반 비즈니스 예외 응답 — errors 없음.
      */
     public static ErrorResponse of(int status, String code, String message) {
-        return new ErrorResponse(status, code, message, null, Instant.now().toString());
+        return new ErrorResponse(status, code, message, null, null, Instant.now().toString());
+    }
+
+    /**
+     * traceId 포함 비즈니스 예외 응답.
+     */
+    public static ErrorResponse of(int status, String code, String message, String traceId) {
+        return new ErrorResponse(status, code, message, null, traceId, Instant.now().toString());
     }
 
     /**
@@ -48,6 +56,14 @@ public record ErrorResponse(
      */
     public static ErrorResponse of(int status, String code, String message,
         List<FieldError> errors) {
-        return new ErrorResponse(status, code, message, errors, Instant.now().toString());
+        return new ErrorResponse(status, code, message, errors, null, Instant.now().toString());
+    }
+
+    /**
+     * Bean Validation 실패 응답 — traceId + 필드별 errors 포함.
+     */
+    public static ErrorResponse of(int status, String code, String message,
+        List<FieldError> errors, String traceId) {
+        return new ErrorResponse(status, code, message, errors, traceId, Instant.now().toString());
     }
 }

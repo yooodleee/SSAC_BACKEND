@@ -6,7 +6,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssac.ssacbackend.service.ErrorLogService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -35,9 +41,12 @@ class GlobalExceptionHandlerTest {
 
     @BeforeEach
     void setUp() {
+        ErrorLogService errorLogService = mock(ErrorLogService.class);
+        doNothing().when(errorLogService).saveWarn(anyString(), anyString(), any(), anyString(), anyString());
+        doNothing().when(errorLogService).saveError(anyString(), anyString(), any(), anyString(), any(), anyString());
         mockMvc = MockMvcBuilders
             .standaloneSetup(new TestController())
-            .setControllerAdvice(new GlobalExceptionHandler())
+            .setControllerAdvice(new GlobalExceptionHandler(errorLogService))
             .build();
     }
 
