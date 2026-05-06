@@ -51,6 +51,7 @@ Java 17, Spring Boot 4.x, Spring Security, JPA(MySQL) 스택으로 구성된다.
 | `docs/conventions.md` | 네이밍, 패키지, 응답 형식 컨벤션 |
 | `docs/swagger-guide.md` | **컨트롤러 작성 시 필수** — @Operation description 작성 기준 |
 | `docs/decisions/` | 이미 결정된 사항을 다시 논의하지 않기 위해 |
+| `docs/agent-protocols/log-diagnose.md` | **오류 발생 시 필수** — traceId 기반 진단 프로토콜 |
 
 > 위 파일을 읽지 않고 코드를 작성하면 PR이 거절된다.
 
@@ -76,6 +77,7 @@ Java 17, Spring Boot 4.x, Spring Security, JPA(MySQL) 스택으로 구성된다.
 - 환경변수·비밀키를 소스코드에 하드코딩
 - `@Transactional`을 `controller`에 붙이는 것
 - docs/ 없이 아키텍처 결정 구두로만 처리
+- `docs/agent-protocols/log-diagnose.md` 실행 없이 오류 원인 추측 기반 수정 시작
 
 ---
 

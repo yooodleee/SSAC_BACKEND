@@ -70,7 +70,17 @@
       "Bash(/auth/naver/callback?isNewUser=false)",
       "Bash(NaverOAuthService)",
       "Bash(PasswordEncoder)",
-      "Bash(./gradlew compileJava --quiet)"
+      "Bash(./gradlew compileJava --quiet)",
+      "Bash(./gradlew dependencies:*)",
+      "Bash(jar tf:*)",
+      "Bash(xargs -I{} sh -c 'jar tf \"{}\" 2>/dev/null | grep -l \"Health\" && echo \"{}\"')",
+      "Bash(grep -v \"/$\")",
+      "Bash(xargs -I{} bash -c 'echo \"=== {} ===\" && jar tf \"{}\" 2>/dev/null | grep -i health')",
+      "Bash(grep -v \"^$\")",
+      "Bash(xargs '-I{}' bash -c 'count=$\\(jar tf \"{}\" 2>/dev/null | grep -ic \"health\"\\); if [ \"$count\" -gt \"0\" ]; then echo \"{}: $count health entries\"; fi')",
+      "Bash(xargs -I{} bash -c 'jar tf \"{}\" 2>/dev/null | grep -q \"HealthIndicator.class\" && echo \"{}\"')",
+      "Bash(grep -v \"^[[:space:]]*$\")",
+      "Bash(grep -iv \"/$\")"
     ]
   }
 }
