@@ -83,7 +83,10 @@
       "Bash(grep -iv \"/$\")",
       "Bash(./gradlew checkstyleMain --no-daemon -q)",
       "Bash(./gradlew checkstyleMain checkstyleTest --no-daemon -q)",
-      "Bash(./gradlew compileJava --no-daemon -q)"
+      "Bash(./gradlew compileJava --no-daemon -q)",
+      "Bash(application-prod.yml)",
+      "Bash(caching_sha2_password)",
+      "Bash(entityManagerFactory)"
     ]
   }
 }

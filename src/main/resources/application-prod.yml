@@ -12,7 +12,8 @@
 spring:
   datasource:
     # Railway MySQL Plugin은 SSL을 지원하지 않으므로 useSSL=false
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false
+    # MySQL 8.0 caching_sha2_password 인증 시 RSA 공개키 조회 허용 (useSSL=false 환경 필수)
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
