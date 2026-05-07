@@ -1,32 +1,50 @@
 # BE Log Diagnosis Protocol
 
-## STEP 1. 로그 수집
+## STEP 1. 로그 수집 (상황별 분기)
 
-우선순위 1. `/actuator/health` 상태 확인
-우선순위 2. 에러 로그에서 `traceId` 추출
-우선순위 3. `traceId` 기반 전체 요청 흐름 추적
-우선순위 4. 스택 트레이스 위치 확인
+오류 상황에 따라 아래 순서대로 로그를 수집한다. **HTTP API는 서버가 실행 중일 때만** 사용 가능하다.
 
-### 로그 구조 참조
+### 상황별 수집 방법
 
-모든 API 에러 로그는 다음 필드를 포함한다:
+| 상황 | 1순위 수집 방법 | 2순위 |
+|------|--------------|------|
+| 컴파일 오류 | `logs/agent-capture.log` 읽기 (Hook 자동 저장) | Bash 출력 직접 참조 |
+| 테스트 실패 | `logs/agent-capture.log` 읽기 (Hook 자동 저장) | Bash 출력에서 FAILED 블록 추출 |
+| 런타임 오류 (서버 실행 중) | `logs/app.log` 읽기 (파일 Appender 자동 저장) | HTTP API 조회 |
+| 런타임 오류 (서버 미실행) | `logs/app.log` 읽기 (마지막 실행 로그) | — |
 
-```json
-{
-  "timestamp": "2024-01-01T00:00:00.000Z",
-  "level": "WARN | ERROR",
-  "traceId": "string",
-  "requestId": "string",
-  "userId": "string | anonymous",
-  "method": "GET | POST | ...",
-  "path": "/api/news",
-  "errorCode": "AUTH-002",
-  "message": "토큰이 만료되었습니다.",
-  "duration": "120ms"
-}
+### 1-A. Bash 오류 — `logs/agent-capture.log` 읽기
+
+PostToolUse Hook이 Bash 명령 실패 시 자동으로 저장한다. 오류 발생 직후 다음 파일을 읽는다:
+
+```
+Read: logs/agent-capture.log
 ```
 
-### traceId 기반 로그 조회
+파일 형식:
+```
+[2024-01-01 12:00:00]
+Command: ./gradlew test
+---
+(전체 stdout/stderr 출력)
+```
+
+### 1-B. 런타임 오류 — `logs/app.log` 읽기
+
+서버 실행 중 발생한 WARN/ERROR는 파일 Appender가 자동 저장한다:
+
+```
+Read: logs/app.log
+```
+
+로그 형식:
+```
+2024-01-01 12:00:00.000 ERROR [traceId=abc-123] [userId=user-456] [GET /api/news] c.s.SomeClass - 메시지
+```
+
+`traceId`가 있으면 추출하여 STEP 1-C로 이동한다.
+
+### 1-C. traceId 기반 HTTP API 조회 (서버 실행 중일 때만)
 
 ```
 GET /api/v1/admin/logs/errors?traceId={traceId}
@@ -45,6 +63,24 @@ Authorization: ADMIN 권한 필요
       "stackTrace": "string | null"
     }
   ]
+}
+```
+
+### 1-D. 서버 상태 확인 (런타임 오류 의심 시)
+
+```
+GET /actuator/health
+```
+
+기대 응답:
+```json
+{
+  "status": "UP",
+  "components": {
+    "db": { "status": "UP" },
+    "redis": { "status": "UP" },
+    "externalApi": { "status": "UP", "details": { "kakao": "UP", "naver": "UP" } }
+  }
 }
 ```
 

@@ -54,9 +54,33 @@
             </encoder>
         </appender>
 
+        <!--
+            에이전트 로그 진단용 파일 Appender
+            ─────────────────────────────────────────────────────────────────────────
+            logs/app.log    : 최신 로그 (에이전트가 Read 도구로 직접 읽음)
+            logs/app.YYYY-MM-DD.log : 일별 롤링 (7일 보존)
+            WARN 이상만 파일에 기록 — DEBUG/INFO 노이즈 제거
+            ─────────────────────────────────────────────────────────────────────────
+        -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/app.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+            </rollingPolicy>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>WARN</level>
+            </filter>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [traceId=%X{traceId}] [userId=%X{userId}] [%X{method} %X{path}] %logger{36} - %msg%n</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
         <!-- ssac 애플리케이션 코드: DEBUG 출력 -->
         <logger name="com.ssac" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
         </logger>
 
         <!-- SQL 로깅: Hibernate SQL 확인용 (운영 환경에서는 제거) -->
@@ -66,6 +90,7 @@
 
         <root level="DEBUG">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
         </root>
 
     </springProfile>
