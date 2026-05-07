@@ -81,7 +81,8 @@
       "Bash(xargs -I{} bash -c 'jar tf \"{}\" 2>/dev/null | grep -q \"HealthIndicator.class\" && echo \"{}\"')",
       "Bash(grep -v \"^[[:space:]]*$\")",
       "Bash(grep -iv \"/$\")",
-      "Bash(./gradlew checkstyleMain --no-daemon -q)"
+      "Bash(./gradlew checkstyleMain --no-daemon -q)",
+      "Bash(./gradlew checkstyleMain checkstyleTest --no-daemon -q)"
     ]
   }
 }

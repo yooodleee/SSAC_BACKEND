@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.0//EN"
+    "https://checkstyle.org/dtds/suppressions_1_0.dtd">
+
+<!--
+  Checkstyle 예외 설정
+  규칙 변경 시 docs/conventions.md 와 동기화하라.
+-->
+<suppressions>
+    <!-- 테스트 메서드명: 한글 서술형 네이밍 허용 (가독성 우선, camelCase 적용 제외) -->
+    <suppress checks="MethodName" files=".*Test\.java"/>
+</suppressions>
