@@ -5,7 +5,6 @@ import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.config.NaverOAuthProperties;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.domain.social.SocialAccount;
-import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.NaverLoginResult;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.NaverProfileResponse;
