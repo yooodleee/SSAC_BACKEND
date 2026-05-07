@@ -80,7 +80,8 @@
       "Bash(xargs '-I{}' bash -c 'count=$\\(jar tf \"{}\" 2>/dev/null | grep -ic \"health\"\\); if [ \"$count\" -gt \"0\" ]; then echo \"{}: $count health entries\"; fi')",
       "Bash(xargs -I{} bash -c 'jar tf \"{}\" 2>/dev/null | grep -q \"HealthIndicator.class\" && echo \"{}\"')",
       "Bash(grep -v \"^[[:space:]]*$\")",
-      "Bash(grep -iv \"/$\")"
+      "Bash(grep -iv \"/$\")",
+      "Bash(./gradlew checkstyleMain --no-daemon -q)"
     ]
   }
 }

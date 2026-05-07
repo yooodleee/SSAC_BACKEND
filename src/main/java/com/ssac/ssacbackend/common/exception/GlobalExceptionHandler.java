@@ -1,7 +1,6 @@
 package com.ssac.ssacbackend.common.exception;
 
 import com.ssac.ssacbackend.common.response.ErrorResponse;
-import com.ssac.ssacbackend.domain.log.ErrorLog;
 import com.ssac.ssacbackend.service.ErrorLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
