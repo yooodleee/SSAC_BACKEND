@@ -50,4 +50,11 @@
         <module name="RedundantImport"/>
 
     </module>
+
+    <!-- 테스트 파일 예외 처리 (suppressions.xml 참조) -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/suppressions.xml"/>
+        <property name="optional" value="false"/>
+    </module>
+
 </module>
