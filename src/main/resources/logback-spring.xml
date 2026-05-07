@@ -16,6 +16,28 @@
         ─────────────────────────────────────────────────────────────────────────
     -->
 
+    <!-- ── 기동 초기 단계 Fallback Appender ─────────────────────────────────────── -->
+    <!--                                                                              -->
+    <!-- 문제: 모든 Appender가 <springProfile> 블록 안에 정의되어 있으면,              -->
+    <!--        Spring이 프로파일을 주입하기 전(early JVM startup) 단계에서             -->
+    <!--        "No appenders present in context [default]" 경고가 출력되고            -->
+    <!--        기동 초기 오류 로그가 완전히 유실된다.                                   -->
+    <!--                                                                              -->
+    <!-- 해결: <springProfile> 외부에 STARTUP_CONSOLE을 정의하고 root에 연결한다.       -->
+    <!--        Spring이 Logback을 재초기화하면 각 <springProfile>의 root 설정이       -->
+    <!--        이 기본 root에 병합(appender 추가)되어 프로파일별 Appender가 활성화된다. -->
+    <appender name="STARTUP_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 기동 초기 단계 root: Spring 재초기화 후 각 springProfile의 root로 보완됨 -->
+    <root level="INFO">
+        <appender-ref ref="STARTUP_CONSOLE"/>
+    </root>
+
     <!-- ── JSON 구조화 로깅 (docker, prod 프로파일) ──────────────────────────────── -->
     <!-- ELK Stack(Logstash) 및 AWS CloudWatch Logs 수집 가능한 JSON 형식 출력       -->
     <springProfile name="docker,prod">

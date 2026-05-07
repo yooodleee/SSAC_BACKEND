@@ -82,7 +82,8 @@
       "Bash(grep -v \"^[[:space:]]*$\")",
       "Bash(grep -iv \"/$\")",
       "Bash(./gradlew checkstyleMain --no-daemon -q)",
-      "Bash(./gradlew checkstyleMain checkstyleTest --no-daemon -q)"
+      "Bash(./gradlew checkstyleMain checkstyleTest --no-daemon -q)",
+      "Bash(./gradlew compileJava --no-daemon -q)"
     ]
   }
 }
