@@ -3,8 +3,6 @@ builder = "dockerfile"
 
 [deploy]
 healthcheckPath = "/actuator/health"
-# Spring Boot 기동 시간(~30초) + 헬스체크 여유 시간을 고려해 120초로 설정
-healthcheckTimeout = 120
+# 앱 기동 시간(~3분)을 고려해 300초로 설정
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
-# PORT를 8080으로 고정하여 EXPOSE 8080과 Railway 헬스체크 프로브 포트를 일치시킨다
-startCommand = "java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Dserver.port=8080 -jar /app/app.jar"
