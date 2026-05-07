@@ -21,14 +21,25 @@ RUN ./gradlew build -x test --no-daemon
 FROM eclipse-temurin:17-jre-alpine AS runtime
 WORKDIR /app
 
-COPY --from=builder /app/build/libs/*.jar app.jar
+# non-root 유저 생성 (보안: root 권한 없이 JVM 실행)
+RUN addgroup -S ssac && adduser -S ssac -G ssac
+
+# jar 소유권을 ssac 유저로 지정
+COPY --from=builder --chown=ssac:ssac /app/build/libs/*.jar app.jar
+
+USER ssac
 
 EXPOSE 8080
 
-ENTRYPOINT [ \
-    "java", \
-    "-Dfile.encoding=UTF-8", \
-    "-Dstdout.encoding=UTF-8", \
-    "-Dstderr.encoding=UTF-8", \
-    "-jar", "app.jar" \
-]
+# sh -c 방식: Railway가 주입하는 PORT 환경 변수를 동적으로 참조한다.
+# PORT 환경 변수 있음 → Railway 주입 포트로 실행
+# PORT 환경 변수 없음 → 기본값 8080으로 실행 (로컬 개발 환경 호환)
+ENTRYPOINT ["sh", "-c", \
+    "java \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -Dfile.encoding=UTF-8 \
+    -Dstdout.encoding=UTF-8 \
+    -Dstderr.encoding=UTF-8 \
+    -Dserver.port=${PORT:-8080} \
+    -jar app.jar"]
