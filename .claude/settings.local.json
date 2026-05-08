@@ -88,7 +88,8 @@
       "Bash(caching_sha2_password)",
       "Bash(entityManagerFactory)",
       "Bash(V5__create_attempt_answers.sql)",
-      "Bash(attempt_answers)"
+      "Bash(attempt_answers)",
+      "Bash(grep -h \"@Table\" src/main/java/com/ssac/ssacbackend/domain/**/*.java)"
     ]
   }
 }
