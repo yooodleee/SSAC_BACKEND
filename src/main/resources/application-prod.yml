@@ -101,5 +101,6 @@ logging:
   level:
     root: WARN
     com.ssac: INFO                 # 서비스 패키지는 INFO 유지 (운영 모니터링 최소 요건)
+    org.flywaydb: INFO             # Flyway 마이그레이션 실행 로그 (진단용)
     org.hibernate.SQL: OFF         # SQL 로그 완전 비활성화
     org.springframework.web: WARN
