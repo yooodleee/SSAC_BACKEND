@@ -86,7 +86,9 @@
       "Bash(./gradlew compileJava --no-daemon -q)",
       "Bash(application-prod.yml)",
       "Bash(caching_sha2_password)",
-      "Bash(entityManagerFactory)"
+      "Bash(entityManagerFactory)",
+      "Bash(V5__create_attempt_answers.sql)",
+      "Bash(attempt_answers)"
     ]
   }
 }
