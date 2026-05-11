@@ -1,1 +1,17 @@
-2026-05-08 14:38:44.020 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-11 22:53:12.281 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-11 22:53:15.542 WARN  [traceId=bcbf9b95-6295-4bbe-9740-d1ccc6971b02] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=bcbf9b95-6295-4bbe-9740-d1ccc6971b02 | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-11 22:53:15.785 WARN  [traceId=bcbf9b95-6295-4bbe-9740-d1ccc6971b02] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-11 22:53:17.429 WARN  [traceId=] [userId=] [ ] o.a.c.util.SessionIdGeneratorBase - Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [106] milliseconds.
+2026-05-11 22:53:19.601 WARN  [traceId=3b006455-16a0-459b-80f7-73333bc0ceb5] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=3b006455-16a0-459b-80f7-73333bc0ceb5 | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-11 22:53:19.604 WARN  [traceId=3b006455-16a0-459b-80f7-73333bc0ceb5] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-11 22:53:19.776 WARN  [traceId=9dc096a1-22c1-498f-a717-28ebfade3b58] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=9dc096a1-22c1-498f-a717-28ebfade3b58 | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-11 22:53:19.779 WARN  [traceId=9dc096a1-22c1-498f-a717-28ebfade3b58] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-11 22:53:37.276 WARN  [traceId=502e738b-dd41-45ca-9692-99b3ae450b1c] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=502e738b-dd41-45ca-9692-99b3ae450b1c | userId=accia25@naver.com
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-11 22:53:37.277 WARN  [traceId=502e738b-dd41-45ca-9692-99b3ae450b1c] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-11 22:53:37.435 WARN  [traceId=35416ad7-10e8-4672-abd5-de48a3128380] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=35416ad7-10e8-4672-abd5-de48a3128380 | userId=accia25@naver.com
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-11 22:53:37.436 WARN  [traceId=35416ad7-10e8-4672-abd5-de48a3128380] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
