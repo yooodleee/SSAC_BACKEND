@@ -112,7 +112,8 @@
       "Bash(Makefile)",
       "Bash(make logs-railway*)",
       "Bash(README.md)",
-      "Bash(docs/agent-protocols/log-diagnose.md)"
+      "Bash(docs/agent-protocols/log-diagnose.md)",
+      "Bash(gh pr:*)"
     ]
   }
 }
