@@ -10,11 +10,10 @@ import static org.mockito.Mockito.verify;
 
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.domain.user.User;
-import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.repository.UserRepository;
+import com.ssac.ssacbackend.service.AuthCodeService;
 import com.ssac.ssacbackend.service.GuestMigrationService;
 import com.ssac.ssacbackend.service.PendingRegistrationService;
-import com.ssac.ssacbackend.service.TokenService;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +30,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 class OAuth2SuccessHandlerTest {
 
-    private TokenService tokenService;
+    private AuthCodeService authCodeService;
     private GuestMigrationService guestMigrationService;
     private UserRepository userRepository;
     private PendingRegistrationService pendingRegistrationService;
@@ -40,7 +39,7 @@ class OAuth2SuccessHandlerTest {
 
     @BeforeEach
     void setUp() {
-        tokenService = mock(TokenService.class);
+        authCodeService = mock(AuthCodeService.class);
         guestMigrationService = mock(GuestMigrationService.class);
         userRepository = mock(UserRepository.class);
         pendingRegistrationService = mock(PendingRegistrationService.class);
@@ -50,34 +49,35 @@ class OAuth2SuccessHandlerTest {
         cookieProperties.setSameSite("Lax");
 
         handler = new OAuth2SuccessHandler(
-            tokenService, guestMigrationService, userRepository, pendingRegistrationService, cookieProperties);
+            authCodeService, guestMigrationService, userRepository, pendingRegistrationService, cookieProperties);
         ReflectionTestUtils.setField(handler, "defaultRedirectUri", "http://localhost:3000");
 
         user = mock(User.class);
         given(user.getId()).willReturn(1L);
         given(userRepository.findByProviderAndProviderId("kakao", "12345")).willReturn(Optional.of(user));
-        given(tokenService.issueTokens(any(User.class)))
-            .willReturn(new TokenPair("access-token", "refresh-token"));
+        given(authCodeService.issueForExistingUser(1L)).willReturn("auth-code-existing");
     }
 
     @Test
-    @DisplayName("기존 회원 인증 성공 시 프론트엔드 콜백 URL에 access token과 isNewUser=false를 담아 리다이렉트한다")
-    void onAuthenticationSuccessRedirectsToFrontendCallbackWithToken() throws IOException {
+    @DisplayName("기존 회원 인증 성공 시 authCode와 isNewUser=false를 담아 리다이렉트한다")
+    void onAuthenticationSuccessRedirectsToFrontendCallbackWithAuthCode() throws IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         handler.onAuthenticationSuccess(request, response, buildAuthentication());
 
         assertThat(response.getRedirectedUrl())
-            .startsWith("http://localhost:3000/auth/kakao/callback?token=access-token");
+            .isEqualTo("http://localhost:3000/auth/kakao/callback?authCode=auth-code-existing&isNewUser=false");
     }
 
     @Test
-    @DisplayName("신규 회원은 isNewUser=true와 tempToken을 포함한 URL로 리다이렉트한다")
-    void onAuthenticationSuccessNewUserRedirectsWithTempToken() throws IOException {
+    @DisplayName("신규 회원은 authCode와 isNewUser=true를 포함한 URL로 리다이렉트한다 (tempToken은 URL에 노출되지 않는다)")
+    void onAuthenticationSuccessNewUserRedirectsWithAuthCode() throws IOException {
         given(userRepository.findByProviderAndProviderId("kakao", "12345")).willReturn(Optional.empty());
         given(pendingRegistrationService.create(eq(OAuthProvider.KAKAO), eq("12345"), any()))
             .willReturn("temp-token-123");
+        given(authCodeService.issueForNewUser("temp-token-123", OAuthProvider.KAKAO))
+            .willReturn("auth-code-new");
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -85,10 +85,10 @@ class OAuth2SuccessHandlerTest {
         handler.onAuthenticationSuccess(request, response, buildAuthentication());
 
         assertThat(response.getRedirectedUrl())
-            .contains("isNewUser=true")
-            .contains("tempToken=temp-token-123")
-            .contains("provider=KAKAO");
-        verify(tokenService, never()).issueTokens(any());
+            .isEqualTo("http://localhost:3000/auth/kakao/callback?authCode=auth-code-new&isNewUser=true");
+        assertThat(response.getRedirectedUrl())
+            .doesNotContain("tempToken")
+            .doesNotContain("token=");
     }
 
     @Test
@@ -100,6 +100,7 @@ class OAuth2SuccessHandlerTest {
         handler.onAuthenticationSuccess(request, response, buildAuthentication());
 
         verify(guestMigrationService, never()).migrateGuestData(any(), any());
+        verify(authCodeService).issueForExistingUser(1L);
     }
 
     @Test
