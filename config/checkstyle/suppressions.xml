@@ -10,4 +10,8 @@
 <suppressions>
     <!-- 테스트 메서드명: 한글 서술형 네이밍 허용 (가독성 우선, camelCase 적용 제외) -->
     <suppress checks="MethodName" files=".*Test\.java"/>
+
+    <!-- Flyway Java Migration: V{버전}__{설명} 형식의 이름은 언더스코어를 포함하므로
+         TypeName(PascalCase) 규칙 적용 제외 -->
+    <suppress checks="TypeName" files=".*db[/\\]migration[/\\]V\d.*\.java"/>
 </suppressions>
