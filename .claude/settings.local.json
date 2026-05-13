@@ -104,7 +104,15 @@
       "Read(//mnt/c/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/**)",
       "Bash(rm sn.py)",
       "Bash(del C:\\\\Users\\\\dhals_zn0ga5j\\\\python_seed\\\\SSAC_BACKEND\\\\ssac-backend\\\\sn.py)",
-      "Bash(./gradlew checkstyleMain compileJava)"
+      "Bash(./gradlew checkstyleMain compileJava)",
+      "Bash(npm install:*)",
+      "Bash(railway:*)",
+      "Bash(chmod +x:*)",
+      "Bash(scripts/check-railway-logs.sh)",
+      "Bash(Makefile)",
+      "Bash(make logs-railway*)",
+      "Bash(README.md)",
+      "Bash(docs/agent-protocols/log-diagnose.md)"
     ]
   }
 }

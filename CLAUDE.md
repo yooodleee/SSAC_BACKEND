@@ -6,6 +6,7 @@
 |------|------------|---------|---------|
 | 로그 기반 진단 | docs/agent-protocols/log-diagnose.md | 오류 발생 즉시 | 자동 (오류 즉시) |
 | 토큰 최적화 | docs/agent-protocols/token-optimize.md | 작업 시작 전 / "느려","토큰","최적화" 언급 시 | 자동 |
+| Railway 배포 진단 | docs/agent-protocols/log-diagnose.md#railway-배포-실패-시-로그-수집-절차 | "Railway 배포 실패", "빌드 실패", "배포 안 됨" 언급 시 | 자동 |
 
 ---
 
@@ -15,6 +16,26 @@
 2순위 `self-diagnose.md` → 자가 점검
 3순위 `testing.md`       → 재발 방지 테스트 추가
 4순위 `adr-create.md`    → 반복 오류 3회 이상 시 의사결정 기록
+
+---
+
+---
+
+## 🚂 Railway 배포 실패 시 자동 진단 규칙
+
+**트리거 조건:**
+- "Railway 배포 실패", "빌드 실패", "배포 안 됨" 언급 시
+- Railway 대시보드에서 Failed 상태 확인 시
+
+**자동 실행 절차:**
+1. `railway logs --deployment` 실행하여 로그 수집
+2. `log-diagnose.md` Railway 섹션 분류표 기준으로 원인 분류
+3. 원인 확정 후 수정 진행
+4. 수정 완료 후 `railway logs --tail`로 재배포 확인
+
+**금지 규칙:**
+- 로그 확인 없이 추측 기반으로 코드 수정 금지
+- 사용자가 로그를 직접 복사하여 제공하도록 요청 금지
 
 ---
 
