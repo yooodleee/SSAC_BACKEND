@@ -1,6 +1,8 @@
 package com.ssac.ssacbackend.common.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.ssac.ssacbackend.common.response.ErrorResponse;
+import com.ssac.ssacbackend.domain.user.UserType;
 import com.ssac.ssacbackend.service.ErrorLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -10,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -108,6 +111,47 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT.value(),
                 e.getErrorCode().getCode(),
                 e.getMessage(),
+                traceId
+            ));
+    }
+
+    // ── JSON 역직렬화 오류 ─────────────────────────────────────────────────────
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+        HttpMessageNotReadableException e, HttpServletRequest request) {
+        String traceId = MDC.get("traceId");
+        String userId = MDC.get("userId");
+
+        Throwable cause = e.getCause();
+        if (cause instanceof InvalidFormatException ife
+            && UserType.class.equals(ife.getTargetType())) {
+            log.warn("[{}] {} {} | traceId={} | userId={}\n-> {}",
+                ErrorCode.USER_TYPE_INVALID.getCode(),
+                request.getMethod(), request.getRequestURI(),
+                traceId, userId, e.getMessage());
+            errorLogService.saveWarn(traceId, ErrorCode.USER_TYPE_INVALID.getCode(),
+                request, e.getMessage(), userId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(
+                    HttpStatus.BAD_REQUEST.value(),
+                    ErrorCode.USER_TYPE_INVALID.getCode(),
+                    ErrorCode.USER_TYPE_INVALID.getMessage(),
+                    traceId
+                ));
+        }
+
+        log.warn("[{}] {} {} | traceId={} | userId={}\n-> {}",
+            ErrorCode.INVALID_INPUT.getCode(),
+            request.getMethod(), request.getRequestURI(),
+            traceId, userId, e.getMessage());
+        errorLogService.saveWarn(traceId, ErrorCode.INVALID_INPUT.getCode(),
+            request, e.getMessage(), userId);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                ErrorCode.INVALID_INPUT.getCode(),
+                ErrorCode.INVALID_INPUT.getMessage(),
                 traceId
             ));
     }

@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * 사용자 도메인 엔티티.
@@ -75,6 +76,17 @@ public class User {
     @Column
     private LocalDateTime marketingTermAgreedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private UserType userType;
+
+    @Column
+    private LocalDateTime userTypeSetAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private UserLevel level;
+
     @Builder
     public User(String email, String password, String nickname, String provider,
         String providerId, UserRole role) {
@@ -106,6 +118,14 @@ public class User {
      */
     public void invalidateTokens() {
         this.invalidatedBefore = LocalDateTime.now();
+    }
+
+    /**
+     * 사용자 유형을 설정한다. 회원 가입 완료 시 호출한다.
+     */
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+        this.userTypeSetAt = LocalDateTime.now();
     }
 
     /**

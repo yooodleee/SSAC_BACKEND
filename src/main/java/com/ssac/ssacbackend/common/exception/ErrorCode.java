@@ -43,6 +43,8 @@ public enum ErrorCode {
     NICKNAME_DUPLICATED("USER-002", 409, "이미 사용 중인 닉네임입니다."),
     NICKNAME_INVALID("USER-003", 400, "사용할 수 없는 닉네임입니다."),
     ROLE_ASSIGNMENT_INVALID("USER-004", 400, "해당 역할은 직접 부여할 수 없습니다."),
+    USER_TYPE_MISSING("USER-TYPE-001", 400, "사용자 유형을 선택해주세요."),
+    USER_TYPE_INVALID("USER-TYPE-002", 400, "유효하지 않은 사용자 유형입니다."),
 
     // ── 뉴스 (NEWS) ────────────────────────────────────────────────────────────
     NEWS_NOT_FOUND("NEWS-001", 404, "존재하지 않는 뉴스입니다."),

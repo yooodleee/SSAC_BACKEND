@@ -93,7 +93,17 @@
       "Bash(grep:*)",
       "Bash(xargs ls:*)",
       "Bash(./gradlew clean:*)",
-      "Bash(./gradlew checkstyleTest --rerun)"
+      "Bash(./gradlew checkstyleTest --rerun)",
+      "Bash(wc -l /c/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/ssac-backend/src/main/java/com/ssac/ssacbackend/common/exception/*.java)",
+      "Bash(./gradlew cleanTest test --tests \"com.ssac.ssacbackend.service.RegistrationServiceTest\" --tests \"com.ssac.ssacbackend.service.ProfileServiceTest\")",
+      "Bash(UserType)",
+      "Bash(UserLevel)",
+      "Bash(User)",
+      "Bash(userType)",
+      "Bash(userTypeSetAt)",
+      "Read(//mnt/c/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/**)",
+      "Bash(rm sn.py)",
+      "Bash(del C:\\\\Users\\\\dhals_zn0ga5j\\\\python_seed\\\\SSAC_BACKEND\\\\ssac-backend\\\\sn.py)"
     ]
   }
 }

@@ -1,4 +1,1 @@
-[2026-05-13 11:28:03]
-Command: ./gradlew clean test 2>&1 | grep -E "(tests completed|FAILED)" | head -10
----
-{'stdout': 'ArchitectureTest > \udceb젅\udcec씠\udcec뼱 \udcec쓽議댁꽦 諛⑺뼢 洹쒖튃 FAILED\nNewsIntegrationTest > size媛\udc80 理쒕\udc8c\udc80媛\udc92(100)\udcec쓣 珥덇낵\udced븯硫\udcb4 400怨\udcbc PAGE_SIZE_EXCEEDED 肄붾뱶瑜\udcbc \udcec쓳\udceb떟\udced븳\udceb떎 FAILED\nNewsIntegrationTest > \udced뿀\udcec슜\udceb릺吏\udc80 \udcec븡\udceb뒗 sort 媛믪\udc9d\udc80 400怨\udcbc INVALID_SORT_PARAMETER 肄붾뱶瑜\udcbc \udcec쓳\udceb떟\udced븳\udceb떎 FAILED\nSchemaValidationTest > initializationError FAILED\nProfileServiceTest > \udcec씠誘\udcb8 \udcec궗\udcec슜 以묒씤 \udceb땳\udceb꽕\udcec엫\udcec쑝濡\udc9c \udcec닔\udcec젙 \udcec떆 BusinessException(CONFLICT)\udcec씠 諛쒖깮\udced븳\udceb떎 FAILED\n> Task :test FAILED\n151 tests completed, 5 failed\nBUILD FAILED in 24s', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+[2026-05-13 15:14:21]
