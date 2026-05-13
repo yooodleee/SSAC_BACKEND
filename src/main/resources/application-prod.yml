@@ -41,7 +41,7 @@ spring:
     show-sql: false               # SQL 로그 비활성화
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: update            # TODO: level 컬럼 추가 확인 후 validate로 복원 [SSACBE-17]
+      ddl-auto: validate          # 운영 환경 DDL 자동 실행 금지 — Flyway가 스키마 관리
     properties:
       hibernate:
         format_sql: false
