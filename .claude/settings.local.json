@@ -90,7 +90,9 @@
       "Bash(V5__create_attempt_answers.sql)",
       "Bash(attempt_answers)",
       "Bash(grep -h \"@Table\" src/main/java/com/ssac/ssacbackend/domain/**/*.java)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(xargs ls:*)",
+      "Bash(./gradlew clean:*)"
     ]
   }
 }

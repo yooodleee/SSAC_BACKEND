@@ -36,6 +36,7 @@ public enum ErrorCode {
     OAUTH_STATE_EXPIRED("AUTH-007", 400, "만료된 state 파라미터입니다. 다시 로그인해 주세요."),
     OAUTH_AUTH_FAILED("AUTH-008", 400, "OAuth 인증에 실패했습니다."),
     OAUTH_PROFILE_FAILED("AUTH-009", 400, "OAuth 프로필 정보를 가져오는 데 실패했습니다."),
+    AUTH_CODE_INVALID("AUTH-010", 400, "유효하지 않거나 만료된 인가 코드입니다."),
 
     // ── 사용자 (USER) ──────────────────────────────────────────────────────────
     USER_NOT_FOUND("USER-001", 404, "존재하지 않는 사용자입니다."),
