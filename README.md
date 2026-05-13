@@ -136,3 +136,56 @@ docker compose restart app
 
 Flyway 마이그레이션 파일이 추가되었는지 확인하세요. (`src/main/resources/db/migration/`)  
 마이그레이션 파일 없이 스키마를 변경하면 `validate` 모드에서 기동이 실패합니다.
+
+---
+
+## Railway 배포 관련 명령어
+
+### 사전 설정 (최초 1회)
+
+```bash
+# Railway CLI 설치
+npm install -g @railway/cli
+
+# 로그인 (브라우저 인증)
+railway login
+
+# 프로젝트 연결
+railway link
+```
+
+### 배포 상태 확인
+
+```bash
+# 서비스 상태 확인
+railway status
+
+# 환경 변수 목록 확인
+railway variables
+```
+
+### 로그 조회
+
+```bash
+# 전체 배포 로그
+railway logs --deployment
+
+# 실시간 로그 스트리밍
+railway logs --tail
+
+# 자동화 스크립트 (전체 / 오류 필터 / 환경 변수 오류 필터 / 실시간)
+bash scripts/check-railway-logs.sh [full|error|env|tail]
+
+# Makefile 단축 명령어
+make logs-railway            # 전체 배포 로그
+make logs-railway-error      # 오류 로그만 필터링
+make logs-railway-env        # 환경 변수 관련 오류만 필터링
+make logs-railway-tail       # 실시간 로그 스트리밍
+```
+
+### 재배포
+
+```bash
+# 수동 재배포 트리거
+railway redeploy
+```

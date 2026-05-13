@@ -159,6 +159,58 @@ WARN [AUTH-002] GET /api/news | traceId=abc-123 | userId=user-456
 
 ---
 
+## Railway 배포 실패 시 로그 수집 절차
+
+### STEP 1. Railway CLI로 로그 자동 수집
+
+```bash
+railway logs --deployment
+```
+
+실시간 확인이 필요한 경우:
+
+```bash
+railway logs --tail
+```
+
+### STEP 2. 오류 유형 분류
+
+아래 패턴으로 원인을 분류한다:
+
+| 로그 패턴 | 가설 원인 | 확인 위치 |
+|---------|---------|---------|
+| `Could not resolve placeholder` | 환경 변수 누락 | Railway Variables 탭 |
+| `BUILD FAILURE` | Gradle 빌드 오류 | `build.gradle` 의존성 / Checkstyle |
+| `FlywayException` / `SchemaManagementException` | DB 마이그레이션 실패 | `V*.sql` 파일 |
+| `Connection refused` | DB/Redis 연결 실패 | Railway Plugin 연결 상태 |
+| `Port already in use` | 포트 충돌 | `PORT` 환경 변수 |
+| `OutOfMemoryError` | 메모리 부족 | JVM 힙 설정 |
+| `Health check failed` | 헬스체크 타임아웃 | `healthcheckTimeout` 설정 |
+| `UnusedImports` / `Checkstyle` | Checkstyle 규칙 위반 | 해당 Java 파일 미사용 import |
+
+### STEP 3. 원인 검증
+
+- [ ] `railway logs --deployment` 출력 내용 전문 확인
+- [ ] Railway 대시보드 Variables 탭 환경 변수 누락 여부 확인
+- [ ] `/actuator/health` 응답 확인
+- [ ] `railway status`로 서비스 상태 확인
+
+```bash
+# 오류 로그만 필터링
+railway logs --deployment 2>&1 | grep -i "error\|failed\|exception\|caused by" | head -20
+
+# 환경 변수 관련 오류만 필터링
+railway logs --deployment 2>&1 | grep -i "placeholder\|environment\|variable" | head -10
+```
+
+### STEP 4. 수정 및 재배포
+
+- [ ] 원인 확정 후 코드 또는 환경 변수 수정
+- [ ] `git push origin main` → Railway 자동 재배포
+- [ ] `railway logs --tail`로 재배포 로그 실시간 확인
+
+---
+
 ## CORS 오류 진단
 
 허용되지 않은 Origin 접근 시 로그 항목:
