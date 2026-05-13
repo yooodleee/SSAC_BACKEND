@@ -92,7 +92,8 @@
       "Bash(grep -h \"@Table\" src/main/java/com/ssac/ssacbackend/domain/**/*.java)",
       "Bash(grep:*)",
       "Bash(xargs ls:*)",
-      "Bash(./gradlew clean:*)"
+      "Bash(./gradlew clean:*)",
+      "Bash(./gradlew checkstyleTest --rerun)"
     ]
   }
 }
