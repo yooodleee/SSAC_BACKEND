@@ -45,8 +45,8 @@ public class AuthCodeService {
     /**
      * 신규 회원용 인가 코드를 발급한다.
      *
-     * @param tempToken {@link PendingRegistrationService}가 발급한 임시 토큰
-     * @param provider  OAuth 공급자
+     * @param tempToken    {@link PendingRegistrationService}가 발급한 임시 토큰
+     * @param provider     OAuth 공급자
      * @return 일회용 인가 코드 문자열
      */
     public String issueForNewUser(String tempToken, OAuthProvider provider) {
@@ -55,6 +55,22 @@ public class AuthCodeService {
         store.put(code, AuthCode.forNewUser(code, tempToken, provider));
         log.debug("AuthCode 발급(신규 회원): provider={}", provider);
         return code;
+    }
+
+    /**
+     * 신규 회원용 인가 코드를 발급한다 (Controller 레이어 전용).
+     *
+     * <p>Controller가 {@code domain} 패키지의 {@link OAuthProvider}를 직접 참조하지 않도록
+     * 공급자 이름을 문자열로 받아 내부에서 변환한다.
+     *
+     * @param tempToken    {@link PendingRegistrationService}가 발급한 임시 토큰
+     * @param providerName OAuth 공급자 이름 (예: "NAVER", "KAKAO")
+     * @return 일회용 인가 코드 문자열
+     * @throws IllegalArgumentException 알 수 없는 공급자 이름인 경우
+     */
+    public String issueForNewUser(String tempToken, String providerName) {
+        OAuthProvider provider = OAuthProvider.valueOf(providerName);
+        return issueForNewUser(tempToken, provider);
     }
 
     /**

@@ -6,7 +6,6 @@ import com.ssac.ssacbackend.config.NaverOAuthProperties;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.domain.social.SocialAccount;
 import com.ssac.ssacbackend.dto.NaverLoginResult;
-import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.NaverProfileResponse;
 import com.ssac.ssacbackend.dto.response.NaverTokenResponse;
 import com.ssac.ssacbackend.repository.SocialAccountRepository;
@@ -42,7 +41,6 @@ public class NaverOAuthService {
 
     private final NaverOAuthProperties naverOAuthProperties;
     private final SocialAccountRepository socialAccountRepository;
-    private final TokenService tokenService;
     private final GuestMigrationService guestMigrationService;
     private final PendingRegistrationService pendingRegistrationService;
     private final RestTemplate restTemplate;
@@ -74,7 +72,8 @@ public class NaverOAuthService {
      * 네이버 콜백을 처리하여 신규/기존 회원을 분기한다.
      *
      * <ul>
-     *   <li>기존 회원: Guest 마이그레이션 수행 후 Access/Refresh Token을 발급한다.</li>
+     *   <li>기존 회원: Guest 마이그레이션 수행 후 userId를 반환한다.
+     *       JWT 발급은 컨트롤러가 authCode를 통해 위임한다.</li>
      *   <li>신규 회원: DB에 저장하지 않고 tempToken을 생성하여 회원 가입 플로우로 안내한다.</li>
      * </ul>
      *
@@ -94,7 +93,7 @@ public class NaverOAuthService {
             .findByProviderAndProviderUserId(OAuthProvider.NAVER, profile.getId())
             .map(SocialAccount::getUser)
             .map(user -> {
-                // 기존 회원: Guest 마이그레이션 후 토큰 발급
+                // 기존 회원: Guest 마이그레이션 후 userId 반환 (JWT 발급은 AuthTokenController에 위임)
                 if (guestId != null) {
                     log.debug("네이버 로그인 시 guestId 감지, 마이그레이션 실행: guestId={}", guestId);
                     GuestMigrationService.MigrationResult migrationResult =
@@ -103,9 +102,8 @@ public class NaverOAuthService {
                         log.warn("Guest 마이그레이션 실패, 로그인 계속 진행: guestId={}", guestId);
                     }
                 }
-                TokenPair tokenPair = tokenService.issueTokens(user);
-                log.info("네이버 기존 회원 로그인 완료: userId={}", user.getId());
-                return NaverLoginResult.existingUser(tokenPair);
+                log.info("네이버 기존 회원 확인 완료: userId={}", user.getId());
+                return NaverLoginResult.existingUser(user.getId());
             })
             .orElseGet(() -> {
                 // 신규 회원: tempToken 발급
