@@ -9,8 +9,8 @@
 #   삭제/변경 → Major 증가 (1.0.0 -> 2.0.0)
 #
 # 검증: ./gradlew validateErrorContract
-version: "1.0.1"
-updatedAt: "2026-05-04"
+version: "1.0.2"
+updatedAt: "2026-05-13"
 errors:
   - code: "COMMON-001"
     status: 400
@@ -77,6 +77,11 @@ errors:
     message: "OAuth 프로필 정보를 가져오는 데 실패했습니다."
     domain: "AUTH"
 
+  - code: "AUTH-010"
+    status: 400
+    message: "유효하지 않거나 만료된 인가 코드입니다."
+    domain: "AUTH"
+
   - code: "USER-001"
     status: 404
     message: "존재하지 않는 사용자입니다."
@@ -95,6 +100,16 @@ errors:
   - code: "USER-004"
     status: 400
     message: "해당 역할은 직접 부여할 수 없습니다."
+    domain: "USER"
+
+  - code: "USER-TYPE-001"
+    status: 400
+    message: "사용자 유형을 선택해주세요."
+    domain: "USER"
+
+  - code: "USER-TYPE-002"
+    status: 400
+    message: "유효하지 않은 사용자 유형입니다."
     domain: "USER"
 
   - code: "NEWS-001"

@@ -4,11 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
 import com.ssac.ssacbackend.common.exception.BusinessException;
 import com.ssac.ssacbackend.domain.user.User;
+import com.ssac.ssacbackend.domain.user.UserLevel;
+import com.ssac.ssacbackend.domain.user.UserType;
 import com.ssac.ssacbackend.dto.response.ProfileResponse;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.util.Optional;
@@ -103,12 +106,58 @@ class ProfileServiceTest {
                 .isEqualTo(HttpStatus.NOT_FOUND));
     }
 
+    // ── userType / onboardingCompleted ───────────────────────────────────────
+
+    @Test
+    @DisplayName("userType이 설정되고 level이 null이면 onboardingCompleted는 false이다")
+    void userType_설정_level_null_onboardingCompleted_false() {
+        User user = buildUser("user@test.com", "닉네임A");
+        given(user.getUserType()).willReturn(UserType.HIGH_SCHOOL);
+        given(user.getLevel()).willReturn(null);
+        given(userRepository.findByEmail("user@test.com")).willReturn(Optional.of(user));
+
+        ProfileResponse response = profileService.getProfile("user@test.com");
+
+        assertThat(response.userType()).isEqualTo(UserType.HIGH_SCHOOL);
+        assertThat(response.level()).isNull();
+        assertThat(response.onboardingCompleted()).isFalse();
+    }
+
+    @Test
+    @DisplayName("userType과 level이 모두 설정되면 onboardingCompleted는 true이다")
+    void userType_level_모두_설정_onboardingCompleted_true() {
+        User user = buildUser("user@test.com", "닉네임A");
+        given(user.getUserType()).willReturn(UserType.EARLY_CAREER);
+        given(user.getLevel()).willReturn(UserLevel.SEED);
+        given(userRepository.findByEmail("user@test.com")).willReturn(Optional.of(user));
+
+        ProfileResponse response = profileService.getProfile("user@test.com");
+
+        assertThat(response.userType()).isEqualTo(UserType.EARLY_CAREER);
+        assertThat(response.level()).isEqualTo(UserLevel.SEED);
+        assertThat(response.onboardingCompleted()).isTrue();
+    }
+
+    @Test
+    @DisplayName("userType이 null이면 onboardingCompleted는 false이다")
+    void userType_null_onboardingCompleted_false() {
+        User user = buildUser("user@test.com", "닉네임A");
+        given(user.getUserType()).willReturn(null);
+        given(user.getLevel()).willReturn(null);
+        given(userRepository.findByEmail("user@test.com")).willReturn(Optional.of(user));
+
+        ProfileResponse response = profileService.getProfile("user@test.com");
+
+        assertThat(response.userType()).isNull();
+        assertThat(response.onboardingCompleted()).isFalse();
+    }
+
     // ── 헬퍼 ─────────────────────────────────────────────────────────────────
 
     private User buildUser(String email, String nickname) {
         User user = mock(User.class);
-        given(user.getEmail()).willReturn(email);
-        given(user.getNickname()).willReturn(nickname);
+        lenient().when(user.getEmail()).thenReturn(email);
+        lenient().when(user.getNickname()).thenReturn(nickname);
         return user;
     }
 }

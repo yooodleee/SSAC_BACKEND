@@ -13,6 +13,7 @@ import com.ssac.ssacbackend.dto.request.RegisterRequest;
 import com.ssac.ssacbackend.dto.request.TermsRequest;
 import com.ssac.ssacbackend.dto.response.NicknameCheckResponse;
 import com.ssac.ssacbackend.dto.response.RegisterResponse;
+import com.ssac.ssacbackend.domain.user.UserType;
 import com.ssac.ssacbackend.repository.SocialAccountRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -85,7 +86,8 @@ public class RegistrationService {
      * </ol>
      *
      * @throws UnauthorizedException tempToken 만료 (TERMS-002)
-     * @throws BadRequestException   닉네임 형식 오류 (NICKNAME_INVALID) 또는 약관 미동의 (TERMS-001)
+     * @throws BadRequestException   닉네임 형식 오류 (NICKNAME_INVALID), 약관 미동의 (TERMS-001),
+     *                               userType 누락 (USER-TYPE-001)
      * @throws ConflictException     닉네임 중복 (NICKNAME_DUPLICATED)
      */
     @Transactional
@@ -95,6 +97,10 @@ public class RegistrationService {
 
         if (!pending.isTermsCompleted()) {
             throw new BadRequestException(ErrorCode.TERMS_REQUIRED);
+        }
+
+        if (request.userType() == null) {
+            throw new BadRequestException(ErrorCode.USER_TYPE_MISSING);
         }
 
         validateNickname(request.nickname());
@@ -110,7 +116,10 @@ public class RegistrationService {
             pending.getMarketingTermAgreedAt()
         );
 
-        // 5: guestId 데이터 병합
+        // 5: 사용자 유형 저장
+        user.setUserType(request.userType());
+
+        // 6: guestId 데이터 병합
         int mergedQuizCount = 0;
         String guestId = request.guestId();
         if (guestId != null && !guestId.isBlank()) {
@@ -122,11 +131,11 @@ public class RegistrationService {
             mergedQuizCount = migrationResult.quizCount();
         }
 
-        // 6: 토큰 발급
+        // 7: 토큰 발급
         TokenPair tokenPair = tokenService.issueTokens(user);
-        log.info("회원 가입 완료: userId={}, provider={}", user.getId(), pending.getProvider());
+        log.info("회원 가입 완료: userId={}, provider={}, userType={}", user.getId(), pending.getProvider(), user.getUserType());
 
-        // 7: tempToken 무효화
+        // 8: tempToken 무효화
         pendingRegistrationService.invalidate(request.tempToken());
 
         return new RegisterResponse(
@@ -135,8 +144,9 @@ public class RegistrationService {
             new RegisterResponse.UserInfo(
                 user.getId(),
                 user.getNickname(),
-                pending.getProvider().name(),
-                "beginner"
+                user.getUserType(),
+                user.getLevel(),
+                user.getUserType() != null && user.getLevel() != null
             ),
             new RegisterResponse.MergedInfo(mergedQuizCount)
         );
