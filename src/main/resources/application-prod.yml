@@ -28,6 +28,14 @@ spring:
       max-lifetime: 1800000       # 커넥션 최대 수명 (30분)
       leak-detection-threshold: 60000  # 커넥션 누수 감지 임곗값 (1분)
 
+  # ── Flyway ───────────────────────────────────────────────────────────────────
+  flyway:
+    # validate-on-migrate=false: V7 체크섬 불일치(이전 버전 파일 적용 후 파일 변경) 무시
+    # ignore-migration-patterns: FAILED 상태로 남은 V7이 후속 마이그레이션을 막는 경우 건너뜀
+    # 두 설정 모두 V8 보정 마이그레이션 적용 후 제거 예정
+    validate-on-migrate: false
+    ignore-migration-patterns: "*:failed"
+
   # ── JPA ──────────────────────────────────────────────────────────────────────
   jpa:
     show-sql: false               # SQL 로그 비활성화
