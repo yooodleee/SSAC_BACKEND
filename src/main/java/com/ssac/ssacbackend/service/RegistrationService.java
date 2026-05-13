@@ -13,7 +13,6 @@ import com.ssac.ssacbackend.dto.request.RegisterRequest;
 import com.ssac.ssacbackend.dto.request.TermsRequest;
 import com.ssac.ssacbackend.dto.response.NicknameCheckResponse;
 import com.ssac.ssacbackend.dto.response.RegisterResponse;
-import com.ssac.ssacbackend.domain.user.UserType;
 import com.ssac.ssacbackend.repository.SocialAccountRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.time.LocalDateTime;
