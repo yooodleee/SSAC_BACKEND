@@ -6,4 +6,6 @@ ALTER TABLE quiz_attempts MODIFY user_id BIGINT NULL;
 ALTER TABLE quiz_attempts ADD COLUMN IF NOT EXISTS guest_id VARCHAR(36) AFTER user_id;
 
 -- 3. guest_id 기반 조회를 위한 인덱스 추가
-CREATE INDEX IF NOT EXISTS idx_quiz_attempts_guest_id ON quiz_attempts (guest_id);
+SELECT COUNT(*) INTO @idx_guest_id FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'quiz_attempts' AND index_name = 'idx_quiz_attempts_guest_id';
+SET @sql_guest_id = IF(COALESCE(@idx_guest_id, 0) = 0, 'CREATE INDEX idx_quiz_attempts_guest_id ON quiz_attempts (guest_id)', 'SELECT 1');
+PREPARE stmt_guest_id FROM @sql_guest_id; EXECUTE stmt_guest_id; DEALLOCATE PREPARE stmt_guest_id;

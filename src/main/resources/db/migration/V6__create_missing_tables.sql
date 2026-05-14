@@ -13,11 +13,13 @@ CREATE TABLE IF NOT EXISTS content_progress (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_content_progress_user_id
-    ON content_progress (user_id);
+SELECT COUNT(*) INTO @idx_cp1 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'content_progress' AND index_name = 'idx_content_progress_user_id';
+SET @sql_cp1 = IF(COALESCE(@idx_cp1, 0) = 0, 'CREATE INDEX idx_content_progress_user_id ON content_progress (user_id)', 'SELECT 1');
+PREPARE stmt_cp1 FROM @sql_cp1; EXECUTE stmt_cp1; DEALLOCATE PREPARE stmt_cp1;
 
-CREATE INDEX IF NOT EXISTS idx_content_progress_updated_at
-    ON content_progress (updated_at);
+SELECT COUNT(*) INTO @idx_cp2 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'content_progress' AND index_name = 'idx_content_progress_updated_at';
+SET @sql_cp2 = IF(COALESCE(@idx_cp2, 0) = 0, 'CREATE INDEX idx_content_progress_updated_at ON content_progress (updated_at)', 'SELECT 1');
+PREPARE stmt_cp2 FROM @sql_cp2; EXECUTE stmt_cp2; DEALLOCATE PREPARE stmt_cp2;
 
 -- ── notifications ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS notifications (
@@ -29,11 +31,13 @@ CREATE TABLE IF NOT EXISTS notifications (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_notifications_user_id
-    ON notifications (user_id);
+SELECT COUNT(*) INTO @idx_noti1 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'notifications' AND index_name = 'idx_notifications_user_id';
+SET @sql_noti1 = IF(COALESCE(@idx_noti1, 0) = 0, 'CREATE INDEX idx_notifications_user_id ON notifications (user_id)', 'SELECT 1');
+PREPARE stmt_noti1 FROM @sql_noti1; EXECUTE stmt_noti1; DEALLOCATE PREPARE stmt_noti1;
 
-CREATE INDEX IF NOT EXISTS idx_notifications_created_at
-    ON notifications (created_at);
+SELECT COUNT(*) INTO @idx_noti2 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'notifications' AND index_name = 'idx_notifications_created_at';
+SET @sql_noti2 = IF(COALESCE(@idx_noti2, 0) = 0, 'CREATE INDEX idx_notifications_created_at ON notifications (created_at)', 'SELECT 1');
+PREPARE stmt_noti2 FROM @sql_noti2; EXECUTE stmt_noti2; DEALLOCATE PREPARE stmt_noti2;
 
 -- ── news_views ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS news_views (
@@ -43,8 +47,9 @@ CREATE TABLE IF NOT EXISTS news_views (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_news_views_news_id_viewed_at
-    ON news_views (news_id, viewed_at);
+SELECT COUNT(*) INTO @idx_nv1 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'news_views' AND index_name = 'idx_news_views_news_id_viewed_at';
+SET @sql_nv1 = IF(COALESCE(@idx_nv1, 0) = 0, 'CREATE INDEX idx_news_views_news_id_viewed_at ON news_views (news_id, viewed_at)', 'SELECT 1');
+PREPARE stmt_nv1 FROM @sql_nv1; EXECUTE stmt_nv1; DEALLOCATE PREPARE stmt_nv1;
 
 -- ── migration_failures ────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS migration_failures (

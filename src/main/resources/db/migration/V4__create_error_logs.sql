@@ -15,5 +15,10 @@ CREATE TABLE IF NOT EXISTS error_logs (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_error_logs_trace_id       ON error_logs (trace_id);
-CREATE INDEX IF NOT EXISTS idx_error_logs_level_created  ON error_logs (level, created_at);
+SELECT COUNT(*) INTO @idx_el1 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'error_logs' AND index_name = 'idx_error_logs_trace_id';
+SET @sql_el1 = IF(COALESCE(@idx_el1, 0) = 0, 'CREATE INDEX idx_error_logs_trace_id ON error_logs (trace_id)', 'SELECT 1');
+PREPARE stmt_el1 FROM @sql_el1; EXECUTE stmt_el1; DEALLOCATE PREPARE stmt_el1;
+
+SELECT COUNT(*) INTO @idx_el2 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'error_logs' AND index_name = 'idx_error_logs_level_created';
+SET @sql_el2 = IF(COALESCE(@idx_el2, 0) = 0, 'CREATE INDEX idx_error_logs_level_created ON error_logs (level, created_at)', 'SELECT 1');
+PREPARE stmt_el2 FROM @sql_el2; EXECUTE stmt_el2; DEALLOCATE PREPARE stmt_el2;

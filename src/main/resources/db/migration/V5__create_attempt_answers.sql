@@ -10,4 +10,6 @@ CREATE TABLE IF NOT EXISTS attempt_answers (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_attempt_answers_quiz_attempt_id ON attempt_answers (quiz_attempt_id);
+SELECT COUNT(*) INTO @idx_aa1 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'attempt_answers' AND index_name = 'idx_attempt_answers_quiz_attempt_id';
+SET @sql_aa1 = IF(COALESCE(@idx_aa1, 0) = 0, 'CREATE INDEX idx_attempt_answers_quiz_attempt_id ON attempt_answers (quiz_attempt_id)', 'SELECT 1');
+PREPARE stmt_aa1 FROM @sql_aa1; EXECUTE stmt_aa1; DEALLOCATE PREPARE stmt_aa1;
