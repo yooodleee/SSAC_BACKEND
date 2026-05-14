@@ -113,7 +113,14 @@
       "Bash(make logs-railway*)",
       "Bash(README.md)",
       "Bash(docs/agent-protocols/log-diagnose.md)",
-      "Bash(gh pr:*)"
+      "Bash(gh pr:*)",
+      "Bash(./gradlew cleanTest test --tests \"com.ssac.ssacbackend.service.OnboardingServiceTest\" --info)",
+      "Bash(./gradlew cleanTest test --tests \"com.ssac.ssacbackend.service.OnboardingServiceTest\" --rerun)",
+      "Bash(findstr \":8080\")",
+      "Bash(findstr \"LISTENING\")",
+      "Bash(timeout 50 ./gradlew bootRun --args='--server.port=8081')",
+      "Bash(SPRING_PROFILES_ACTIVE=local ./gradlew bootRun --args='--server.port=8081')",
+      "Read(//tmp/**)"
     ]
   }
 }

@@ -68,7 +68,14 @@ public enum ErrorCode {
 
     // ── 회원 가입 약관 (TERMS) ────────────────────────────────────────────────
     TERMS_REQUIRED("TERMS-001", 400, "필수 약관에 동의해주세요."),
-    REGISTRATION_SESSION_EXPIRED("TERMS-002", 401, "회원가입 세션이 만료되었습니다. 다시 시도해주세요.");
+    REGISTRATION_SESSION_EXPIRED("TERMS-002", 401, "회원가입 세션이 만료되었습니다. 다시 시도해주세요."),
+
+    // ── 온보딩 (ONBOARDING) ──────────────────────────────────────────────────
+    ONBOARDING_USER_TYPE_MISSING("ONBOARDING-001", 400, "사용자 유형을 먼저 선택해주세요."),
+    ONBOARDING_ALREADY_COMPLETED("ONBOARDING-002", 409, "이미 온보딩 테스트를 완료했습니다."),
+    ONBOARDING_INCOMPLETE_ANSWERS("ONBOARDING-003", 400, "모든 문제에 응답해주세요."),
+    ONBOARDING_INVALID_QUESTION("ONBOARDING-004", 400, "유효하지 않은 문제입니다."),
+    ONBOARDING_QUESTION_TYPE_MISMATCH("ONBOARDING-005", 400, "사용자 유형에 맞지 않는 문제입니다.");
 
     private final String code;
     private final int status;
