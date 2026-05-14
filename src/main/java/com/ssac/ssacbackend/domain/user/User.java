@@ -86,6 +86,12 @@ public class User {
     @Column(length = 20)
     private UserLevel level;
 
+    @Column
+    private LocalDateTime levelSetAt;
+
+    @Column(nullable = false)
+    private boolean onboardingCompleted;
+
     @Builder
     public User(String email, String password, String nickname, String provider,
         String providerId, UserRole role) {
@@ -117,6 +123,16 @@ public class User {
      */
     public void invalidateTokens() {
         this.invalidatedBefore = LocalDateTime.now();
+    }
+
+    /**
+     * 온보딩 테스트를 완료하고 레벨을 확정한다.
+     * 테스트 제출 및 건너뛰기 시 호출한다.
+     */
+    public void completeOnboarding(UserLevel level) {
+        this.level = level;
+        this.levelSetAt = LocalDateTime.now();
+        this.onboardingCompleted = true;
     }
 
     /**
