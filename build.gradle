@@ -42,7 +42,9 @@ dependencies {
     // OpenAPI(Swagger) 계약 문서 자동 생성 (docs/decisions/004-swagger-contract.md 참고)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
     // DB 마이그레이션 (DEBT-001 해결)
-    implementation 'org.flywaydb:flyway-core'
+    // spring-boot-starter-flyway: Spring Boot 4.0에서 Flyway 자동 설정이 별도 모듈로 분리됨
+    // flyway-core만 선언 시 FlywayAutoConfiguration이 로드되지 않아 마이그레이션 미실행
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.flywaydb:flyway-mysql'
     // JWT 토큰 생성 및 검증 (SSACEBE-10)
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
