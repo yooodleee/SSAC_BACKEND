@@ -7,8 +7,16 @@
 | 로그 기반 진단 | docs/agent-protocols/log-diagnose.md | 오류 발생 즉시 | 자동 (오류 즉시) |
 | 토큰 최적화 | docs/agent-protocols/token-optimize.md | 작업 시작 전 / "느려","토큰","최적화" 언급 시 | 자동 |
 | Railway 배포 진단 | docs/agent-protocols/log-diagnose.md#railway-배포-실패-시-로그-수집-절차 | "Railway 배포 실패", "빌드 실패", "배포 안 됨" 언급 시 | 자동 |
+| 구조 충돌 점검 | docs/agent-protocols/sc-structure-check.md | SC 포함 작업 시 | 자동 (sc-harness 직후) |
 
 ---
+
+## ⚡ 작업 시작 전 Protocol Execution Order
+
+0순위 `token-optimize.md`       → 컨텍스트 최소화
+1순위 `sc-harness.md`           → SC 관심사 점검
+2순위 `sc-structure-check.md`   → 프로젝트 구조 충돌 점검
+3순위 `new-feature.md`          → 신규 기능 개발
 
 ## ⚡ 오류 발생 시 Protocol Execution Order
 
