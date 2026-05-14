@@ -1,13 +1,17 @@
 # SSAC Backend — Claude Code 지침
 
-## 에이전트 하네스 (Agent Protocol Harness)
+## 🛡️ Agent Harness Protocols
 
-| 목적 | 프로토콜 파일 | 실행 시점 | 실행 방식 |
-|------|------------|---------|---------|
+| 프로토콜 | 파일 위치 | 트리거 조건 | 실행 방식 |
+|---------|----------|-----------|---------|
+| SC 관심사 점검 | docs/agent-protocols/sc-harness.md | SC 포함 작업 지시 시 | 자동 (구현 전 필수) |
+| 구조 충돌 점검 | docs/agent-protocols/sc-structure-check.md | SC 포함 작업 지시 시 | 자동 (sc-harness 직후) |
 | 로그 기반 진단 | docs/agent-protocols/log-diagnose.md | 오류 발생 즉시 | 자동 (오류 즉시) |
-| 토큰 최적화 | docs/agent-protocols/token-optimize.md | 작업 시작 전 / "느려","토큰","최적화" 언급 시 | 자동 |
-| Railway 배포 진단 | docs/agent-protocols/log-diagnose.md#railway-배포-실패-시-로그-수집-절차 | "Railway 배포 실패", "빌드 실패", "배포 안 됨" 언급 시 | 자동 |
-| 구조 충돌 점검 | docs/agent-protocols/sc-structure-check.md | SC 포함 작업 시 | 자동 (sc-harness 직후) |
+| 자가 진단 | docs/agent-protocols/self-diagnose.md | 구현 완료 후 | 자동 (구현 후) |
+| 테스트 작성 | docs/agent-protocols/testing.md | 구현 완료 후 | 자동 (구현 후) |
+| 토큰 최적화 | docs/agent-protocols/token-optimize.md | 매 작업 시작 전 | 자동 (작업 전) |
+| ADR 생성 | docs/agent-protocols/adr-create.md | 기술 의사결정 시 | 수동 |
+| 하네스 감사 | docs/agent-protocols/harness-audit.md | 스프린트 종료 시 | 수동 |
 
 ---
 
@@ -18,12 +22,17 @@
 2순위 `sc-structure-check.md`   → 프로젝트 구조 충돌 점검
 3순위 `new-feature.md`          → 신규 기능 개발
 
+## ⚡ 작업 완료 후 Protocol Execution Order
+
+4순위 `testing.md`              → 테스트 작성
+5순위 `self-diagnose.md`        → 자가 점검
+
 ## ⚡ 오류 발생 시 Protocol Execution Order
 
-1순위 `log-diagnose.md`  → 로그 기반 원인 진단 (즉시, 추측 기반 수정 금지)
-2순위 `self-diagnose.md` → 자가 점검
-3순위 `testing.md`       → 재발 방지 테스트 추가
-4순위 `adr-create.md`    → 반복 오류 3회 이상 시 의사결정 기록
+즉시   `log-diagnose.md`        → 로그 기반 진단
+1순위 `self-diagnose.md`        → 자가 점검
+2순위 `testing.md`              → 재발 방지 테스트 추가
+3순위 `adr-create.md`           → 반복 오류 3회 이상 시 의사결정 기록
 
 ---
 
@@ -52,6 +61,16 @@
 오류 발생 시 아래 행동은 금지된다:
 - `log-diagnose.md` 실행 없이 코드 수정 시작
 - 원인 불명 상태에서 추측 기반 수정
+
+---
+
+## 🚫 SC 관심사 점검 없이 구현 금지 규칙
+
+아래 행동은 금지된다:
+- sc-harness.md 실행 없이 구현 시작
+- FE SC 항목을 BE 코드에 구현
+- UI 동작을 BE 비즈니스 로직으로 처리
+- FE 에러 메시지 문구를 BE에서 하드코딩
 
 ---
 
