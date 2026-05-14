@@ -1,7 +1,7 @@
 -- 에러 로그 영속 테이블
 -- WARN 레벨: 7일 보존 / ERROR 레벨: 30일 보존
 -- traceId 기반 단일 요청 전체 흐름 추적 지원
-CREATE TABLE error_logs (
+CREATE TABLE IF NOT EXISTS error_logs (
     id          BIGINT       NOT NULL AUTO_INCREMENT,
     trace_id    VARCHAR(36)  NOT NULL,
     level       VARCHAR(10)  NOT NULL,
@@ -15,5 +15,5 @@ CREATE TABLE error_logs (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX idx_error_logs_trace_id       ON error_logs (trace_id);
-CREATE INDEX idx_error_logs_level_created  ON error_logs (level, created_at);
+CREATE INDEX IF NOT EXISTS idx_error_logs_trace_id       ON error_logs (trace_id);
+CREATE INDEX IF NOT EXISTS idx_error_logs_level_created  ON error_logs (level, created_at);

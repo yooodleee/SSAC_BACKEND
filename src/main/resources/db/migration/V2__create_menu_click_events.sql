@@ -1,5 +1,5 @@
 -- V2: 메뉴 클릭 이벤트 수집 테이블 생성
-CREATE TABLE menu_click_events (
+CREATE TABLE IF NOT EXISTS menu_click_events (
     id          BIGINT       NOT NULL AUTO_INCREMENT,
     event_type  VARCHAR(50)  NOT NULL,
     menu_id     VARCHAR(100) NOT NULL,
@@ -12,8 +12,8 @@ CREATE TABLE menu_click_events (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX idx_menu_click_events_menu_id_clicked_at
+CREATE INDEX IF NOT EXISTS idx_menu_click_events_menu_id_clicked_at
     ON menu_click_events (menu_id, clicked_at);
 
-CREATE INDEX idx_menu_click_events_clicked_at
+CREATE INDEX IF NOT EXISTS idx_menu_click_events_clicked_at
     ON menu_click_events (clicked_at);

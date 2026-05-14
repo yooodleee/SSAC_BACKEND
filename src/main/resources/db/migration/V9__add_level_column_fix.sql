@@ -5,4 +5,4 @@
 --   - level 컬럼이 없는 경우(정상): 컬럼 추가 성공 → Hibernate 검증 통과
 --   - level 컬럼이 있는 경우(V7 또는 V8이 이미 추가): "Duplicate column name" 오류 발생
 --     → ignore-migration-patterns: "*:failed" 로 건너뜀 → Hibernate 검증은 정상 통과
-ALTER TABLE users ADD COLUMN level VARCHAR(20) NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS level VARCHAR(20) NULL;
