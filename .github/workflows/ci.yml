@@ -305,6 +305,62 @@ jobs:
               core.warning(`FE 이슈 생성 실패 (FE_NOTIFY_TOKEN 설정 여부 확인): ${err.message}`);
             }
 
+  # ──────────────────────────────────────────────────────────────────────────────
+  # flyway-validation: MySQL 미지원 문법 정적 검사
+  # build-and-test, profile-validation, error-contract-validation과 병렬 실행 (독립적)
+  # ──────────────────────────────────────────────────────────────────────────────
+  flyway-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: MySQL 미지원 문법 검사
+        run: |
+          echo "Flyway MySQL 호환성 검사 중..."
+
+          # ADD COLUMN IF NOT EXISTS 사용 여부 검사 (MySQL 미지원)
+          # grep -rn 출력 형식: "파일:줄번호:내용" → 내용 부분의 주석(:--) 제외
+          INVALID_COL=$(grep -rn "ADD COLUMN IF NOT EXISTS" \
+            src/main/resources/db/migration/ | \
+            grep -v ":[ \t]*--" || true)
+
+          if [ -n "$INVALID_COL" ]; then
+            echo "❌ MySQL 미지원 문법 발견 (ADD COLUMN IF NOT EXISTS):"
+            echo "$INVALID_COL"
+            echo "→ information_schema 조건부 패턴으로 교체하세요."
+            echo "→ docs/conventions/flyway.md 참고"
+            exit 1
+          fi
+
+          # CREATE INDEX IF NOT EXISTS 사용 여부 검사 (MySQL 미지원)
+          INVALID_IDX=$(grep -rn "CREATE INDEX IF NOT EXISTS" \
+            src/main/resources/db/migration/ | \
+            grep -v ":[ \t]*--" || true)
+
+          if [ -n "$INVALID_IDX" ]; then
+            echo "❌ MySQL 미지원 문법 발견 (CREATE INDEX IF NOT EXISTS):"
+            echo "$INVALID_IDX"
+            echo "→ information_schema 조건부 패턴으로 교체하세요."
+            echo "→ docs/conventions/flyway.md 참고"
+            exit 1
+          fi
+
+          # CREATE TABLE IF NOT EXISTS 누락 검사 (MySQL 지원)
+          MISSING_TBL=$(grep -rn "CREATE TABLE " \
+            src/main/resources/db/migration/ | \
+            grep -v "IF NOT EXISTS" | \
+            grep -v ":[ \t]*--" || true)
+
+          if [ -n "$MISSING_TBL" ]; then
+            echo "❌ CREATE TABLE IF NOT EXISTS 누락 발견:"
+            echo "$MISSING_TBL"
+            echo "→ docs/conventions/flyway.md 참고하여 수정하세요."
+            exit 1
+          fi
+
+          echo "✅ MySQL 호환성 검사 통과"
+
 # CI 체크 항목 요약:
 # ── build-and-test ──
 # 1. ✅ 컴파일 통과 (gradlew build -x test)
@@ -324,5 +380,9 @@ jobs:
 # 13. ✅ Contract 파일 미커밋 변경사항 탐지 (git diff)
 # 14. ✅ ErrorCode 변경 시 Contract 버전 갱신 여부 확인
 # 15. ✅ Contract 변경 시 FE 저장소(ssac-org/SSAC_FRONTEND)에 이슈 생성 (FE_NOTIFY_TOKEN 필요)
+# ──────────────────────────────────────────────────────────────────────────────
+# ── flyway-validation ──
+# 16. ✅ MySQL 미지원 문법 검사 (ADD COLUMN IF NOT EXISTS, CREATE INDEX IF NOT EXISTS)
+# 17. ✅ CREATE TABLE IF NOT EXISTS 누락 검사
 # ──────────────────────────────────────────────────────────────────────────────
 # 👤 보안/비밀키 하드코딩 — PR 템플릿 리뷰어 체크리스트로 강제

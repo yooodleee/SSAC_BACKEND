@@ -93,3 +93,39 @@
 
 위 규칙 위반 시:
 → 즉시 중단하고 규칙 위반 항목을 출력한 후 재실행한다
+
+---
+
+## 🗄️ Flyway 마이그레이션 작성 규칙
+
+### MySQL / MariaDB 호환성 주의
+아래 문법은 MariaDB 전용 — MySQL에서 절대 사용 금지:
+❌ ALTER TABLE ... ADD COLUMN IF NOT EXISTS
+❌ CREATE INDEX IF NOT EXISTS
+
+### 멱등성 보장 규칙
+□ CREATE TABLE → CREATE TABLE IF NOT EXISTS (MySQL 지원)
+
+□ ADD COLUMN   → information_schema 조건부 패턴 사용
+  (docs/conventions/flyway.md 템플릿 참고)
+
+□ CREATE INDEX → information_schema 조건부 패턴 사용
+  (docs/conventions/flyway.md 템플릿 참고)
+
+□ INSERT       → INSERT IGNORE 또는
+                  ON DUPLICATE KEY UPDATE 사용
+
+### 작성 완료 후 검증 명령어
+```bash
+# MySQL 미지원 문법 확인
+grep -rn "ADD COLUMN IF NOT EXISTS\|CREATE INDEX IF NOT EXISTS" \
+  src/main/resources/db/migration/
+# → 출력 없음 확인 (MySQL 미지원 문법 미사용)
+
+# CREATE TABLE IF NOT EXISTS 누락 확인
+grep -rn "CREATE TABLE " src/main/resources/db/migration/ | \
+  grep -v "IF NOT EXISTS"
+# → 출력 없음 확인
+```
+
+참고: docs/conventions/flyway.md
