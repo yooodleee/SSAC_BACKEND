@@ -31,10 +31,9 @@ spring:
   # ── Flyway ───────────────────────────────────────────────────────────────────
   flyway:
     # validate-on-migrate=false: 체크섬 불일치 무시 (파일 변경 후 재배포 시 오류 방지)
-    # ignore-migration-patterns: FAILED 상태로 남은 마이그레이션을 건너뜀
-    #   → 멱등성(IF NOT EXISTS) 보장된 마이그레이션과 조합하여 재배포 안전성 확보
+    # repair 전략: FlywayConfig.java의 FlywayMigrationStrategy가 repair() → migrate() 순 실행
+    #   → FAILED 항목을 schema_history에서 제거 후 마이그레이션 재실행
     validate-on-migrate: false
-    ignore-migration-patterns: "*:failed"
 
   # ── JPA ──────────────────────────────────────────────────────────────────────
   jpa:
