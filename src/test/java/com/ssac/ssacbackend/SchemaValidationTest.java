@@ -18,7 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * <p>실패 시: src/main/resources/db/migration/ 에 누락된 테이블을 생성하는
  * V{N}__create_{table_name}.sql 을 추가하라.
  */
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
 @ActiveProfiles("schematest")
 @TestPropertySource(properties = {

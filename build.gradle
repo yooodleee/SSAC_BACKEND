@@ -147,3 +147,13 @@ task validateErrorContract(type: JavaExec) {
     mainClass = 'com.ssac.tool.ErrorContractValidator'
     jvmArgs '-Dfile.encoding=UTF-8'
 }
+
+// ── 전체 검증 태스크 ─────────────────────────────────────────────────────────
+// compileJava → test → 커버리지 검증을 순서대로 실행한다.
+// 사용법: ./gradlew verify
+tasks.register('verify') {
+    description = 'compileJava → test → jacocoVerification 순서 실행'
+    group = 'verification'
+    dependsOn 'compileJava', 'test',
+              'jacocoTestReport', 'jacocoTestCoverageVerification'
+}

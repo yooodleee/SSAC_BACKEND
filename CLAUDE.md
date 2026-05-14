@@ -15,24 +15,28 @@
 
 ---
 
-## ⚡ 작업 시작 전 Protocol Execution Order
+## ⚡ Protocol Execution Order
 
+### [작업 시작 전]
 0순위 `token-optimize.md`       → 컨텍스트 최소화
 1순위 `sc-harness.md`           → SC 관심사 점검
 2순위 `sc-structure-check.md`   → 프로젝트 구조 충돌 점검
 3순위 `new-feature.md`          → 신규 기능 개발
 
-## ⚡ 작업 완료 후 Protocol Execution Order
-
-4순위 `testing.md`              → 테스트 작성
+### [작업 완료 후 — 자동 실행]
+4순위 `testing.md`              → compileJava → test → 커버리지 검증
 5순위 `self-diagnose.md`        → 자가 점검
 
-## ⚡ 오류 발생 시 Protocol Execution Order
-
-즉시   `log-diagnose.md`        → 로그 기반 진단
+### [오류 발생 시 — 즉시 실행]
+즉시   `log-diagnose.md`        → 로그 기반 원인 진단
 1순위 `self-diagnose.md`        → 자가 점검
 2순위 `testing.md`              → 재발 방지 테스트 추가
 3순위 `adr-create.md`           → 반복 오류 3회 이상 시 의사결정 기록
+
+### [수동 실행]
+-     `adr-create.md`           → 기술 의사결정 기록
+-     `harness-audit.md`        → 전체 하네스 감사
+-     `token-optimize.md`       → 스프린트 종료 시 최적화
 
 ---
 
@@ -129,3 +133,31 @@ grep -rn "CREATE TABLE " src/main/resources/db/migration/ | \
 ```
 
 참고: docs/conventions/flyway.md
+
+---
+
+## 🔨 빌드 / 테스트 자동 실행 규칙
+
+아래 상황에서 반드시 `testing.md`를 자동 실행한다:
+
+### 자동 실행 조건
+□ 코드 파일 (.java) 수정 / 추가 / 삭제 완료 시
+□ build.gradle 의존성 변경 시
+□ Flyway 마이그레이션 파일 수정 / 추가 시
+□ application*.yml 설정 변경 시
+
+### 실행 순서
+```
+./gradlew compileJava
+  ↓
+./gradlew test
+  ↓
+./gradlew jacocoTestReport jacocoTestCoverageVerification
+```
+
+또는 한 번에: `bash scripts/run-tests.sh`
+
+### 절대 금지 규칙
+→ 사용자 요청 없이 구현만 완료하고 빌드/테스트 실행 없이 종료 금지
+→ 빌드/테스트 실패 상태에서 "완료"라고 보고 금지
+→ 커버리지 70% 미달 상태에서 구현 완료로 간주 금지
