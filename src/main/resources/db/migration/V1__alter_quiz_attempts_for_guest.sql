@@ -3,7 +3,9 @@
 ALTER TABLE quiz_attempts MODIFY user_id BIGINT NULL;
 
 -- 2. guest_id 컬럼 추가 (UUID 저장용, 36자)
-ALTER TABLE quiz_attempts ADD COLUMN IF NOT EXISTS guest_id VARCHAR(36) AFTER user_id;
+SELECT COUNT(*) INTO @col_guest_id FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'quiz_attempts' AND column_name = 'guest_id';
+SET @sql_add_guest = IF(COALESCE(@col_guest_id, 0) = 0, 'ALTER TABLE quiz_attempts ADD COLUMN guest_id VARCHAR(36) AFTER user_id', 'SELECT 1');
+PREPARE stmt_add_guest FROM @sql_add_guest; EXECUTE stmt_add_guest; DEALLOCATE PREPARE stmt_add_guest;
 
 -- 3. guest_id 기반 조회를 위한 인덱스 추가
 SELECT COUNT(*) INTO @idx_guest_id FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'quiz_attempts' AND index_name = 'idx_quiz_attempts_guest_id';
