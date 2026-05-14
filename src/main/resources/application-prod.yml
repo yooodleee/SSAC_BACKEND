@@ -30,11 +30,12 @@ spring:
 
   # ── Flyway ───────────────────────────────────────────────────────────────────
   flyway:
-    # validate-on-migrate=false: V7 체크섬 불일치(이전 버전 파일 적용 후 파일 변경) 무시
-    # ignore-migration-patterns: FAILED 상태로 남은 V7이 후속 마이그레이션을 막는 경우 건너뜀
-    # 두 설정 모두 V8 보정 마이그레이션 적용 후 제거 예정
+    # validate-on-migrate=false: 체크섬 불일치 무시 (파일 변경 후 재배포 시 오류 방지)
+    # repair-on-migrate=true: 마이그레이션 실행 전 FAILED 항목을 schema_history에서 삭제
+    #   → ddl-auto=update 긴급 배포 후 Flyway FAILED 상태 사이클 근본 해결
+    #   → V12/V13 IF NOT EXISTS 멱등성 보장과 조합하여 재실행 시에도 안전
     validate-on-migrate: false
-    ignore-migration-patterns: "*:failed"
+    repair-on-migrate: true
 
   # ── JPA ──────────────────────────────────────────────────────────────────────
   jpa:
