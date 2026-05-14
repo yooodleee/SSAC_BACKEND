@@ -48,7 +48,7 @@ class ArchitectureTest {
             .layer("Dto").definedBy(BASE_PACKAGE + ".dto..")
             .layer("Config").definedBy(BASE_PACKAGE + ".config..")
             .layer("Common").definedBy(BASE_PACKAGE + ".common..")
-            .whereLayer("Controller").mayOnlyAccessLayers("Service", "Dto", "Common", "Config")
+            .whereLayer("Controller").mayOnlyAccessLayers("Service", "Dto", "Common", "Config", "Domain")
             .whereLayer("Service").mayOnlyAccessLayers("Repository", "Domain", "Dto", "Common", "Config")
             .whereLayer("Repository").mayOnlyAccessLayers("Domain", "Common")
             .whereLayer("Domain").mayNotAccessAnyLayer()

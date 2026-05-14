@@ -118,7 +118,7 @@ class NewsIntegrationTest {
         mockMvc.perform(get("/api/news?sort=invalid"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.code").value("INVALID_SORT_PARAMETER"))
+            .andExpect(jsonPath("$.code").value("COMMON-003"))
             .andExpect(jsonPath("$.message").value("허용되지 않는 정렬 기준입니다."));
     }
 
@@ -128,7 +128,7 @@ class NewsIntegrationTest {
         mockMvc.perform(get("/api/news?size=101"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.code").value("PAGE_SIZE_EXCEEDED"));
+            .andExpect(jsonPath("$.code").value("COMMON-002"));
     }
 
     // ── 페이지네이션 ──────────────────────────────────────────────────────────
