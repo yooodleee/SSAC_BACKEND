@@ -74,6 +74,29 @@ src/main/java/com/ssac/
 □ 기존 테이블 구조와 충돌하는 컬럼명이 없는가?
   → 예약어 사용 금지 (type, order, group 등)
 
+□ DB 예약어 컬럼명이 사용되지 않는가?
+
+□ CREATE TABLE 구문에 IF NOT EXISTS가 있는가?
+  → MySQL 지원 / 그대로 사용 가능
+
+□ ADD COLUMN 구문에 IF NOT EXISTS가 사용되었는가?
+  → MySQL 미지원 ❌
+  → information_schema 조건부 패턴으로 작성되었는가?
+  → docs/conventions/flyway.md 참고
+
+□ CREATE INDEX 구문에 IF NOT EXISTS가 사용되었는가?
+  → MySQL 미지원 ❌
+  → information_schema 조건부 패턴으로 작성되었는가?
+  → docs/conventions/flyway.md 참고
+
+□ INSERT 구문에 중복 방지 처리가 되어 있는가?
+  → INSERT IGNORE 또는 ON DUPLICATE KEY UPDATE 사용
+
+MySQL 미지원 문법 발견 시:
+→ ❌ 구조 충돌로 분류
+→ "MySQL 미지원 문법 사용 — docs/conventions/flyway.md 참고"
+→ information_schema 조건부 패턴으로 수정 후 진행
+
 ### 서비스 / 의존성 점검
 □ 새로 추가할 서비스가 기존 서비스와 기능이 중복되는가?
   → 중복 기능은 기존 서비스에 메서드 추가로 처리
