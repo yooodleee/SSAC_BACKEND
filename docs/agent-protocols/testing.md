@@ -13,15 +13,47 @@
 - 의존성(build.gradle)이 변경되었을 때
 
 ## 실행 순서
-STEP 1. compileJava 실행
-STEP 2. test 실행
-STEP 3. 결과 분석 및 오류 수정
-STEP 4. 커버리지 검증
-STEP 5. 결과 기록
+STEP 1. checkstyle 실행
+STEP 2. compileJava 실행
+STEP 3. test 실행
+STEP 4. 결과 분석 및 오류 수정
+STEP 5. 커버리지 검증
+STEP 6. 결과 기록
 
 ---
 
-## STEP 1. compileJava 실행
+## STEP 1. checkstyle 실행
+
+> Railway 빌드는 `./gradlew build -x test`를 사용하므로 Checkstyle이 실행된다.
+> Checkstyle 위반은 테스트보다 먼저 빌드를 실패시키므로 가장 먼저 검증한다.
+
+아래 명령어를 실행한다:
+```
+./gradlew checkstyleMain checkstyleTest --no-daemon
+```
+
+### 성공 시
+→ "BUILD SUCCESSFUL" 확인
+→ STEP 2로 진행
+
+### 실패 시
+→ 보고서 위치: `build/reports/checkstyle/main.xml`, `build/reports/checkstyle/test.xml`
+→ 아래 위반 유형별 조치를 수행한다
+
+| 위반 유형 | 원인 | 조치 |
+|---------|-----|-----|
+| Unused import | 사용하지 않는 import 구문 | 해당 import 줄 삭제 |
+| Missing Javadoc | public 클래스/메서드에 Javadoc 없음 | Javadoc 추가 |
+| LineLength | 한 줄이 설정 길이 초과 | 줄 분리 |
+| WhitespaceAround | 연산자/키워드 주변 공백 없음 | 공백 추가 |
+| NeedBraces | if/for 등에 중괄호 없음 | 중괄호 추가 |
+
+→ 수정 완료 후 STEP 1 재실행
+→ 3회 재시도 후에도 실패 시 사용자에게 보고
+
+---
+
+## STEP 2. compileJava 실행
 
 아래 명령어를 실행한다:
 ```
@@ -30,7 +62,7 @@ STEP 5. 결과 기록
 
 ### 성공 시
 → "BUILD SUCCESSFUL" 확인
-→ STEP 2로 진행
+→ STEP 3으로 진행
 
 ### 실패 시
 → 빌드 오류 로그를 즉시 분석한다
@@ -45,12 +77,12 @@ STEP 5. 결과 기록
 | package does not exist | 의존성 누락 | build.gradle 의존성 추가 |
 | class is not abstract | 인터페이스 미구현 | 미구현 메서드 확인 |
 
-→ 오류 수정 완료 후 STEP 1 재실행
+→ 오류 수정 완료 후 STEP 2 재실행
 → 3회 재시도 후에도 실패 시 사용자에게 보고
 
 ---
 
-## STEP 2. test 실행
+## STEP 3. test 실행
 
 아래 명령어를 실행한다:
 ```
@@ -60,7 +92,7 @@ STEP 5. 결과 기록
 ### 성공 시
 → "BUILD SUCCESSFUL" 확인
 → 전체 테스트 통과 수 확인
-→ STEP 3으로 진행
+→ STEP 5로 진행
 
 ### 실패 시
 → 실패한 테스트 목록을 즉시 확인한다
@@ -75,11 +107,11 @@ STEP 5. 결과 기록
 - 조치 방향 : (원인 분석 후 작성)
 ```
 
-→ STEP 3으로 진행하여 오류를 수정한다
+→ STEP 4로 진행하여 오류를 수정한다
 
 ---
 
-## STEP 3. 결과 분석 및 오류 수정
+## STEP 4. 결과 분석 및 오류 수정
 
 테스트 실패 유형별 원인과 조치:
 
@@ -119,11 +151,11 @@ STEP 5. 결과 기록
 □ application-test.yml 설정 확인
 
 → 수정 완료 후 STEP 1부터 재실행
-→ 모든 테스트 통과 확인 후 STEP 4로 진행
+→ 모든 테스트 통과 확인 후 STEP 5로 진행
 
 ---
 
-## STEP 4. 커버리지 검증
+## STEP 5. 커버리지 검증
 
 아래 명령어를 실행한다:
 ```
@@ -136,7 +168,7 @@ STEP 5. 결과 기록
 
 ### 성공 시
 → "BUILD SUCCESSFUL" 확인
-→ STEP 5로 진행
+→ STEP 6으로 진행
 
 ### 실패 시 (70% 미달)
 → 커버리지 부족 클래스 / 메서드를 확인한다
@@ -153,18 +185,19 @@ STEP 5. 결과 기록
   □ skipOnboarding() 기본값 SEED 설정 테스트
 ```
 
-→ 테스트 추가 완료 후 STEP 4 재실행
-→ 70% 이상 확인 후 STEP 5로 진행
+→ 테스트 추가 완료 후 STEP 5 재실행
+→ 70% 이상 확인 후 STEP 6으로 진행
 
 ---
 
-## STEP 5. 결과 기록
+## STEP 6. 결과 기록
 
 모든 단계 통과 후 아래 형식으로 결과를 출력한다:
 
 ## 빌드 / 테스트 실행 결과
 
 ### 실행 명령어
+- ./gradlew checkstyleMain checkstyleTest → ✅ BUILD SUCCESSFUL
 - ./gradlew compileJava → ✅ BUILD SUCCESSFUL
 - ./gradlew test        → ✅ BUILD SUCCESSFUL
 - ./gradlew jacocoTestCoverageVerification → ✅ PASS
