@@ -148,6 +148,8 @@ grep -rn "CREATE TABLE " src/main/resources/db/migration/ | \
 
 ### 실행 순서
 ```
+./gradlew checkstyleMain checkstyleTest
+  ↓
 ./gradlew compileJava
   ↓
 ./gradlew test
