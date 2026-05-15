@@ -126,7 +126,8 @@
       "Bash(GET /api/v1/onboarding/result)",
       "Bash(POST /api/v1/onboarding/interests)",
       "Bash(GET /api/v1/home)",
-      "Bash(GET /api/v1/contents)"
+      "Bash(GET /api/v1/contents)",
+      "Bash(./gradlew compileJava compileTestJava checkstyleMain checkstyleTest --no-daemon)"
     ]
   }
 }

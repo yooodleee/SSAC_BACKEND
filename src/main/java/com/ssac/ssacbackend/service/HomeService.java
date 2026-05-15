@@ -4,7 +4,6 @@ import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentCategory;
-import com.ssac.ssacbackend.domain.content.ContentProgress;
 import com.ssac.ssacbackend.domain.onboarding.LevelInfo;
 import com.ssac.ssacbackend.domain.quiz.Quiz;
 import com.ssac.ssacbackend.domain.user.User;

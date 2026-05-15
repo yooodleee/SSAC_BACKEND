@@ -10,7 +10,6 @@ import static org.mockito.Mockito.mock;
 
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentProgress;
-import com.ssac.ssacbackend.domain.quiz.Quiz;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.domain.user.UserType;
