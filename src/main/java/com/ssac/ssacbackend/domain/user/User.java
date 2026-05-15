@@ -92,6 +92,12 @@ public class User {
     @Column(nullable = false)
     private boolean onboardingCompleted;
 
+    @Column(nullable = false)
+    private int onboardingScore;
+
+    @Column(nullable = false)
+    private boolean onboardingSkipped;
+
     @Builder
     public User(String email, String password, String nickname, String provider,
         String providerId, UserRole role) {
@@ -127,8 +133,34 @@ public class User {
 
     /**
      * 온보딩 테스트를 완료하고 레벨을 확정한다.
-     * 테스트 제출 및 건너뛰기 시 호출한다.
+     * 테스트 제출 시 호출한다.
      */
+    public void completeOnboarding(UserLevel level, int score) {
+        this.level = level;
+        this.levelSetAt = LocalDateTime.now();
+        this.onboardingCompleted = true;
+        this.onboardingScore = score;
+        this.onboardingSkipped = false;
+    }
+
+    /**
+     * 온보딩을 건너뛰고 기본 레벨 SEED로 설정한다.
+     */
+    public void skipOnboarding() {
+        this.level = UserLevel.SEED;
+        this.levelSetAt = LocalDateTime.now();
+        this.onboardingCompleted = true;
+        this.onboardingScore = 0;
+        this.onboardingSkipped = true;
+    }
+
+    /**
+     * 온보딩 테스트를 완료하고 레벨을 확정한다.
+     * 테스트 제출 및 건너뛰기 시 호출한다.
+     *
+     * @deprecated {@link #completeOnboarding(UserLevel, int)} 또는 {@link #skipOnboarding()} 사용
+     */
+    @Deprecated
     public void completeOnboarding(UserLevel level) {
         this.level = level;
         this.levelSetAt = LocalDateTime.now();

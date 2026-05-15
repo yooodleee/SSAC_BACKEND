@@ -1,0 +1,145 @@
+2026-05-14 14:59:37.566 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 14:59:40.107 WARN  [traceId=] [userId=] [ ] o.s.b.w.s.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-05-14 14:59:40.248 ERROR [traceId=] [userId=] [ ] o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2026-05-14 15:01:59.266 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 15:02:00.232 WARN  [traceId=] [userId=] [ ] o.s.b.w.s.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-05-14 15:02:00.298 ERROR [traceId=] [userId=] [ ] o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2026-05-14 15:02:15.456 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 15:02:16.241 WARN  [traceId=] [userId=] [ ] o.s.b.w.s.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-05-14 15:02:16.315 ERROR [traceId=] [userId=] [ ] o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2026-05-14 15:02:34.218 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 15:02:35.028 WARN  [traceId=] [userId=] [ ] o.s.b.w.s.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-05-14 15:02:35.091 ERROR [traceId=] [userId=] [ ] o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2026-05-14 15:02:51.574 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 15:02:52.374 WARN  [traceId=] [userId=] [ ] o.s.b.w.s.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-05-14 15:02:52.434 ERROR [traceId=] [userId=] [ ] o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2026-05-14 15:03:12.481 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 15:03:13.433 WARN  [traceId=] [userId=] [ ] o.s.b.w.s.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-05-14 15:03:13.503 ERROR [traceId=] [userId=] [ ] o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2026-05-14 15:05:47.859 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 15:09:33.249 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 15:14:52.196 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 15:25:20.011 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 15:26:29.532 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 23:31:46.824 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
+2026-05-14 23:31:46.883 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
+2026-05-14 23:31:47.016 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Table 'menu_click_events' already exists (SQL State: 42S01 - Error Code: 1050)
+2026-05-14 23:31:47.134 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Table 'error_logs' already exists (SQL State: 42S01 - Error Code: 1050)
+2026-05-14 23:31:47.214 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Integer display width is deprecated and will be removed in a future release. (SQL State: HY000 - Error Code: 1681)
+2026-05-14 23:31:47.214 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Table 'attempt_answers' already exists (SQL State: 42S01 - Error Code: 1050)
+2026-05-14 23:31:47.232 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Table 'content_progress' already exists (SQL State: 42S01 - Error Code: 1050)
+2026-05-14 23:31:47.237 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Integer display width is deprecated and will be removed in a future release. (SQL State: HY000 - Error Code: 1681)
+2026-05-14 23:31:47.237 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Table 'notifications' already exists (SQL State: 42S01 - Error Code: 1050)
+2026-05-14 23:31:47.242 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Table 'news_views' already exists (SQL State: 42S01 - Error Code: 1050)
+2026-05-14 23:31:47.246 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Table 'migration_failures' already exists (SQL State: 42S01 - Error Code: 1050)
+2026-05-14 23:31:47.339 WARN  [traceId=] [userId=] [ ] o.f.c.i.s.DefaultSqlScriptExecutor - DB: Table 'onboarding_questions' already exists (SQL State: 42S01 - Error Code: 1050)
+2026-05-14 23:31:49.775 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-14 23:32:02.445 WARN  [traceId=f5a0c5f4-a9e2-4401-bc9f-8b0c929339ed] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=f5a0c5f4-a9e2-4401-bc9f-8b0c929339ed | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:02.465 WARN  [traceId=f5a0c5f4-a9e2-4401-bc9f-8b0c929339ed] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-14 23:32:02.498 WARN  [traceId=2c4d80b2-101f-4440-909f-0a3013558190] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=2c4d80b2-101f-4440-909f-0a3013558190 | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:02.500 WARN  [traceId=2c4d80b2-101f-4440-909f-0a3013558190] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-14 23:32:06.111 WARN  [traceId=00c75486-1449-424d-94f4-42a57da049cd] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=00c75486-1449-424d-94f4-42a57da049cd | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:06.113 WARN  [traceId=00c75486-1449-424d-94f4-42a57da049cd] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-14 23:32:06.145 WARN  [traceId=c6e37670-139a-470d-95e7-e92e52eee1c6] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=c6e37670-139a-470d-95e7-e92e52eee1c6 | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:06.147 WARN  [traceId=c6e37670-139a-470d-95e7-e92e52eee1c6] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-14 23:32:06.828 WARN  [traceId=6f126f7b-40a9-44a4-ae4a-5cbfee7ab9da] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=6f126f7b-40a9-44a4-ae4a-5cbfee7ab9da | userId=accia25@naver.com
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:06.829 WARN  [traceId=6f126f7b-40a9-44a4-ae4a-5cbfee7ab9da] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-14 23:32:06.861 WARN  [traceId=9917044e-50d6-4834-9dae-2d5b04ec73c6] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=9917044e-50d6-4834-9dae-2d5b04ec73c6 | userId=accia25@naver.com
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:06.863 WARN  [traceId=9917044e-50d6-4834-9dae-2d5b04ec73c6] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-14 23:32:29.120 WARN  [traceId=] [userId=] [ ] o.a.c.util.SessionIdGeneratorBase - Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [134] milliseconds.
+2026-05-14 23:32:29.952 WARN  [traceId=8d68c033-b672-44bb-bb26-2d7894e5651b] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=8d68c033-b672-44bb-bb26-2d7894e5651b | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:29.953 WARN  [traceId=8d68c033-b672-44bb-bb26-2d7894e5651b] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-14 23:32:29.978 WARN  [traceId=e2e638da-a0ba-442f-8238-8744c300c7bd] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=e2e638da-a0ba-442f-8238-8744c300c7bd | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:29.979 WARN  [traceId=e2e638da-a0ba-442f-8238-8744c300c7bd] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-14 23:32:30.270 WARN  [traceId=e744dab1-5dfa-4857-b22b-ad6bddea7c50] [userId=4866927517@kakao.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=e744dab1-5dfa-4857-b22b-ad6bddea7c50 | userId=4866927517@kakao.com
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:30.271 WARN  [traceId=e744dab1-5dfa-4857-b22b-ad6bddea7c50] [userId=4866927517@kakao.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-14 23:32:30.315 WARN  [traceId=26a7e78c-865b-4daa-89af-fc7d22877e1f] [userId=4866927517@kakao.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=26a7e78c-865b-4daa-89af-fc7d22877e1f | userId=4866927517@kakao.com
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-14 23:32:30.316 WARN  [traceId=26a7e78c-865b-4daa-89af-fc7d22877e1f] [userId=4866927517@kakao.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
