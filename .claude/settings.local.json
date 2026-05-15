@@ -120,7 +120,11 @@
       "Bash(findstr \"LISTENING\")",
       "Bash(timeout 50 ./gradlew bootRun --args='--server.port=8081')",
       "Bash(SPRING_PROFILES_ACTIVE=local ./gradlew bootRun --args='--server.port=8081')",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(./gradlew compileJava compileTestJava)",
+      "Bash(./gradlew jacocoTestReport jacocoTestCoverageVerification)",
+      "Bash(GET /api/v1/onboarding/result)",
+      "Bash(POST /api/v1/onboarding/interests)"
     ]
   }
 }
