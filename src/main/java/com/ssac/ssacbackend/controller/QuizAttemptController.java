@@ -6,6 +6,7 @@ import com.ssac.ssacbackend.dto.request.QuizSubmitRequest;
 import com.ssac.ssacbackend.dto.request.StatPeriod;
 import com.ssac.ssacbackend.dto.response.QuizAttemptDetailResponse;
 import com.ssac.ssacbackend.dto.response.QuizAttemptSummaryResponse;
+import com.ssac.ssacbackend.dto.response.QuizSubmitResponse;
 import com.ssac.ssacbackend.dto.response.UserStatsResponse;
 import com.ssac.ssacbackend.service.QuizAttemptService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,7 +64,7 @@ public class QuizAttemptController {
             responseCode = "404", description = "퀴즈를 찾을 수 없음")
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<QuizAttemptSummaryResponse>> submitQuiz(
+    public ResponseEntity<ApiResponse<?>> submitQuiz(
         Authentication authentication,
         @RequestBody @Valid QuizSubmitRequest request) {
         log.debug("퀴즈 제출 요청: principal={}, quizId={}", authentication.getName(), request.quizId());
@@ -71,10 +72,13 @@ public class QuizAttemptController {
         boolean isGuest = authentication.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_GUEST"));
 
-        QuizAttemptSummaryResponse result = isGuest
-            ? quizAttemptService.submitQuizAsGuest(authentication.getName(), request)
-            : quizAttemptService.submitQuiz(authentication.getName(), request);
+        if (isGuest) {
+            QuizAttemptSummaryResponse result =
+                quizAttemptService.submitQuizAsGuest(authentication.getName(), request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result));
+        }
 
+        QuizSubmitResponse result = quizAttemptService.submitQuiz(authentication.getName(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result));
     }
 

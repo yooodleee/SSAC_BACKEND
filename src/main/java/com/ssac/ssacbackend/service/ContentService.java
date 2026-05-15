@@ -3,23 +3,29 @@ package com.ssac.ssacbackend.service;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.content.Content;
+import com.ssac.ssacbackend.domain.content.ContentProgress;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
+import com.ssac.ssacbackend.dto.response.ContentCompleteResponse;
 import com.ssac.ssacbackend.dto.response.ContentItemDto;
 import com.ssac.ssacbackend.dto.response.ContentListResponse;
+import com.ssac.ssacbackend.dto.response.LevelUpResult;
 import com.ssac.ssacbackend.repository.ContentProgressRepository;
 import com.ssac.ssacbackend.repository.ContentRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 콘텐츠 레벨/카테고리 필터링 서비스.
+ * 콘텐츠 레벨/카테고리 필터링 및 완료 처리 서비스.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ContentService {
@@ -27,6 +33,7 @@ public class ContentService {
     private final UserRepository userRepository;
     private final ContentRepository contentRepository;
     private final ContentProgressRepository contentProgressRepository;
+    private final LevelUpService levelUpService;
 
     /**
      * 레벨/카테고리 기준 콘텐츠 목록을 반환한다.
@@ -58,6 +65,52 @@ public class ContentService {
             category,
             items.size(),
             items
+        );
+    }
+
+    /**
+     * 콘텐츠 학습을 완료 처리하고 레벨업 조건을 검사한다.
+     *
+     * @param email     사용자 이메일
+     * @param contentId 완료할 콘텐츠 ID
+     * @return 완료 처리 결과 (레벨업 여부 포함)
+     */
+    @Transactional
+    public ContentCompleteResponse complete(String email, Long contentId) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+        Content content = contentRepository.findById(contentId)
+            .orElseThrow(() -> new NotFoundException(ErrorCode.CONTENT_NOT_FOUND));
+
+        Optional<ContentProgress> existing =
+            contentProgressRepository.findByContentIdAndUserId(contentId, user.getId());
+
+        if (existing.isPresent()) {
+            existing.get().updateProgress("complete", ContentProgress.COMPLETION_THRESHOLD);
+        } else {
+            contentProgressRepository.save(
+                ContentProgress.builder()
+                    .user(user)
+                    .title(content.getTitle())
+                    .lastPosition("complete")
+                    .progressRate(ContentProgress.COMPLETION_THRESHOLD)
+                    .contentId(content.getId())
+                    .category(content.getCategory())
+                    .build()
+            );
+        }
+        content.incrementViewCount();
+
+        LevelUpResult levelUpResult = levelUpService.checkAndApplyLevelUp(user, email);
+        log.info("콘텐츠 완료: email={}, contentId={}, levelUp={}", email, contentId,
+            levelUpResult.leveledUp());
+
+        return new ContentCompleteResponse(
+            String.valueOf(contentId),
+            true,
+            levelUpResult.leveledUp(),
+            levelUpResult.previousLevel() != null ? levelUpResult.previousLevel().name() : null,
+            levelUpResult.newLevel() != null ? levelUpResult.newLevel().name() : null
         );
     }
 

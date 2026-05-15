@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -141,6 +142,30 @@ public class OnboardingController {
         log.debug("온보딩 결과 조회 요청: email={}", authentication.getName());
         OnboardingResultResponse response = onboardingService.getResult(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @Operation(
+        summary = "온보딩 재응시 초기화",
+        description = """
+            [호출 화면] 마이페이지 > 온보딩 재응시 버튼 클릭 시 호출.
+            [권한 조건] 로그인 회원 전용 (USER, ADMIN).
+            [특이 동작] 온보딩 완료 상태인 경우에만 초기화 가능. 미완료 시 409 반환.
+            """,
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "204", description = "온보딩 초기화 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401", description = "비로그인 사용자"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "409", description = "ONBOARDING-006: 완료된 온보딩 테스트가 없음")
+    })
+    @DeleteMapping("/result")
+    public ResponseEntity<Void> resetOnboarding(Authentication authentication) {
+        log.debug("온보딩 초기화 요청: email={}", authentication.getName());
+        onboardingService.resetOnboarding(authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(
