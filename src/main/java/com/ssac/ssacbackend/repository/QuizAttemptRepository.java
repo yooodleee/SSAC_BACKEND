@@ -140,4 +140,20 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
      */
     @Query("SELECT qa.quiz.id FROM QuizAttempt qa WHERE qa.user.email = :email AND qa.earnedScore < qa.quiz.maxScore")
     List<Long> findIncorrectQuizIdsByUserEmail(@Param("email") String email);
+
+    /**
+     * 사용자의 최근 N개 퀴즈 응시 기록 조회(레벨업 정답률 계산용).
+     */
+    @Query("""
+        SELECT qa FROM QuizAttempt qa JOIN FETCH qa.quiz
+        WHERE qa.user.email = :email
+        ORDER BY qa.attemptedAt DESC
+        """)
+    List<QuizAttempt> findRecentByUserEmail(@Param("email") String email, Pageable pageable);
+
+    /**
+     * 퀴즈 응시 활동 타임스탬프 목록 반환(연속 학습일 계산용).
+     */
+    @Query("SELECT qa.attemptedAt FROM QuizAttempt qa WHERE qa.user.email = :email")
+    List<LocalDateTime> findActivityTimestampsByUserEmail(@Param("email") String email);
 }

@@ -1,6 +1,8 @@
 package com.ssac.ssacbackend.repository;
 
 import com.ssac.ssacbackend.domain.content.ContentProgress;
+import com.ssac.ssacbackend.domain.user.UserLevel;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -60,4 +62,28 @@ public interface ContentProgressRepository extends JpaRepository<ContentProgress
         """)
     long countCompletedByUserEmailAndCategory(
         @Param("email") String email, @Param("category") String category);
+
+    /**
+     * 특정 콘텐츠 ID와 사용자 ID로 진행 기록을 조회한다(콘텐츠 완료 처리용).
+     */
+    Optional<ContentProgress> findByContentIdAndUserId(Long contentId, Long userId);
+
+    /**
+     * 특정 난이도의 완료된 콘텐츠 수(레벨업 조건 산정용).
+     */
+    @Query("""
+        SELECT COUNT(cp) FROM ContentProgress cp
+        WHERE cp.user.email = :email
+          AND cp.progressRate >= 100
+          AND cp.contentId IS NOT NULL
+          AND cp.contentId IN (SELECT c.id FROM Content c WHERE c.difficulty = :difficulty)
+        """)
+    long countCompletedByUserEmailAndDifficulty(
+        @Param("email") String email, @Param("difficulty") UserLevel difficulty);
+
+    /**
+     * 학습 활동 타임스탬프 목록 반환(연속 학습일 계산용).
+     */
+    @Query("SELECT cp.updatedAt FROM ContentProgress cp WHERE cp.user.email = :email")
+    List<LocalDateTime> findActivityTimestampsByUserEmail(@Param("email") String email);
 }

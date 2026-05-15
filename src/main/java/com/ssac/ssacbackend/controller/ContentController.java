@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.controller;
 
 import com.ssac.ssacbackend.common.response.ApiResponse;
+import com.ssac.ssacbackend.dto.response.ContentCompleteResponse;
 import com.ssac.ssacbackend.dto.response.ContentListResponse;
 import com.ssac.ssacbackend.service.ContentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,6 +58,33 @@ public class ContentController {
             authentication.getName(), level, category);
         ContentListResponse response = contentService.getContents(
             authentication.getName(), level, category);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @Operation(
+        summary = "콘텐츠 학습 완료",
+        description = """
+            [호출 화면] 콘텐츠 학습 완료 버튼 클릭 시 호출.
+            [권한 조건] 로그인 회원 전용 (USER, ADMIN).
+            [특이 동작] 완료 처리 후 레벨업 조건을 자동 검사한다.
+            """,
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200", description = "콘텐츠 완료 처리 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401", description = "비로그인 사용자"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "404", description = "콘텐츠를 찾을 수 없음")
+    })
+    @PostMapping("/{contentId}/complete")
+    public ResponseEntity<ApiResponse<ContentCompleteResponse>> complete(
+        Authentication authentication,
+        @Parameter(description = "콘텐츠 ID", example = "1")
+        @PathVariable Long contentId) {
+        log.debug("콘텐츠 완료 처리: email={}, contentId={}", authentication.getName(), contentId);
+        ContentCompleteResponse response = contentService.complete(authentication.getName(), contentId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

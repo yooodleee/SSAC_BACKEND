@@ -22,4 +22,6 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
     List<Content> findByCategoryOrderByViewCountDesc(String category);
 
     long countByCategory(String category);
+
+    long countByDifficulty(UserLevel difficulty);
 }

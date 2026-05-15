@@ -4,9 +4,11 @@ import com.ssac.ssacbackend.common.response.ApiResponse;
 import com.ssac.ssacbackend.common.util.CookieUtils;
 import com.ssac.ssacbackend.config.CookieProperties;
 import com.ssac.ssacbackend.dto.request.UpdateNicknameRequest;
+import com.ssac.ssacbackend.dto.response.MyPageResponse;
 import com.ssac.ssacbackend.dto.response.ProfileResponse;
 import com.ssac.ssacbackend.service.ProfileService;
 import com.ssac.ssacbackend.service.TokenService;
+import com.ssac.ssacbackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final UserService userService;
     private final TokenService tokenService;
     private final CookieProperties cookieProperties;
 
@@ -58,10 +61,10 @@ public class ProfileController {
             responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<ProfileResponse>> getProfile(
+    public ResponseEntity<ApiResponse<MyPageResponse>> getProfile(
         Authentication authentication) {
         log.debug("프로필 조회 요청: email={}", authentication.getName());
-        ProfileResponse profile = profileService.getProfile(authentication.getName());
+        MyPageResponse profile = userService.getMyPage(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success(profile));
     }
 

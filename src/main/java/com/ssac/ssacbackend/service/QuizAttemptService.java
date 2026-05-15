@@ -11,9 +11,11 @@ import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.request.AttemptSortType;
 import com.ssac.ssacbackend.dto.request.QuizSubmitRequest;
 import com.ssac.ssacbackend.dto.request.StatPeriod;
+import com.ssac.ssacbackend.dto.response.LevelUpResult;
 import com.ssac.ssacbackend.dto.response.PeriodStatResponse;
 import com.ssac.ssacbackend.dto.response.QuizAttemptDetailResponse;
 import com.ssac.ssacbackend.dto.response.QuizAttemptSummaryResponse;
+import com.ssac.ssacbackend.dto.response.QuizSubmitResponse;
 import com.ssac.ssacbackend.dto.response.UserStatsResponse;
 import com.ssac.ssacbackend.repository.QuestionRepository;
 import com.ssac.ssacbackend.repository.QuizAttemptRepository;
@@ -51,21 +53,24 @@ public class QuizAttemptService {
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final QuizAttemptRepository quizAttemptRepository;
+    private final LevelUpService levelUpService;
 
     /**
-     * 퀴즈를 제출하고 응시 기록을 저장한다.
+     * 퀴즈를 제출하고 응시 기록을 저장한다. 레벨업 조건을 검사하여 결과에 포함한다.
      *
      * @param email   JWT에서 추출한 사용자 이메일
      * @param request 제출 요청 (퀴즈 ID, 문항별 선택 답안)
      */
     @Transactional
-    public QuizAttemptSummaryResponse submitQuiz(String email, QuizSubmitRequest request) {
+    public QuizSubmitResponse submitQuiz(String email, QuizSubmitRequest request) {
         log.debug("퀴즈 제출: email={}, quizId={}", email, request.quizId());
         User user = findUserByEmail(email);
         QuizAttempt attempt = createAttempt(user, null, request);
-        log.info("퀴즈 제출 완료: email={}, quizId={}, score={}/{}",
-            email, request.quizId(), attempt.getEarnedScore(), attempt.getQuiz().getMaxScore());
-        return QuizAttemptSummaryResponse.from(attempt);
+        LevelUpResult levelUpResult = levelUpService.checkAndApplyLevelUp(user, email);
+        log.info("퀴즈 제출 완료: email={}, quizId={}, score={}/{}, levelUp={}",
+            email, request.quizId(), attempt.getEarnedScore(), attempt.getQuiz().getMaxScore(),
+            levelUpResult.leveledUp());
+        return QuizSubmitResponse.from(attempt, levelUpResult);
     }
 
     /**

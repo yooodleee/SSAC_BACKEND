@@ -246,6 +246,26 @@ public class OnboardingService {
         log.debug("관심 도메인 저장: email={}, domains={}", email, domainIds);
     }
 
+    /**
+     * 온보딩 결과를 초기화하여 재응시를 허용한다.
+     *
+     * <p>온보딩이 완료되지 않은 사용자가 요청하면 409를 반환한다.
+     *
+     * @param email 사용자 이메일
+     */
+    @Transactional
+    public void resetOnboarding(String email) {
+        User user = findUserByEmail(email);
+
+        if (!user.isOnboardingCompleted()) {
+            throw new ConflictException(ErrorCode.ONBOARDING_RETAKE_CONFLICT);
+        }
+
+        user.resetOnboarding();
+        userInterestRepository.deleteByUserId(user.getId());
+        log.info("온보딩 초기화 완료: email={}", email);
+    }
+
     private UserLevel calculateLevel(int totalScore) {
         if (totalScore >= 8) {
             return UserLevel.TREE;

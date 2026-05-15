@@ -168,6 +168,27 @@ public class User {
     }
 
     /**
+     * 온보딩 결과를 초기화한다. 재응시 또는 사용자 유형 변경 시 호출한다.
+     */
+    public void resetOnboarding() {
+        this.level = null;
+        this.levelSetAt = null;
+        this.onboardingCompleted = false;
+        this.onboardingScore = 0;
+        this.onboardingSkipped = false;
+    }
+
+    /**
+     * 레벨업 처리 시 레벨을 갱신한다.
+     *
+     * @param newLevel 새로운 레벨
+     */
+    public void updateLevel(UserLevel newLevel) {
+        this.level = newLevel;
+        this.levelSetAt = LocalDateTime.now();
+    }
+
+    /**
      * 사용자 유형을 설정한다. 회원 가입 완료 시 호출한다.
      */
     public void setUserType(UserType userType) {
