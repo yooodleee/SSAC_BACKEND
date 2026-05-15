@@ -134,4 +134,10 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
     boolean existsByUserEmail(String email);
 
     void deleteByUser(User user);
+
+    /**
+     * 사용자가 오답 처리된 퀴즈 ID 목록 (todayQuiz 정렬 우선순위용).
+     */
+    @Query("SELECT qa.quiz.id FROM QuizAttempt qa WHERE qa.user.email = :email AND qa.earnedScore < qa.quiz.maxScore")
+    List<Long> findIncorrectQuizIdsByUserEmail(@Param("email") String email);
 }

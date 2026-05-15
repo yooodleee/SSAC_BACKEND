@@ -124,7 +124,9 @@
       "Bash(./gradlew compileJava compileTestJava)",
       "Bash(./gradlew jacocoTestReport jacocoTestCoverageVerification)",
       "Bash(GET /api/v1/onboarding/result)",
-      "Bash(POST /api/v1/onboarding/interests)"
+      "Bash(POST /api/v1/onboarding/interests)",
+      "Bash(GET /api/v1/home)",
+      "Bash(GET /api/v1/contents)"
     ]
   }
 }

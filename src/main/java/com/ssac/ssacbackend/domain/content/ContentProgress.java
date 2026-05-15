@@ -61,6 +61,18 @@ public class ContentProgress {
     private String lastPosition;
 
     /**
+     * 연결된 콘텐츠 ID. null이면 레거시 진행 기록이다.
+     */
+    @Column(name = "content_id")
+    private Long contentId;
+
+    /**
+     * 콘텐츠 카테고리 (비정규화). 홈 화면 이어보기 조회 최적화용.
+     */
+    @Column(length = 50)
+    private String category;
+
+    /**
      * 학습 진행률 (0~100).
      */
     @Column(name = "progress_rate", nullable = false)
@@ -73,11 +85,14 @@ public class ContentProgress {
     private LocalDateTime updatedAt;
 
     @Builder
-    public ContentProgress(User user, String title, String lastPosition, int progressRate) {
+    public ContentProgress(User user, String title, String lastPosition, int progressRate,
+                           Long contentId, String category) {
         this.user = user;
         this.title = title;
         this.lastPosition = lastPosition;
         this.progressRate = progressRate;
+        this.contentId = contentId;
+        this.category = category;
     }
 
     /**

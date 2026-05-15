@@ -1,4 +1,4 @@
-package com.ssac.ssacbackend.domain.quiz;
+package com.ssac.ssacbackend.domain.content;
 
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import jakarta.persistence.Column;
@@ -17,16 +17,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 퀴즈 도메인 엔티티.
+ * 학습 콘텐츠 엔티티.
  *
- * <p>퀴즈의 메타 정보를 담는다. 문항은 {@link Question}에서 관리한다.
- * maxScore와 totalQuestions는 성능을 위해 비정규화하여 저장한다.
+ * <p>카테고리와 난이도 기반으로 사용자에게 추천된다.
  */
 @Entity
-@Table(name = "quizzes")
+@Table(name = "contents")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Quiz {
+public class Content {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,21 +34,6 @@ public class Quiz {
     @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(length = 500)
-    private String description;
-
-    /**
-     * 퀴즈 최고 점수 (모든 문항 점수의 합).
-     */
-    @Column(nullable = false)
-    private int maxScore;
-
-    /**
-     * 전체 문항 수. 정답률 계산 시 분모로 사용한다.
-     */
-    @Column(nullable = false)
-    private int totalQuestions;
-
     @Column(length = 50)
     private String category;
 
@@ -57,15 +41,26 @@ public class Quiz {
     @Column(length = 20)
     private UserLevel difficulty;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "estimated_minutes")
+    private int estimatedMinutes;
+
+    @Column(name = "view_count", nullable = false)
+    private long viewCount;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    public Quiz(String title, String description, int maxScore, int totalQuestions) {
+    public Content(String title, String category, UserLevel difficulty, int estimatedMinutes) {
         this.title = title;
-        this.description = description;
-        this.maxScore = maxScore;
-        this.totalQuestions = totalQuestions;
+        this.category = category;
+        this.difficulty = difficulty;
+        this.estimatedMinutes = estimatedMinutes;
+        this.viewCount = 0;
+    }
+
+    public void incrementViewCount() {
+        this.viewCount++;
     }
 
     @PrePersist
