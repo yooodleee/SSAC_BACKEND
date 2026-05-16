@@ -7,6 +7,7 @@
 | SC 관심사 점검 | docs/agent-protocols/sc-harness.md | SC 포함 작업 지시 시 | 자동 (구현 전 필수) |
 | SC 생성/수정 | docs/agent-protocols/backlog-generate.md | SC 포함 작업 지시 시 | 자동 (sc-harness 직후) |
 | 구조 충돌 점검 | docs/agent-protocols/sc-structure-check.md | SC 포함 작업 지시 시 | 자동 (sc-harness 직후) |
+| 신규 기능 개발 | docs/agent-protocols/new-feature.md | 신규 기능 구현 시작 시 | 자동 (sc-structure-check 직후) |
 | 로그 기반 진단 | docs/agent-protocols/log-diagnose.md | 오류 발생 즉시 | 자동 (오류 즉시) |
 | 자가 진단 | docs/agent-protocols/self-diagnose.md | 구현 완료 후 | 자동 (구현 후) |
 | 테스트 작성 | docs/agent-protocols/testing.md | 구현 완료 후 | 자동 (구현 후) |
