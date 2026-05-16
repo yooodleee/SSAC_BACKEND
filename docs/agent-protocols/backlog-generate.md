@@ -49,9 +49,10 @@ src/main/java/com/ssac/ 디렉터리 구조 파악
 □ src/main/resources/application-docker.yml
     -> 현재 환경 변수 / 설정 파악
 
-□ contract/api-spec.yaml
+□ docs/api/swagger.json (존재하는 경우)
     -> 기존 API 경로 전체 목록 파악
     -> 신규 API 경로 중복 방지
+    -> 미존재 시: controller/ 패키지에서 @RequestMapping / @GetMapping 등을 grep하여 경로 목록 수집
 
 ### 1-3. 관련 도메인 파일 확인
 SC와 관련된 패키지의 아래 파일을 읽는다.
