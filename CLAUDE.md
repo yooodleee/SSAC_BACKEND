@@ -5,6 +5,7 @@
 | 프로토콜 | 파일 위치 | 트리거 조건 | 실행 방식 |
 |---------|----------|-----------|---------|
 | SC 관심사 점검 | docs/agent-protocols/sc-harness.md | SC 포함 작업 지시 시 | 자동 (구현 전 필수) |
+| SC 생성/수정 | docs/agent-protocols/backlog-generate.md | SC 포함 작업 지시 시 | 자동 (sc-harness 직후) |
 | 구조 충돌 점검 | docs/agent-protocols/sc-structure-check.md | SC 포함 작업 지시 시 | 자동 (sc-harness 직후) |
 | 로그 기반 진단 | docs/agent-protocols/log-diagnose.md | 오류 발생 즉시 | 자동 (오류 즉시) |
 | 자가 진단 | docs/agent-protocols/self-diagnose.md | 구현 완료 후 | 자동 (구현 후) |
@@ -20,8 +21,9 @@
 ### [작업 시작 전]
 0순위 `token-optimize.md`       → 컨텍스트 최소화
 1순위 `sc-harness.md`           → SC 관심사 점검
-2순위 `sc-structure-check.md`   → 프로젝트 구조 충돌 점검
-3순위 `new-feature.md`          → 신규 기능 개발
+2순위 `backlog-generate.md`     → 프로젝트 구조 파악 후 SC 생성 / 수정
+3순위 `sc-structure-check.md`   → 프로젝트 구조 충돌 점검
+4순위 `new-feature.md`          → 신규 기능 개발
 
 ### [작업 완료 후 — 자동 실행]
 4순위 `testing.md`              → compileJava → test → 커버리지 검증
@@ -75,6 +77,16 @@
 - FE SC 항목을 BE 코드에 구현
 - UI 동작을 BE 비즈니스 로직으로 처리
 - FE 에러 메시지 문구를 BE에서 하드코딩
+
+---
+
+## 🚫 SC 검토 없이 구현 금지 규칙
+
+아래 행동은 금지된다:
+- 외부에서 제공된 SC를 검토 없이 그대로 구현
+- 프로젝트 구조 파악 없이 SC 생성
+- 기존 코드 분석 없이 ErrorCode / API 경로 결정
+- backlog-generate.md 실행 없이 new-feature.md 실행
 
 ---
 
