@@ -11,7 +11,7 @@
 | 로그 기반 진단 | docs/agent-protocols/log-diagnose.md | 오류 발생 즉시 | 자동 (오류 즉시) |
 | 자가 진단 | docs/agent-protocols/self-diagnose.md | 구현 완료 후 | 자동 (구현 후) |
 | 테스트 작성 | docs/agent-protocols/testing.md | 구현 완료 후 | 자동 (구현 후) |
-| 토큰 최적화 | docs/agent-protocols/token-optimize.md | 매 작업 시작 전 | 자동 (작업 전) |
+| 토큰 최적화 | docs/agent-protocols/token-optimize.md | 스프린트 종료 시 | 수동 |
 | ADR 생성 | docs/agent-protocols/adr-create.md | 기술 의사결정 시 | 수동 |
 | 하네스 감사 | docs/agent-protocols/harness-audit.md | 스프린트 종료 시 | 수동 |
 
@@ -20,7 +20,6 @@
 ## ⚡ Protocol Execution Order
 
 ### [작업 시작 전]
-0순위 `token-optimize.md`       → 컨텍스트 최소화
 1순위 `sc-harness.md`           → SC 관심사 점검
 2순위 `backlog-generate.md`     → 프로젝트 구조 파악 후 SC 생성 / 수정
 3순위 `sc-structure-check.md`   → 프로젝트 구조 충돌 점검
