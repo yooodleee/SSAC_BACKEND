@@ -15,6 +15,9 @@ STEP 4. 진행 여부 판단
 
 ## STEP 1. 현재 프로젝트 구조 파악
 
+> backlog-generate.md를 이미 실행했다면 STEP 1에서 수집한 구조 정보를 그대로 활용한다.
+> backlog-generate.md를 실행하지 않은 경우에만 아래 구조를 직접 확인한다.
+
 작업 시작 전 아래 항목을 확인한다:
 
 ### 패키지 구조 확인
@@ -54,77 +57,49 @@ src/main/java/com/ssac/ssacbackend/
 
 ## STEP 2. SC 항목별 구조 충돌 점검
 
-### API 엔드포인트 점검
+실제 파일을 읽거나 검색하여 충돌 여부를 확인한다.
+API 설계 패턴 / MySQL 문법 / 보안 패턴은 backlog-generate.md에서 이미 검토됐다.
+이 단계는 코드베이스와의 실제 충돌만 검증한다.
+
+### API 엔드포인트 충돌 검증
 □ 새로 추가할 API 경로가 기존 경로와 중복되지 않는가?
-  → 확인: @RequestMapping / @GetMapping 전체 검색
+  → 확인 방법: controller/ 패키지에서 @RequestMapping / @PostMapping 등 검색
   예) 기존: POST /api/v1/auth/register
       신규: POST /api/v1/auth/register  ← 중복 ❌
 
-□ API 경로 네이밍 컨벤션을 준수하는가?
-  → 기준: /api/v1/{도메인}/{리소스}
-  예) ✅ /api/v1/users/type
-      ❌ /api/userType
-
-□ HTTP 메서드가 RESTful 원칙에 맞는가?
-  → 조회: GET / 생성: POST / 수정: PATCH / 삭제: DELETE
-
-### 엔티티 / DB 점검
+### 엔티티 / DB 충돌 검증
 □ 새로 추가할 필드가 기존 엔티티에 이미 존재하는가?
-  → 중복 필드 추가 금지
+  → 확인 방법: 해당 Entity 파일을 직접 읽어 필드 목록 확인
 
 □ Flyway 마이그레이션 버전이 순차적인가?
-  → 현재 최신 버전 확인 후 다음 버전으로 생성
-  예) 현재 V5 존재 → 신규는 V6으로 생성
-      V5를 건너뛰고 V7 생성 ❌
+  → 확인 방법: db/migration/ 디렉터리의 V*.sql 파일 목록 확인
+  예) 현재 V20 존재 → 신규는 V21로 생성
+      V20을 건너뛰고 V22 생성 ❌
 
-□ 기존 테이블 구조와 충돌하는 컬럼명이 없는가?
-  → 예약어 사용 금지 (type, order, group 등)
+□ 추가할 컬럼명이 DB 예약어와 충돌하지 않는가?
+  → 예약어 사용 금지: type, order, group, value, key, index 등
+  → 충돌 시 접두어 추가: user_type, sort_order 등
 
-□ DB 예약어 컬럼명이 사용되지 않는가?
+### 서비스 / 의존성 충돌 검증
+□ 새로 추가할 서비스 기능이 기존 서비스에 이미 구현되어 있는가?
+  → 확인 방법: 관련 Service 파일을 읽어 메서드 목록 확인
+  → 중복 기능은 신규 서비스 생성 대신 기존 서비스에 메서드 추가로 처리
 
-□ CREATE TABLE 구문에 IF NOT EXISTS가 있는가?
-  → MySQL 지원 / 그대로 사용 가능
+□ 추상화 인터페이스가 필요한 경우 기존 패턴을 따르는가?
+  → Service → Interface → Impl 구조 (TokenStore 패턴 참고)
 
-□ ADD COLUMN 구문에 IF NOT EXISTS가 사용되었는가?
-  → MySQL 미지원 ❌
-  → information_schema 조건부 패턴으로 작성되었는가?
-  → docs/conventions/flyway.md 참고
-
-□ CREATE INDEX 구문에 IF NOT EXISTS가 사용되었는가?
-  → MySQL 미지원 ❌
-  → information_schema 조건부 패턴으로 작성되었는가?
-  → docs/conventions/flyway.md 참고
-
-□ INSERT 구문에 중복 방지 처리가 되어 있는가?
-  → INSERT IGNORE 또는 ON DUPLICATE KEY UPDATE 사용
-
-MySQL 미지원 문법 발견 시:
-→ ❌ 구조 충돌로 분류
-→ "MySQL 미지원 문법 사용 — docs/conventions/flyway.md 참고"
-→ information_schema 조건부 패턴으로 수정 후 진행
-
-### 서비스 / 의존성 점검
-□ 새로 추가할 서비스가 기존 서비스와 기능이 중복되는가?
-  → 중복 기능은 기존 서비스에 메서드 추가로 처리
-
-□ 새로 추가할 Repository가 TokenStore 등
-  추상화 인터페이스 원칙을 준수하는가?
-  → Service → Interface → Impl 구조 유지
-
-### ErrorCode 점검
-□ 새로 추가할 ErrorCode가 기존 코드와 중복되는가?
-  → ErrorCode Enum 전체 검색
+### ErrorCode 충돌 검증
+□ 새로 추가할 ErrorCode 값이 기존 코드와 중복되는가?
+  → 확인 방법: ErrorCode.java 전체 목록에서 코드 문자열 확인
   예) 기존: USER-001 / 신규: USER-001 ← 중복 ❌
 
-□ ErrorCode 네이밍 컨벤션을 준수하는가?
-  → 기준: {도메인}-{순번}
-  예) ✅ USER-TYPE-001
-      ❌ USERTYPE001
+□ 새로 추가할 ErrorCode 번호가 해당 도메인의 다음 순번인가?
+  → 확인 방법: ErrorCode.java에서 해당 도메인의 마지막 번호 확인
+  예) AUTH-010까지 존재 → 신규는 AUTH-011부터 사용
 
-### 테스트 구조 점검
-□ 기존 테스트 파일과 동일한 이름의 파일이 없는가?
-□ 새로 추가할 테스트가 기존 테스트 커버리지에
-  영향을 주지 않는가?
+### 테스트 구조 충돌 검증
+□ 새로 추가할 테스트 파일명이 기존 테스트 파일과 중복되지 않는가?
+  → 확인 방법: src/test/ 디렉터리에서 동일 파일명 검색
 
 ---
 
