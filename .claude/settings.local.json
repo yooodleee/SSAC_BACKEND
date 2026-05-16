@@ -131,7 +131,12 @@
       "Bash(./gradlew checkstyleMain checkstyleTest --no-daemon)",
       "Bash(./gradlew checkstyleTest --no-daemon)",
       "Bash(./gradlew jacocoTestReport jacocoTestCoverageVerification --no-daemon)",
-      "Bash(./gradlew checkstyleMain checkstyleTest test --no-daemon)"
+      "Bash(./gradlew checkstyleMain checkstyleTest test --no-daemon)",
+      "Bash(docs/agent-protocols/contract-sync.md)",
+      "Bash(new-feature.md)",
+      "Bash(self-diagnose.md)",
+      "Bash(backlog-generate.md)",
+      "Bash(api-spec.yaml)"
     ]
   }
 }

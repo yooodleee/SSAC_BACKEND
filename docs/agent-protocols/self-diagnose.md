@@ -110,7 +110,8 @@ STEP 5. 결과 출력 및 완료 판단
 
 ### 4-1. API 스펙 갱신
 □ 이번 구현에서 신규 API 또는 기존 API 수정이 있었는가?
-    → 있음: contract/api-spec.yaml 갱신 여부 확인
+    → 있음: 해당 Controller 메서드에 @Operation / @ApiResponses 어노테이션이 작성되었는가?
+            (docs/api/swagger.json은 CI 자동 생성 — 직접 편집 금지, ADR 004)
     → 없음: 이 항목 건너뜀 ✅
 
 ### 4-2. ErrorCode 계약 갱신
@@ -135,7 +136,7 @@ STEP 2 인증 / 보안 : ✅ 이상 없음
 STEP 3 응답 구조   : ✅ 이상 없음
                    / ❌ {위반 항목 설명}
 STEP 4 Contract    : ✅ 이상 없음 (또는 해당 없음)
-                   / ❌ {누락 항목 설명}
+                   / ❌ @Operation 누락 또는 error-contract.yml 미갱신
 ```
 
 ### 완료 판단 규칙

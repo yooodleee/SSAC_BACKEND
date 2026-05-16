@@ -9,6 +9,7 @@
 | 구조 충돌 점검 | docs/agent-protocols/sc-structure-check.md | SC 포함 작업 지시 시 | 자동 (sc-harness 직후) |
 | 신규 기능 개발 | docs/agent-protocols/new-feature.md | 신규 기능 구현 시작 시 | 자동 (sc-structure-check 직후) |
 | 로그 기반 진단 | docs/agent-protocols/log-diagnose.md | 오류 발생 즉시 | 자동 (오류 즉시) |
+| 계약 동기화 | docs/agent-protocols/contract-sync.md | ErrorCode 변경 또는 API 경로 변경 시 | 자동 (구현 후) |
 | 자가 진단 | docs/agent-protocols/self-diagnose.md | 구현 완료 후 | 자동 (구현 후) |
 | 테스트 작성 | docs/agent-protocols/testing.md | 구현 완료 후 | 자동 (구현 후) |
 | 토큰 최적화 | docs/agent-protocols/token-optimize.md | 스프린트 종료 시 | 수동 |
@@ -26,8 +27,9 @@
 4순위 `new-feature.md`          → 신규 기능 개발
 
 ### [작업 완료 후 — 자동 실행]
-4순위 `testing.md`              → compileJava → test → 커버리지 검증
-5순위 `self-diagnose.md`        → 자가 점검
+4순위 `contract-sync.md`        → ErrorCode / Swagger 어노테이션 계약 동기화
+5순위 `testing.md`              → compileJava → test → 커버리지 검증
+6순위 `self-diagnose.md`        → 자가 점검
 
 ### [오류 발생 시 — 즉시 실행]
 즉시   `log-diagnose.md`        → 로그 기반 원인 진단

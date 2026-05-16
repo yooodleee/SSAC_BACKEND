@@ -368,37 +368,39 @@ public record XxxResponse(
 **이 단계는 테스트 작성 전에 수행한다.**
 Contract를 먼저 확정해야 테스트 케이스의 기대값이 명확해진다.
 
-### 7-1. API 스펙 갱신
-신규 또는 변경된 API가 있는 경우 `contract/api-spec.yaml`을 갱신한다.
+`contract-sync.md`를 실행하여 두 가지를 처리한다.
 
-갱신 항목:
-```yaml
-paths:
-  /api/v1/{도메인}/{리소스}:
-    post:
-      summary: API 요약
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/XxxRequest'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse_XxxResponse'
+### 7-1. Swagger 어노테이션 작성 (API 변경 시)
+신규 또는 변경된 API가 있는 경우 Controller 메서드에 어노테이션을 추가한다.
+
+```java
+@Operation(
+    summary = "기능 한 줄 요약",
+    description = """
+        [호출 화면] 어느 화면에서 호출하는가.
+        [권한 조건] 공개 / 로그인 필요 / ADMIN 전용.
+        [특이 동작] 일반적이지 않은 응답 동작 (없으면 생략).
+        """
+)
+@ApiResponses({
+    @ApiResponse(responseCode = "200", description = "성공"),
+    @ApiResponse(responseCode = "401", description = "인증 필요")
+    // 실제 발생 가능한 상태코드만 명시한다
+})
 ```
 
-### 7-2. ErrorCode 계약 갱신
+> `docs/api/swagger.json`은 CI가 자동 생성하므로 직접 편집하지 않는다 (ADR 004).
+
+### 7-2. ErrorCode 계약 갱신 (ErrorCode 추가 시)
 신규 ErrorCode가 추가된 경우 `contract/error-contract.yml`을 갱신한다.
+→ `contract-sync.md` STEP 1 절차를 따른다.
 
 참고: `ErrorCode.java` 클래스 주석 — "코드 추가/수정 후 contract/error-contract.yml도 함께 갱신해야 한다"
 
 ### 완료 기준
 ```
-API 변경 없음: 이 단계 건너뜀 → STEP 8로 진행
-API 변경 있음: contract 파일 갱신 확인 후 STEP 8로 진행
+API 변경 없음 / ErrorCode 변경 없음: 이 단계 건너뜀 → STEP 8로 진행
+변경 있음: contract-sync.md 실행 완료 후 STEP 8로 진행
 ```
 
 ---
@@ -495,7 +497,7 @@ testing.md 전체 실행
 □ STEP 4. Service   — 단위 테스트 통과
 □ STEP 5. Controller — compileJava 통과
 □ STEP 6. DTO       — compileJava 통과
-□ STEP 7. Contract  — api-spec.yaml / error-contract.yml 갱신 완료 (해당 시)
+□ STEP 7. Contract  — @Operation/@ApiResponses 작성 / error-contract.yml 갱신 완료 (해당 시)
 □ STEP 8. 테스트    — testing.md 전체 통과 + JaCoCo 70% 이상
 
 → 전체 완료 후 self-diagnose.md 실행
