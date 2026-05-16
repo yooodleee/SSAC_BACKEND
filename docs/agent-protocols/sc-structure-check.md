@@ -19,26 +19,32 @@ STEP 4. 진행 여부 판단
 
 ### 패키지 구조 확인
 ```
-src/main/java/com/ssac/
-├── domain/         ← 도메인별 패키지 구조 확인
-│   ├── user/
-│   │   ├── controller/
-│   │   ├── service/
-│   │   ├── repository/
-│   │   ├── entity/
-│   │   └── dto/
-│   ├── news/
-│   ├── quiz/
-│   └── auth/
-├── global/         ← 공통 설정 / 예외 처리
-│   ├── config/
-│   ├── exception/
+src/main/java/com/ssac/ssacbackend/
+├── config/         ← Spring Security, JWT, OAuth2, Cookie 등 설정
+├── controller/     ← REST API 엔드포인트 (레이어 단위, 도메인 구분 없음)
+├── service/        ← 비즈니스 로직
+├── repository/     ← Spring Data JPA 인터페이스
+├── domain/         ← Entity, Enum (도메인별 하위 패키지)
+│   ├── user/       (User, UserRole, UserLevel, UserType, RefreshToken)
+│   ├── quiz/       (Question, QuizAttempt, AttemptAnswer)
+│   ├── news/       (News, NewsView)
+│   ├── onboarding/ (OnboardingQuestion, UserInterest)
+│   ├── social/     (SocialAccount, OAuthProvider)
+│   ├── auth/       (PendingRegistration, AuthCode)
+│   ├── notification/ (Notification)
+│   └── event/      (MenuClickEvent)
+├── dto/            ← 요청/응답 DTO (Java record 타입)
+│   ├── request/
 │   └── response/
-└── infra/          ← 외부 연동
+└── common/         ← 공통 유틸리티
+    ├── exception/  (BusinessException 계층, GlobalExceptionHandler, ErrorCode)
+    ├── response/   (ApiResponse, ErrorResponse)
+    └── util/       (CookieUtils)
 ```
 
 ### 확인 항목
-□ 새로 추가할 도메인 패키지가 이미 존재하는가?
+□ 새로 추가할 Entity가 domain/{도메인명}/ 하위에 위치하는가?
+□ 새로 추가할 Controller / Service / Repository가 각 레이어 패키지에 위치하는가?
 □ 기존 엔티티에 필드 추가인가? 신규 엔티티 생성인가?
 □ 기존 API 경로와 충돌하는 엔드포인트가 있는가?
 □ 기존 ErrorCode와 중복되는 코드가 있는가?
