@@ -109,40 +109,48 @@ SC와 관련된 기존 코드를 아래 기준으로 분석한다:
 
 ---
 
-## STEP 3. 제공된 SC 검토
+## STEP 3. 제공된 SC 검토 — 설계 패턴
 
-외부에서 제공된 SC를 아래 기준으로 검토한다:
+SC의 내용이 이 프로젝트의 설계 패턴과 일치하는지 검토한다.
+STEP 1-2에서 수집한 정보를 활용한다.
+코드베이스 실제 충돌 검증(경로 중복, ErrorCode 중복, Flyway 버전)은
+다음 단계인 sc-structure-check.md에서 수행한다.
 
-### 3-1. API 설계 검토
+### 3-1. API 설계 패턴 검토
 □ API 경로가 기존 컨벤션(/api/v1/{도메인}/{리소스})을 따르는가?
 □ API 요청 방식이 기존 구현과 일치하는가?
     예) Refresh Token -> body X / Cookie O
-□ API 응답 구조가 ApiResponse 래퍼를 사용하는가?
+□ API 응답 구조가 ApiResponse<T> 래퍼를 사용하는가?
+□ HTTP 메서드가 RESTful 원칙에 맞는가?
+    조회: GET / 생성: POST / 수정: PATCH / 삭제: DELETE
 
-### 3-2. ErrorCode 검토
-□ SC에서 제시한 ErrorCode가 기존과 중복되는가?
-    -> ErrorCode.java 전체 목록과 대조
-□ SC에서 제시한 ErrorCode 번호가 순차적인가?
-    -> 기존 마지막 번호 + 1부터 사용
+### 3-2. ErrorCode 설계 검토
+□ STEP 2에서 파악한 기존 ErrorCode를 기준으로,
+  SC가 제시하는 ErrorCode의 도메인 분류가 적절한가?
+    예) 인증 관련인데 USER-XXX로 분류되어 있으면 AUTH-XXX로 수정
+□ ErrorCode 네이밍 컨벤션을 준수하는가?
+    기준: {도메인}-{순번}  예) ✅ AUTH-011  ❌ AUTH011
+※ 구체적인 번호 중복 / 순번 검증은 sc-structure-check.md에서 수행한다.
 
-### 3-3. DB / 마이그레이션 검토
-□ SC에서 요구하는 칼럼 / 테이블이 이미 존재하는가?
-□ SC의 마이그레이션 버전이 순차적인가?
-□ MySQL 호환 문법을 사용하는가?
+### 3-3. SQL / 마이그레이션 설계 검토
+□ SC에 SQL 문법이 포함된 경우 MySQL 호환 문법을 사용하는가?
     -> ADD COLUMN IF NOT EXISTS 사용 여부 확인
         (MySQL 미지원 -> information_schema 패턴 사용)
+    -> CREATE INDEX IF NOT EXISTS 사용 여부 확인
+        (MySQL 미지원 -> information_schema 패턴 사용)
+※ 칼럼/테이블 실제 존재 여부 및 버전 순번 검증은 sc-structure-check.md에서 수행한다.
 
-### 3-4. 보안 검토
+### 3-4. 보안 설계 검토
 □ Refresh Token을 body로 전달하는 SC가 있는가?
-    -> 쿠키 기반으로 수정
-□ 민감한 정보가 응답 body에 포함되는가?
+    -> 쿠키 기반으로 수정 (CookieUtils.addRefreshTokenCookie 활용)
+□ 민감한 정보(token, password, 개인정보)가 응답 body에 포함되는가?
     -> HttpOnly Cookie로 전환
 
 검토 완료 후 아래 형식으로 출력한다:
 
-[SC 검토 결과]
+[SC 설계 패턴 검토 결과]
 ✅ 적합 항목 : N개
-❌ 충돌 항목 : N개
+❌ 수정 필요 : N개
 ⚠️ 주의 항목 : N개
 
 ---
@@ -151,28 +159,24 @@ SC와 관련된 기존 코드를 아래 기준으로 분석한다:
 
 STEP 3에서 발견된 충돌 항목을 아래 기준으로 수정합니다.
 
-### 충돌 유형별 수정 방법
+### 수정 유형별 처리 방법
 
-[API 요청 방식 충돌]
+[API 요청 방식 오류]
 원본: body에 refreshToken 포함
 수정: @CookieValue 기반 쿠키 방식으로 변경
 근거: CookieUtils.addRefreshTokenCookie 기존 구현 참고
 
-[API 응답 구조 충돌]
+[API 응답 구조 오류]
 원본: 응답 body에 refreshToken 포함
 수정: ApiResponse<XxxResponse> 래퍼 유지
       refreshToken은 Set-Cookie 헤더로 처리
-근거: LoginResponse 주석 참고
+근거: ApiResponse.java 공통 응답 구조 참고
 
-[ErrorCode 번호 충돌]
-원본: AUTH-005 (신규 의미)
-수정: AUTH-XXX (기존 미사용 번호로 변경)
-근거: ErrorCode.java 전체 목록 확인 후 결정
-
-[마이그레이션 버전 충돌]
-원본: V5 (이미 존재)
-수정: V(최신+1)으로 변경
-근거: 현재 최신 마이그레이션 버전 확인 후 결정
+[ErrorCode 도메인 분류 오류]
+원본: USER-001 (인증 관련 에러인데 USER 도메인으로 분류)
+수정: AUTH-XXX (도메인 재분류)
+근거: ErrorCode.java 도메인 그룹 기준 참고
+※ 번호 중복/순번 오류 수정은 sc-structure-check.md에서 담당한다.
 
 [MySQL 미지원 문법]
 원본: ADD COLUMN IF NOT EXISTS
