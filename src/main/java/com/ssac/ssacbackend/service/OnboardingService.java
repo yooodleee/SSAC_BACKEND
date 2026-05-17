@@ -98,6 +98,7 @@ public class OnboardingService {
     private final UserRepository userRepository;
     private final OnboardingQuestionRepository onboardingQuestionRepository;
     private final UserInterestRepository userInterestRepository;
+    private final HomeCacheEvictService homeCacheEvictService;
 
     /**
      * 로그인한 사용자의 userType에 맞는 온보딩 문제 목록을 반환한다.
@@ -169,6 +170,7 @@ public class OnboardingService {
         UserLevel level = calculateLevel(totalScore);
         user.completeOnboarding(level, totalScore);
         log.debug("온보딩 완료: email={}, level={}, totalScore={}", email, level, totalScore);
+        homeCacheEvictService.evict(user.getId());
 
         return new OnboardingSubmitResponse(level, totalScore, true);
     }
@@ -183,6 +185,7 @@ public class OnboardingService {
         User user = findUserByEmail(email);
         user.skipOnboarding();
         log.debug("온보딩 건너뛰기: email={}", email);
+        homeCacheEvictService.evict(user.getId());
         return new OnboardingSkipResponse(UserLevel.SEED, true, true);
     }
 
@@ -244,6 +247,7 @@ public class OnboardingService {
         userInterestRepository.saveAll(interests);
 
         log.debug("관심 도메인 저장: email={}, domains={}", email, domainIds);
+        homeCacheEvictService.evict(user.getId());
     }
 
     /**

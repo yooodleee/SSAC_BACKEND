@@ -64,6 +64,9 @@ public class User {
     private LocalDateTime invalidatedBefore;
 
     @Column
+    private LocalDateTime lastVisitedAt;
+
+    @Column
     private LocalDateTime serviceTermAgreedAt;
 
     @Column
@@ -121,6 +124,13 @@ public class User {
      */
     public void updateRole(UserRole newRole) {
         this.role = newRole;
+    }
+
+    /**
+     * 마지막 접속 시각을 현재 시각으로 갱신한다.
+     */
+    public void updateLastVisitedAt() {
+        this.lastVisitedAt = LocalDateTime.now();
     }
 
     /**

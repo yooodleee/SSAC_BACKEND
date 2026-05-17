@@ -54,6 +54,7 @@ public class QuizAttemptService {
     private final QuestionRepository questionRepository;
     private final QuizAttemptRepository quizAttemptRepository;
     private final LevelUpService levelUpService;
+    private final HomeCacheEvictService homeCacheEvictService;
 
     /**
      * 퀴즈를 제출하고 응시 기록을 저장한다. 레벨업 조건을 검사하여 결과에 포함한다.
@@ -70,6 +71,7 @@ public class QuizAttemptService {
         log.info("퀴즈 제출 완료: email={}, quizId={}, score={}/{}, levelUp={}",
             email, request.quizId(), attempt.getEarnedScore(), attempt.getQuiz().getMaxScore(),
             levelUpResult.leveledUp());
+        homeCacheEvictService.evict(user.getId());
         return QuizSubmitResponse.from(attempt, levelUpResult);
     }
 

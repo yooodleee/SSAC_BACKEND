@@ -34,6 +34,7 @@ public class ContentService {
     private final ContentRepository contentRepository;
     private final ContentProgressRepository contentProgressRepository;
     private final LevelUpService levelUpService;
+    private final HomeCacheEvictService homeCacheEvictService;
 
     /**
      * 레벨/카테고리 기준 콘텐츠 목록을 반환한다.
@@ -104,6 +105,7 @@ public class ContentService {
         LevelUpResult levelUpResult = levelUpService.checkAndApplyLevelUp(user, email);
         log.info("콘텐츠 완료: email={}, contentId={}, levelUp={}", email, contentId,
             levelUpResult.leveledUp());
+        homeCacheEvictService.evict(user.getId());
 
         return new ContentCompleteResponse(
             String.valueOf(contentId),
