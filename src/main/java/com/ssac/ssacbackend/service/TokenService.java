@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
  * 재발급 시 기존 토큰을 무효화하고 새 토큰을 발급한다.
  * 토큰 저장소는 {@link TokenStore} 인터페이스에만 의존하므로
  * Redis 전환 시 TokenService 수정 없이 Bean 교체만으로 동작한다.
+ *
+ * <p>재발급과 동시에 사용자 컨텍스트가 필요한 경우 {@link #reissueWithUser(String)}를 사용한다.
  */
 @Slf4j
 @Service
@@ -67,6 +69,22 @@ public class TokenService {
      * 유효하지 않거나 만료된 토큰은 예외를 던진다.
      */
     public TokenPair reissue(String rawRefreshToken) {
+        return reissueWithUser(rawRefreshToken).tokens();
+    }
+
+    /**
+     * Refresh Token으로 새 토큰 쌍을 재발급하고, 사용자 컨텍스트를 함께 반환한다.
+     *
+     * <p>재접속 자동 로그인 흐름에서 FE가 필요한 사용자 정보(닉네임, 유형, 레벨, 온보딩 완료 여부)를
+     * 추가 API 호출 없이 한 번에 제공한다.
+     * 기존 Refresh Token은 즉시 무효화된다(Rotation).
+     *
+     * @param rawRefreshToken 쿠키에서 읽은 원문 Refresh Token
+     * @return 새 토큰 쌍과 사용자 엔티티
+     * @throws BadRequestException 토큰이 유효하지 않거나 이미 무효화된 경우 (TOKEN_INVALID)
+     * @throws NotFoundException   토큰은 유효하나 사용자가 존재하지 않는 경우 (USER_NOT_FOUND)
+     */
+    public ReissueResult reissueWithUser(String rawRefreshToken) {
         String tokenHash = hashToken(rawRefreshToken);
         Long userId = tokenStore.findUserIdByHash(tokenHash)
             .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
@@ -81,8 +99,13 @@ public class TokenService {
         );
         String newRefreshToken = createAndStoreRefreshToken(user.getId());
         log.info("토큰 재발급 완료: userId={}", user.getId());
-        return new TokenPair(newAccessToken, newRefreshToken);
+        return new ReissueResult(new TokenPair(newAccessToken, newRefreshToken), user);
     }
+
+    /**
+     * 토큰 재발급 결과 — 새 토큰 쌍과 사용자 엔티티를 함께 담는다.
+     */
+    public record ReissueResult(TokenPair tokens, User user) {}
 
     /**
      * Refresh Token을 무효화하고, 해당 사용자의 Access Token도 일괄 차단하여 로그아웃 처리한다.

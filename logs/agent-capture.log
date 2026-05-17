@@ -1,4 +1,1 @@
-[2026-05-15 18:38:18]
-Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && cat build/reports/checkstyle/main.xml | grep "filename\|file name" | head -5
----
-{'stdout': '<file name="C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\main\\java\\com\\ssac\\ssacbackend\\common\\exception\\BadRequestException.java">\n<file name="C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\main\\java\\com\\ssac\\ssacbackend\\common\\exception\\BusinessException.java">\n<file name="C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\main\\java\\com\\ssac\\ssacbackend\\common\\exception\\ConflictException.java">\n<file name="C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\main\\java\\com\\ssac\\ssacbackend\\common\\exception\\ErrorCode.java">\n<file name="C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\main\\java\\com\\ssac\\ssacbackend\\common\\exception\\ForbiddenException.java">', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+[2026-05-17 14:18:02]
