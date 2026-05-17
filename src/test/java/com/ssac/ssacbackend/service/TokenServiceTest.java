@@ -16,7 +16,6 @@ import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserRole;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.repository.UserRepository;
-import com.ssac.ssacbackend.service.ReissueResult;
 import java.time.Duration;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
