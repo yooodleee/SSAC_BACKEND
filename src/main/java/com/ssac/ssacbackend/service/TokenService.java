@@ -103,11 +103,6 @@ public class TokenService {
     }
 
     /**
-     * 토큰 재발급 결과 — 새 토큰 쌍과 사용자 엔티티를 함께 담는다.
-     */
-    public record ReissueResult(TokenPair tokens, User user) {}
-
-    /**
      * Refresh Token을 무효화하고, 해당 사용자의 Access Token도 일괄 차단하여 로그아웃 처리한다.
      *
      * <p>user.invalidateTokens()를 호출해 invalidatedBefore를 현재 시각으로 갱신한다.
