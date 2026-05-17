@@ -45,6 +45,9 @@ class OnboardingServiceTest {
     @Mock
     private UserInterestRepository userInterestRepository;
 
+    @Mock
+    private HomeCacheEvictService homeCacheEvictService;
+
     @InjectMocks
     private OnboardingService onboardingService;
 

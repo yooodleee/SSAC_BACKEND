@@ -43,6 +43,9 @@ class UserServiceTest {
     @Mock
     private QuizAttemptRepository quizAttemptRepository;
 
+    @Mock
+    private HomeCacheEvictService homeCacheEvictService;
+
     @InjectMocks
     private UserService userService;
 

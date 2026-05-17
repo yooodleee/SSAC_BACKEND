@@ -12,9 +12,11 @@ import com.ssac.ssacbackend.dto.response.HomeResponse;
 import com.ssac.ssacbackend.dto.response.HomeResponse.CategoryDto;
 import com.ssac.ssacbackend.dto.response.HomeResponse.ContinueLearningDto;
 import com.ssac.ssacbackend.dto.response.HomeResponse.HomeUserDto;
+import com.ssac.ssacbackend.dto.response.HomeResponse.LastVisitDto;
 import com.ssac.ssacbackend.dto.response.HomeResponse.RecommendedContentDto;
 import com.ssac.ssacbackend.dto.response.HomeResponse.TodayCardDto;
 import com.ssac.ssacbackend.dto.response.HomeResponse.TodayQuizDto;
+import com.ssac.ssacbackend.dto.response.HomeResponse.WelcomeBackDto;
 import com.ssac.ssacbackend.dto.response.OnboardingRequiredResponse;
 import com.ssac.ssacbackend.repository.ContentProgressRepository;
 import com.ssac.ssacbackend.repository.ContentRepository;
@@ -22,15 +24,21 @@ import com.ssac.ssacbackend.repository.QuizAttemptRepository;
 import com.ssac.ssacbackend.repository.QuizRepository;
 import com.ssac.ssacbackend.repository.UserInterestRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +46,8 @@ import org.springframework.transaction.annotation.Transactional;
  * 홈 화면 비즈니스 로직.
  *
  * <p>사용자 유형과 레벨에 맞는 추천 콘텐츠, 오늘의 카드, 이어보기, 오늘의 퀴즈를 제공한다.
+ * 홈 데이터는 Redis에 사용자별로 캐싱되며, 당일 자정에 자동 만료된다.
+ * 콘텐츠 완료·퀴즈 완료·레벨 변경·관심 도메인 변경 시 캐시가 즉시 무효화된다.
  */
 @Slf4j
 @Service
@@ -46,6 +56,10 @@ public class HomeService {
 
     private static final int RECOMMENDED_MAX = 5;
     private static final String ONBOARDING_REDIRECT = "/onboarding/test";
+    private static final String HOME_CACHE_PREFIX = "home:";
+    private static final String REC_HISTORY_PREFIX = "home:rec_history:";
+    private static final int LONG_ABSENCE_DAYS = 7;
+    private static final long REC_HISTORY_TTL_DAYS = 7L;
 
     private final UserRepository userRepository;
     private final UserInterestRepository userInterestRepository;
@@ -53,13 +67,15 @@ public class HomeService {
     private final ContentProgressRepository contentProgressRepository;
     private final QuizRepository quizRepository;
     private final QuizAttemptRepository quizAttemptRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 홈 화면 데이터를 반환한다.
      *
      * <p>온보딩 미완료 시 {@link OnboardingRequiredResponse}를 반환한다.
+     * 캐시 히트 시 DB 조회 없이 즉시 응답한다.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public Object getHome(String email) {
         User user = findUserByEmail(email);
 
@@ -67,25 +83,50 @@ public class HomeService {
             return new OnboardingRequiredResponse(true, ONBOARDING_REDIRECT);
         }
 
-        List<String> interestDomains = user.getId() != null
-            ? userInterestRepository.findDomainIdsByUserId(user.getId())
-            : List.of();
+        String cacheKey = HOME_CACHE_PREFIX + user.getId();
+        try {
+            Object cached = redisTemplate.opsForValue().get(cacheKey);
+            if (cached != null) {
+                log.debug("홈 캐시 히트: userId={}", user.getId());
+                return cached;
+            }
+        } catch (Exception e) {
+            log.warn("홈 캐시 읽기 실패 (Redis 불가용), DB에서 조회합니다: userId={}", user.getId());
+        }
 
+        HomeResponse response = buildHomeResponse(user, email);
+        user.updateLastVisitedAt();
+        updateRecHistory(user.getId(), response.recommendedContents());
+
+        try {
+            Duration ttl = computeTtlUntilMidnight();
+            redisTemplate.opsForValue().set(cacheKey, response, ttl);
+            log.debug("홈 캐시 저장: userId={}, ttl={}s", user.getId(), ttl.getSeconds());
+        } catch (Exception e) {
+            log.warn("홈 캐시 저장 실패 (Redis 불가용): userId={}", user.getId());
+        }
+
+        return response;
+    }
+
+    // ── 홈 데이터 조립 ──────────────────────────────────────────────────────────
+
+    private HomeResponse buildHomeResponse(User user, String email) {
+        List<String> interestDomains = userInterestRepository.findDomainIdsByUserId(user.getId());
         Set<Long> completedIds = new HashSet<>(
             contentProgressRepository.findCompletedContentIdsByUserEmail(email));
+        Set<Long> recentlyRecommendedIds = getRecentlyRecommendedIds(user.getId());
+        Set<Long> excludedIds = new HashSet<>(completedIds);
+        excludedIds.addAll(recentlyRecommendedIds);
 
         UserLevel level = user.getLevel() != null ? user.getLevel() : UserLevel.SEED;
 
         List<RecommendedContentDto> recommended = buildRecommended(
-            interestDomains, level, completedIds);
-
+            interestDomains, level, completedIds, excludedIds);
         TodayCardDto todayCard = buildTodayCard(
             user.getId(), interestDomains, level, completedIds);
-
         ContinueLearningDto continueLearning = buildContinueLearning(email);
-
         TodayQuizDto todayQuiz = buildTodayQuiz(user.getId(), level, email);
-
         List<CategoryDto> categories = buildCategories(email);
 
         LevelInfo levelInfo = LevelInfo.from(level);
@@ -97,58 +138,74 @@ public class HomeService {
             levelInfo.getEmoji()
         );
 
-        return new HomeResponse(userDto, todayCard, recommended, continueLearning, todayQuiz, categories);
+        LastVisitDto lastVisit = buildLastVisit(user.getLastVisitedAt());
+        WelcomeBackDto welcomeBack = buildWelcomeBack(user.getLastVisitedAt());
+
+        return new HomeResponse(
+            false, userDto, todayCard, recommended, continueLearning, todayQuiz, categories,
+            lastVisit, welcomeBack
+        );
     }
 
     // ── 추천 콘텐츠 ────────────────────────────────────────────────────────────
 
     private List<RecommendedContentDto> buildRecommended(
-        List<String> interestDomains, UserLevel level, Set<Long> completedIds) {
+        List<String> interestDomains, UserLevel level,
+        Set<Long> completedIds, Set<Long> excludedIds) {
 
         Set<Long> addedIds = new LinkedHashSet<>();
         List<RecommendedContentDto> result = new ArrayList<>();
 
-        // 1순위: 관심 도메인 + 사용자 레벨
         if (!interestDomains.isEmpty()) {
             contentRepository.findByCategoryInAndDifficultyOrderByViewCountDesc(interestDomains, level)
                 .stream()
-                .filter(c -> !completedIds.contains(c.getId()))
+                .filter(c -> !excludedIds.contains(c.getId()))
                 .limit(RECOMMENDED_MAX)
                 .forEach(c -> {
                     addedIds.add(c.getId());
-                    result.add(toRecommendedDto(c, false));
+                    result.add(toRecommendedDto(c, false, false));
                 });
         }
 
-        if (result.size() >= RECOMMENDED_MAX) {
-            return result;
+        if (result.size() < RECOMMENDED_MAX) {
+            contentRepository.findByDifficultyOrderByViewCountDesc(level)
+                .stream()
+                .filter(c -> !excludedIds.contains(c.getId()) && !addedIds.contains(c.getId()))
+                .limit((long) RECOMMENDED_MAX - result.size())
+                .forEach(c -> {
+                    addedIds.add(c.getId());
+                    result.add(toRecommendedDto(c, false, false));
+                });
         }
 
-        // 2순위: 사용자 레벨 일치 (관심 도메인 무관)
-        contentRepository.findByDifficultyOrderByViewCountDesc(level)
-            .stream()
-            .filter(c -> !completedIds.contains(c.getId()) && !addedIds.contains(c.getId()))
-            .limit((long) RECOMMENDED_MAX - result.size())
-            .forEach(c -> {
-                addedIds.add(c.getId());
-                result.add(toRecommendedDto(c, false));
-            });
-
-        if (result.size() >= RECOMMENDED_MAX) {
-            return result;
+        if (result.size() < RECOMMENDED_MAX) {
+            contentRepository.findAllByOrderByViewCountDesc()
+                .stream()
+                .filter(c -> !excludedIds.contains(c.getId()) && !addedIds.contains(c.getId()))
+                .limit((long) RECOMMENDED_MAX - result.size())
+                .forEach(c -> {
+                    addedIds.add(c.getId());
+                    result.add(toRecommendedDto(c, false, false));
+                });
         }
 
-        // 3순위: 전체 인기 콘텐츠
-        contentRepository.findAllByOrderByViewCountDesc()
-            .stream()
-            .filter(c -> !completedIds.contains(c.getId()) && !addedIds.contains(c.getId()))
-            .limit((long) RECOMMENDED_MAX - result.size())
-            .forEach(c -> result.add(toRecommendedDto(c, false)));
+        // 추천 소진 시 상위 레벨 미리보기
+        if (result.size() < RECOMMENDED_MAX) {
+            UserLevel nextLevel = nextLevel(level);
+            if (nextLevel != null) {
+                contentRepository.findByDifficultyOrderByViewCountDesc(nextLevel)
+                    .stream()
+                    .filter(c -> !addedIds.contains(c.getId()))
+                    .limit((long) RECOMMENDED_MAX - result.size())
+                    .forEach(c -> result.add(toRecommendedDto(c, false, true)));
+            }
+        }
 
         return result;
     }
 
-    private RecommendedContentDto toRecommendedDto(Content content, boolean completed) {
+    private RecommendedContentDto toRecommendedDto(
+        Content content, boolean completed, boolean isPreview) {
         String emoji = ContentCategory.findById(content.getCategory())
             .map(ContentCategory::getEmoji).orElse("");
         return new RecommendedContentDto(
@@ -158,8 +215,17 @@ public class HomeService {
             emoji,
             difficultyLabel(content.getDifficulty()),
             content.getEstimatedMinutes(),
-            completed
+            completed,
+            isPreview
         );
+    }
+
+    private UserLevel nextLevel(UserLevel level) {
+        return switch (level) {
+            case SEED -> UserLevel.SPROUT;
+            case SPROUT -> UserLevel.TREE;
+            case TREE -> null;
+        };
     }
 
     // ── 오늘의 카드 ────────────────────────────────────────────────────────────
@@ -169,16 +235,13 @@ public class HomeService {
 
         List<Content> candidates = new ArrayList<>();
 
-        // 1순위: 관심 도메인 미완료 콘텐츠
         if (!interestDomains.isEmpty()) {
-            contentRepository.findByCategoryInAndDifficultyOrderByViewCountDesc(
-                    interestDomains, level)
+            contentRepository.findByCategoryInAndDifficultyOrderByViewCountDesc(interestDomains, level)
                 .stream()
                 .filter(c -> !completedIds.contains(c.getId()))
                 .forEach(candidates::add);
         }
 
-        // 2순위: 사용자 레벨 미완료 콘텐츠
         if (candidates.isEmpty()) {
             contentRepository.findByDifficultyOrderByViewCountDesc(level)
                 .stream()
@@ -186,7 +249,6 @@ public class HomeService {
                 .forEach(candidates::add);
         }
 
-        // 3순위: 전체 인기 콘텐츠
         if (candidates.isEmpty()) {
             contentRepository.findAllByOrderByViewCountDesc()
                 .stream()
@@ -198,10 +260,8 @@ public class HomeService {
             return null;
         }
 
-        // 당일 기준 결정론적 선택
         int index = deterministicIndex(userId, candidates.size());
         Content picked = candidates.get(index);
-
         String emoji = ContentCategory.findById(picked.getCategory())
             .map(ContentCategory::getEmoji).orElse("");
 
@@ -237,7 +297,6 @@ public class HomeService {
             return null;
         }
 
-        // 오답 퀴즈 우선 정렬
         Set<Long> incorrectIds = new HashSet<>(
             quizAttemptRepository.findIncorrectQuizIdsByUserEmail(email));
 
@@ -270,12 +329,75 @@ public class HomeService {
             .toList();
     }
 
+    // ── 마지막 접속 / 복귀 메시지 ────────────────────────────────────────────────
+
+    private LastVisitDto buildLastVisit(LocalDateTime lastVisitedAt) {
+        if (lastVisitedAt == null) {
+            return new LastVisitDto(null, 0);
+        }
+        int days = (int) ChronoUnit.DAYS.between(lastVisitedAt.toLocalDate(), LocalDate.now());
+        return new LastVisitDto(lastVisitedAt, days);
+    }
+
+    private WelcomeBackDto buildWelcomeBack(LocalDateTime lastVisitedAt) {
+        if (lastVisitedAt == null) {
+            return null;
+        }
+        int days = (int) ChronoUnit.DAYS.between(lastVisitedAt.toLocalDate(), LocalDate.now());
+        if (days < LONG_ABSENCE_DAYS) {
+            return null;
+        }
+        return new WelcomeBackDto(true, days);
+    }
+
+    // ── 추천 이력 (Redis) ───────────────────────────────────────────────────────
+
+    private Set<Long> getRecentlyRecommendedIds(Long userId) {
+        try {
+            String key = REC_HISTORY_PREFIX + userId;
+            Object raw = redisTemplate.opsForValue().get(key);
+            if (raw == null) {
+                return new HashSet<>();
+            }
+            if (raw instanceof Set<?> set) {
+                return set.stream()
+                    .filter(o -> o instanceof Number)
+                    .map(o -> ((Number) o).longValue())
+                    .collect(Collectors.toSet());
+            }
+        } catch (Exception e) {
+            log.warn("추천 이력 읽기 실패 (Redis 불가용): userId={}", userId);
+        }
+        return new HashSet<>();
+    }
+
+    private void updateRecHistory(Long userId, List<RecommendedContentDto> contents) {
+        if (contents == null || contents.isEmpty()) {
+            return;
+        }
+        try {
+            String key = REC_HISTORY_PREFIX + userId;
+            Set<Long> ids = contents.stream()
+                .filter(c -> !c.isPreview())
+                .map(c -> Long.parseLong(c.id()))
+                .collect(Collectors.toSet());
+
+            Set<Long> existing = getRecentlyRecommendedIds(userId);
+            existing.addAll(ids);
+            redisTemplate.opsForValue().set(key, existing, Duration.ofDays(REC_HISTORY_TTL_DAYS));
+        } catch (Exception e) {
+            log.warn("추천 이력 저장 실패 (Redis 불가용): userId={}", userId);
+        }
+    }
+
     // ── 유틸리티 ────────────────────────────────────────────────────────────────
 
-    /**
-     * userId와 현재 날짜를 조합한 결정론적 인덱스.
-     * 동일 사용자는 당일 동안 항상 같은 인덱스를 반환한다.
-     */
+    private Duration computeTtlUntilMidnight() {
+        LocalDateTime midnight = LocalDate.now().plusDays(1).atTime(LocalTime.MIDNIGHT);
+        long seconds = ChronoUnit.SECONDS.between(LocalDateTime.now(), midnight);
+        return Duration.ofSeconds(Math.max(seconds, 1L));
+    }
+
     private int deterministicIndex(Long userId, int size) {
         long seed = (userId != null ? userId : 0L) + LocalDate.now().toEpochDay();
         return (int) Math.abs(seed % size);

@@ -137,7 +137,14 @@
       "Bash(self-diagnose.md)",
       "Bash(backlog-generate.md)",
       "Bash(api-spec.yaml)",
-      "Bash(./gradlew checkstyleTest compileTestJava)"
+      "Bash(./gradlew checkstyleTest compileTestJava)",
+      "Bash(./gradlew checkstyleMain checkstyleTest compileJava compileTestJava)",
+      "Bash(HomeResponse)",
+      "Bash(onboardingRequired)",
+      "Bash(lastVisit)",
+      "Bash(welcomeBack)",
+      "Bash(isPreview)",
+      "Bash(bash scripts/run-tests.sh)"
     ]
   }
 }

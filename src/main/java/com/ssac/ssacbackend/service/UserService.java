@@ -37,6 +37,7 @@ public class UserService {
     private final UserInterestRepository userInterestRepository;
     private final ContentProgressRepository contentProgressRepository;
     private final QuizAttemptRepository quizAttemptRepository;
+    private final HomeCacheEvictService homeCacheEvictService;
 
     /**
      * 마이페이지 프로필을 조회한다.
@@ -112,6 +113,7 @@ public class UserService {
             .toList();
         userInterestRepository.saveAll(interests);
         log.info("관심 도메인 수정 완료: email={}, domains={}", email, domainIds);
+        homeCacheEvictService.evict(user.getId());
     }
 
     /**
@@ -130,6 +132,7 @@ public class UserService {
             userInterestRepository.deleteByUserId(user.getId());
             log.info("사용자 유형 변경에 따른 온보딩 초기화: email={}, newType={}", email, newType);
         }
+        homeCacheEvictService.evict(user.getId());
     }
 
     private int calculateContinuousLearningDays(String email) {
