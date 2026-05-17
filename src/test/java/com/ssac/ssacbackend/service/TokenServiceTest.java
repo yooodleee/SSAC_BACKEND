@@ -144,6 +144,56 @@ class TokenServiceTest {
         }
     }
 
+    // ── reissueWithUser ──────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("사용자 컨텍스트 포함 재발급(reissueWithUser)")
+    class ReissueWithUser {
+
+        @Test
+        @DisplayName("유효한 Refresh Token으로 새 TokenPair와 User를 함께 반환한다")
+        void 유효한_토큰_재발급_사용자_컨텍스트_포함() {
+            User user = mockUser(2L, "user@test.com", UserRole.USER);
+            given(tokenStore.findUserIdByHash(anyString())).willReturn(Optional.of(2L));
+            given(userRepository.findById(2L)).willReturn(Optional.of(user));
+            given(jwtService.generateAccessToken(2L, "user@test.com", "USER"))
+                .willReturn("new-access");
+            given(jwtService.generateRefreshToken()).willReturn("new-refresh");
+            given(jwtProperties.getRefreshExpirationMs()).willReturn(604800000L);
+
+            TokenService.ReissueResult result = tokenService.reissueWithUser("raw-old-refresh");
+
+            assertThat(result.tokens().accessToken()).isEqualTo("new-access");
+            assertThat(result.tokens().refreshToken()).isEqualTo("new-refresh");
+            assertThat(result.user()).isSameAs(user);
+        }
+
+        @Test
+        @DisplayName("유효하지 않은 Refresh Token이면 400 예외가 발생한다")
+        void 유효하지_않은_토큰_재발급_실패() {
+            given(tokenStore.findUserIdByHash(anyString())).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> tokenService.reissueWithUser("invalid-token"))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(ex ->
+                    assertThat(((BusinessException) ex).getStatus())
+                        .isEqualTo(HttpStatus.BAD_REQUEST));
+        }
+
+        @Test
+        @DisplayName("토큰은 유효하지만 사용자가 삭제된 경우 404 예외가 발생한다")
+        void 토큰_유효하나_사용자_없으면_예외() {
+            given(tokenStore.findUserIdByHash(anyString())).willReturn(Optional.of(99L));
+            given(userRepository.findById(99L)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> tokenService.reissueWithUser("valid-token"))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(ex ->
+                    assertThat(((BusinessException) ex).getStatus())
+                        .isEqualTo(HttpStatus.NOT_FOUND));
+        }
+    }
+
     // ── logout ───────────────────────────────────────────────────────────────
 
     @Nested

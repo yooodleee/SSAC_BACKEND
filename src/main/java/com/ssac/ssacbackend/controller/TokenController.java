@@ -5,11 +5,13 @@ import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.response.ApiResponse;
 import com.ssac.ssacbackend.common.util.CookieUtils;
 import com.ssac.ssacbackend.config.CookieProperties;
-import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.response.LoginResponse;
+import com.ssac.ssacbackend.dto.response.ReissueResponse;
 import com.ssac.ssacbackend.service.JwtService;
 import com.ssac.ssacbackend.service.TokenService;
+import com.ssac.ssacbackend.service.TokenService.ReissueResult;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
@@ -41,14 +43,25 @@ public class TokenController {
      * Refresh Token으로 새 Access Token과 Refresh Token을 재발급한다(Rotation).
      *
      * <p>Refresh Token은 refreshToken 쿠키에서 읽는다.
-     * 재발급 후 기존 Refresh Token은 무효화되고, 새 Refresh Token이 쿠키에 설정된다.
+     * 재발급 후 기존 Refresh Token은 무효화되고, 새 Refresh Token이 Set-Cookie 헤더로 설정된다.
+     * 재접속 자동 로그인 흐름에서 FE가 필요한 사용자 컨텍스트를 응답 바디에 함께 반환한다.
      */
     @PostMapping("/reissue")
     @Operation(
-        summary = "토큰 재발급",
-        description = "Refresh Token(쿠키)으로 새 Access Token을 발급한다. Refresh Token도 Rotation된다."
+        summary = "토큰 재발급 (자동 로그인)",
+        description = """
+            [호출 화면] 재접속 시 자동 로그인 처리. FE가 앱 초기화 시 refreshToken 쿠키 유무에 따라 호출.
+            [권한 조건] 공개 API (refreshToken 쿠키 기반 인증).
+            [특이 동작] 성공 시 새 refreshToken이 Set-Cookie HttpOnly 쿠키로 전달된다(Rotation).
+                       응답 바디에 사용자 컨텍스트(userId, nickname, userType, level, onboardingCompleted)가 포함된다.
+            """
     )
-    public ResponseEntity<ApiResponse<LoginResponse>> reissue(
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "재발급 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "AUTH-005: refreshToken 쿠키 없음 | AUTH-003: 유효하지 않거나 만료된 토큰"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "USER-001: 사용자 없음")
+    })
+    public ResponseEntity<ApiResponse<ReissueResponse>> reissue(
         @CookieValue(name = "refreshToken", required = false) String refreshToken,
         HttpServletResponse response
     ) {
@@ -56,11 +69,11 @@ public class TokenController {
             throw new BadRequestException(ErrorCode.TOKEN_MISSING);
         }
 
-        TokenPair tokens = tokenService.reissue(refreshToken);
-        CookieUtils.addRefreshTokenCookie(response, tokens.refreshToken(), cookieProperties);
+        ReissueResult result = tokenService.reissueWithUser(refreshToken);
+        CookieUtils.addRefreshTokenCookie(response, result.tokens().refreshToken(), cookieProperties);
 
         return ResponseEntity.ok(
-            ApiResponse.success(new LoginResponse(tokens.accessToken(), "Bearer"))
+            ApiResponse.success(ReissueResponse.of(result.tokens().accessToken(), result.user()))
         );
     }
 
