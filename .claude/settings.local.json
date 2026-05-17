@@ -136,7 +136,8 @@
       "Bash(new-feature.md)",
       "Bash(self-diagnose.md)",
       "Bash(backlog-generate.md)",
-      "Bash(api-spec.yaml)"
+      "Bash(api-spec.yaml)",
+      "Bash(./gradlew checkstyleTest compileTestJava)"
     ]
   }
 }
