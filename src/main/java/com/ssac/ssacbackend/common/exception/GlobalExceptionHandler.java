@@ -2,6 +2,7 @@ package com.ssac.ssacbackend.common.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.ssac.ssacbackend.common.response.ErrorResponse;
+import com.ssac.ssacbackend.domain.user.Gender;
 import com.ssac.ssacbackend.domain.user.UserType;
 import com.ssac.ssacbackend.service.ErrorLogService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -137,6 +138,22 @@ public class GlobalExceptionHandler {
                     HttpStatus.BAD_REQUEST.value(),
                     ErrorCode.USER_TYPE_INVALID.getCode(),
                     ErrorCode.USER_TYPE_INVALID.getMessage(),
+                    traceId
+                ));
+        }
+        if (cause instanceof InvalidFormatException ife
+            && Gender.class.equals(ife.getTargetType())) {
+            log.warn("[{}] {} {} | traceId={} | userId={}\n-> {}",
+                ErrorCode.GENDER_INVALID.getCode(),
+                request.getMethod(), request.getRequestURI(),
+                traceId, userId, e.getMessage());
+            errorLogService.saveWarn(traceId, ErrorCode.GENDER_INVALID.getCode(),
+                request, e.getMessage(), userId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(
+                    HttpStatus.BAD_REQUEST.value(),
+                    ErrorCode.GENDER_INVALID.getCode(),
+                    ErrorCode.GENDER_INVALID.getMessage(),
                     traceId
                 ));
         }

@@ -37,6 +37,7 @@ public enum ErrorCode {
     OAUTH_AUTH_FAILED("AUTH-008", 400, "OAuth 인증에 실패했습니다."),
     OAUTH_PROFILE_FAILED("AUTH-009", 400, "OAuth 프로필 정보를 가져오는 데 실패했습니다."),
     AUTH_CODE_INVALID("AUTH-010", 400, "유효하지 않거나 만료된 인가 코드입니다."),
+    EMAIL_OR_PASSWORD_INVALID("AUTH-011", 401, "이메일 또는 비밀번호가 올바르지 않습니다."),
 
     // ── 사용자 (USER) ──────────────────────────────────────────────────────────
     USER_NOT_FOUND("USER-001", 404, "존재하지 않는 사용자입니다."),
@@ -69,6 +70,16 @@ public enum ErrorCode {
     // ── 회원 가입 약관 (TERMS) ────────────────────────────────────────────────
     TERMS_REQUIRED("TERMS-001", 400, "필수 약관에 동의해주세요."),
     REGISTRATION_SESSION_EXPIRED("TERMS-002", 401, "회원가입 세션이 만료되었습니다. 다시 시도해주세요."),
+
+    // ── 회원 가입 입력 값 (NAME/BIRTH/PHONE/GENDER/EMAIL) ────────────────────
+    NAME_REQUIRED("NAME-001", 400, "이름을 입력해주세요."),
+    BIRTH_DATE_FORMAT_INVALID("BIRTH-001", 400, "생년월일 형식이 올바르지 않습니다."),
+    BIRTH_DATE_UNDER_14("BIRTH-002", 400, "만 14세 이상만 가입할 수 있습니다."),
+    PHONE_FORMAT_INVALID("PHONE-001", 400, "휴대폰 번호 형식이 올바르지 않습니다."),
+    GENDER_INVALID("GENDER-001", 400, "유효하지 않은 성별 값입니다."),
+    EMAIL_FORMAT_INVALID("EMAIL-001", 400, "이메일 형식이 올바르지 않습니다."),
+    EMAIL_DUPLICATED("EMAIL-002", 409, "이미 사용 중인 이메일입니다."),
+    PASSWORD_FORMAT_INVALID("PASSWORD-001", 400, "비밀번호는 8~20자이며 영문과 숫자를 포함해야 합니다."),
 
     // ── 온보딩 (ONBOARDING) ──────────────────────────────────────────────────
     ONBOARDING_USER_TYPE_MISSING("ONBOARDING-001", 400, "사용자 유형을 먼저 선택해주세요."),

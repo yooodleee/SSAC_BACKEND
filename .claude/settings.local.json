@@ -144,7 +144,13 @@
       "Bash(lastVisit)",
       "Bash(welcomeBack)",
       "Bash(isPreview)",
-      "Bash(bash scripts/run-tests.sh)"
+      "Bash(bash scripts/run-tests.sh)",
+      "Bash(./gradlew checkstyleMain checkstyleTest)",
+      "Bash(./gradlew checkstyleMain checkstyleTest compileJava test jacocoTestReport jacocoTestCoverageVerification)",
+      "Bash(./gradlew jacocoTestCoverageVerification)",
+      "Bash(POST /api/v1/auth/register)",
+      "Bash(GET /api/v1/auth/email/check)",
+      "Bash(Gender)"
     ]
   }
 }
