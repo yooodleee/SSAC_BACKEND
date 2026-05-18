@@ -9,6 +9,7 @@ import com.ssac.ssacbackend.repository.NotificationRepository;
 import com.ssac.ssacbackend.repository.QuizAttemptRepository;
 import com.ssac.ssacbackend.repository.RefreshTokenRepository;
 import com.ssac.ssacbackend.repository.SocialAccountRepository;
+import com.ssac.ssacbackend.repository.UserInterestRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class DevUserService {
     private final ContentProgressRepository contentProgressRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final MigrationFailureRepository migrationFailureRepository;
+    private final UserInterestRepository userInterestRepository;
 
     /**
      * 이메일로 사용자와 모든 연관 데이터를 삭제한다.
@@ -47,6 +49,7 @@ public class DevUserService {
      *   <li>ContentProgress (user_id NOT NULL FK)</li>
      *   <li>RefreshToken (userId 컬럼, 제약 없음)</li>
      *   <li>MigrationFailure (userId 컬럼, 제약 없음)</li>
+     *   <li>UserInterest (user_id FK)</li>
      *   <li>User</li>
      * </ol>
      *
@@ -65,6 +68,7 @@ public class DevUserService {
         contentProgressRepository.deleteByUserEmail(email);
         refreshTokenRepository.deleteByUserId(userId);
         migrationFailureRepository.deleteByUserId(userId);
+        userInterestRepository.deleteByUserId(userId);
         userRepository.delete(user);
 
         log.info("[DEV] 사용자 삭제 완료: email={}, userId={}", email, userId);

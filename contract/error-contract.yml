@@ -9,8 +9,8 @@
 #   삭제/변경 → Major 증가 (1.0.0 -> 2.0.0)
 #
 # 검증: ./gradlew validateErrorContract
-version: "1.0.2"
-updatedAt: "2026-05-13"
+version: "1.0.4"
+updatedAt: "2026-05-18"
 errors:
   - code: "COMMON-001"
     status: 400
@@ -161,3 +161,48 @@ errors:
     status: 401
     message: "회원가입 세션이 만료되었습니다. 다시 시도해주세요."
     domain: "TERMS"
+
+  - code: "NAME-001"
+    status: 400
+    message: "이름을 입력해주세요."
+    domain: "USER"
+
+  - code: "BIRTH-001"
+    status: 400
+    message: "생년월일 형식이 올바르지 않습니다."
+    domain: "USER"
+
+  - code: "BIRTH-002"
+    status: 400
+    message: "만 14세 이상만 가입할 수 있습니다."
+    domain: "USER"
+
+  - code: "PHONE-001"
+    status: 400
+    message: "휴대폰 번호 형식이 올바르지 않습니다."
+    domain: "USER"
+
+  - code: "GENDER-001"
+    status: 400
+    message: "유효하지 않은 성별 값입니다."
+    domain: "USER"
+
+  - code: "EMAIL-001"
+    status: 400
+    message: "이메일 형식이 올바르지 않습니다."
+    domain: "USER"
+
+  - code: "EMAIL-002"
+    status: 409
+    message: "이미 사용 중인 이메일입니다."
+    domain: "USER"
+
+  - code: "PASSWORD-001"
+    status: 400
+    message: "비밀번호는 8~20자이며 영문과 숫자를 포함해야 합니다."
+    domain: "USER"
+
+  - code: "AUTH-011"
+    status: 401
+    message: "이메일 또는 비밀번호가 올바르지 않습니다."
+    domain: "AUTH"

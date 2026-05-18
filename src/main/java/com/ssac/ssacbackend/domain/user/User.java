@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -63,6 +64,19 @@ public class User {
     @Column
     private LocalDateTime invalidatedBefore;
 
+    @Column(length = 20)
+    private String name;
+
+    @Column
+    private LocalDate birthDate;
+
+    @Column(length = 20)
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private Gender gender;
+
     @Column
     private LocalDateTime lastVisitedAt;
 
@@ -110,6 +124,21 @@ public class User {
         this.provider = provider;
         this.providerId = providerId;
         this.role = role != null ? role : UserRole.USER;
+    }
+
+    /**
+     * 회원 가입 정보를 저장한다. 신규 회원 가입 완료 시 호출한다.
+     *
+     * @param name      이름 (최대 20자)
+     * @param birthDate 생년월일
+     * @param phone     휴대폰 번호 (하이픈 제거된 형식, 예: 01012345678)
+     * @param gender    성별 (nullable)
+     */
+    public void completeSignup(String name, LocalDate birthDate, String phone, Gender gender) {
+        this.name = name;
+        this.birthDate = birthDate;
+        this.phone = phone;
+        this.gender = gender;
     }
 
     /**
