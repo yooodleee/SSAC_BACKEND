@@ -2,11 +2,12 @@ package com.ssac.ssacbackend.controller;
 
 import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.AuthCodeResult;
-import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.request.AuthCodeExchangeRequest;
 import com.ssac.ssacbackend.dto.response.AuthTokenResponse;
 import com.ssac.ssacbackend.service.AuthCodeService;
+import com.ssac.ssacbackend.service.ReissueResult;
 import com.ssac.ssacbackend.service.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -73,10 +74,23 @@ public class AuthTokenController {
             );
         }
 
-        TokenPair tokens = tokenService.issueTokensByUserId(result.userId());
+        ReissueResult reissueResult = tokenService.issueTokensByUserIdWithUser(result.userId());
+        User user = reissueResult.user();
+        AuthTokenResponse.UserInfo userInfo = new AuthTokenResponse.UserInfo(
+            String.valueOf(user.getId()),
+            user.getDisplayNickname(),
+            user.getName(),
+            user.getEmail(),
+            user.getLevel() != null ? user.getLevel().name() : null,
+            user.isOnboardingCompleted(),
+            user.getUserType() != null ? user.getUserType().name() : null
+        );
         log.info("인가 코드 교환(기존 회원): userId={}", result.userId());
         return ResponseEntity.ok(
-            AuthTokenResponse.existingUser(tokens.accessToken(), tokens.refreshToken())
+            AuthTokenResponse.existingUser(
+                reissueResult.tokens().accessToken(),
+                reissueResult.tokens().refreshToken(),
+                userInfo)
         );
     }
 }

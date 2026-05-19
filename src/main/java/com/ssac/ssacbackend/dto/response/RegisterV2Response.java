@@ -13,8 +13,10 @@ public record RegisterV2Response(
     UserInfo user
 ) {
     public record UserInfo(
-        Long id,
+        String id,
+        String nickname,
         String name,
+        String email,
         UserType userType,
         UserLevel level,
         boolean onboardingCompleted

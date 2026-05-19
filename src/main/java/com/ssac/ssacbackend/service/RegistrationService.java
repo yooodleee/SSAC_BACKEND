@@ -276,8 +276,10 @@ public class RegistrationService {
             "Bearer",
             jwtProperties.getExpirationMs(),
             new RegisterV2Response.UserInfo(
-                user.getId(),
+                String.valueOf(user.getId()),
+                user.getDisplayNickname(),
                 user.getName(),
+                user.getEmail(),
                 user.getUserType(),
                 user.getLevel(),
                 user.isOnboardingCompleted()
@@ -353,8 +355,10 @@ public class RegistrationService {
             "Bearer",
             jwtProperties.getExpirationMs(),
             new RegisterV2Response.UserInfo(
-                user.getId(),
+                String.valueOf(user.getId()),
+                user.getDisplayNickname(),
                 user.getName(),
+                user.getEmail(),
                 user.getUserType(),
                 user.getLevel(),
                 user.isOnboardingCompleted()
@@ -389,8 +393,10 @@ public class RegistrationService {
             "Bearer",
             jwtProperties.getExpirationMs(),
             new RegisterV2Response.UserInfo(
-                user.getId(),
+                String.valueOf(user.getId()),
+                user.getDisplayNickname(),
                 user.getName(),
+                user.getEmail(),
                 user.getUserType(),
                 user.getLevel(),
                 user.isOnboardingCompleted()

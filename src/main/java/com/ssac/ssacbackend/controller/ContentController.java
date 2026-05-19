@@ -87,4 +87,27 @@ public class ContentController {
         ContentCompleteResponse response = contentService.complete(authentication.getName(), contentId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @Operation(
+        summary = "콘텐츠 조회 이력 기록",
+        description = """
+            [호출 화면] 콘텐츠 상세 진입 시 호출.
+            [권한 조건] 로그인 회원 전용.
+            [특이 동작] 콘텐츠 열람 이력을 저장한다.
+            """,
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "204", description = "이력 저장 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401", description = "비로그인 사용자")
+    })
+    @PostMapping("/{contentId}/view")
+    public ResponseEntity<Void> recordView(
+        Authentication authentication,
+        @PathVariable Long contentId) {
+        contentService.recordView(authentication.getName(), contentId);
+        return ResponseEntity.noContent().build();
+    }
 }

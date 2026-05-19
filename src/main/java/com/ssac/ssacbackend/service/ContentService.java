@@ -4,6 +4,7 @@ import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentProgress;
+import com.ssac.ssacbackend.domain.content.ContentViewHistory;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.ContentCompleteResponse;
@@ -12,6 +13,7 @@ import com.ssac.ssacbackend.dto.response.ContentListResponse;
 import com.ssac.ssacbackend.dto.response.LevelUpResult;
 import com.ssac.ssacbackend.repository.ContentProgressRepository;
 import com.ssac.ssacbackend.repository.ContentRepository;
+import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +37,7 @@ public class ContentService {
     private final ContentProgressRepository contentProgressRepository;
     private final LevelUpService levelUpService;
     private final HomeCacheEvictService homeCacheEvictService;
+    private final ContentViewHistoryRepository contentViewHistoryRepository;
 
     /**
      * 레벨/카테고리 기준 콘텐츠 목록을 반환한다.
@@ -102,6 +105,12 @@ public class ContentService {
         }
         content.incrementViewCount();
 
+        contentViewHistoryRepository.findByUserIdOrderByViewedAtDesc(user.getId())
+            .stream()
+            .filter(h -> h.getContentId().equals(contentId) && !h.isCompleted())
+            .findFirst()
+            .ifPresent(ContentViewHistory::markCompleted);
+
         LevelUpResult levelUpResult = levelUpService.checkAndApplyLevelUp(user, email);
         log.info("콘텐츠 완료: email={}, contentId={}, levelUp={}", email, contentId,
             levelUpResult.leveledUp());
@@ -114,6 +123,21 @@ public class ContentService {
             levelUpResult.previousLevel() != null ? levelUpResult.previousLevel().name() : null,
             levelUpResult.newLevel() != null ? levelUpResult.newLevel().name() : null
         );
+    }
+
+    /**
+     * 콘텐츠 조회 이력을 저장한다. 콘텐츠 열람 시 호출한다.
+     *
+     * @param email     사용자 이메일
+     * @param contentId 콘텐츠 ID
+     */
+    @Transactional
+    public void recordView(String email, Long contentId) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+        ContentViewHistory history = ContentViewHistory.of(user.getId(), contentId);
+        contentViewHistoryRepository.save(history);
+        log.debug("콘텐츠 조회 이력 저장: userId={}, contentId={}", user.getId(), contentId);
     }
 
     private UserLevel resolveLevel(String levelStr, User user) {

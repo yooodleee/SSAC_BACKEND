@@ -9,8 +9,8 @@
 #   삭제/변경 → Major 증가 (1.0.0 -> 2.0.0)
 #
 # 검증: ./gradlew validateErrorContract
-version: "1.0.4"
-updatedAt: "2026-05-18"
+version: "1.0.6"
+updatedAt: "2026-05-19"
 errors:
   - code: "COMMON-001"
     status: 400
@@ -167,6 +167,11 @@ errors:
     message: "이름을 입력해주세요."
     domain: "USER"
 
+  - code: "NAME-002"
+    status: 400
+    message: "이름은 20자 이하로 입력해주세요."
+    domain: "USER"
+
   - code: "BIRTH-001"
     status: 400
     message: "생년월일 형식이 올바르지 않습니다."
@@ -180,6 +185,11 @@ errors:
   - code: "PHONE-001"
     status: 400
     message: "휴대폰 번호 형식이 올바르지 않습니다."
+    domain: "USER"
+
+  - code: "PHONE-002"
+    status: 409
+    message: "이미 사용 중인 휴대폰 번호입니다."
     domain: "USER"
 
   - code: "GENDER-001"

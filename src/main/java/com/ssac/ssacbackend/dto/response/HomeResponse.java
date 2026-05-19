@@ -26,7 +26,8 @@ public record HomeResponse(
         String userType,
         String level,
         String levelLabel,
-        String levelEmoji
+        String levelEmoji,
+        String levelImageKey
     ) {}
 
     public record TodayCardDto(

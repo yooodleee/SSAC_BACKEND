@@ -1,5 +1,6 @@
 package com.ssac.ssacbackend.dto.response;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,6 +11,10 @@ public record MyPageResponse(
     String id,
     String email,
     String nickname,
+    String name,
+    LocalDate birthDate,
+    String phone,
+    String gender,
     String userType,
     String userTypeLabel,
     String level,

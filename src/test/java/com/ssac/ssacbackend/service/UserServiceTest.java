@@ -3,19 +3,29 @@ package com.ssac.ssacbackend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.common.exception.ConflictException;
+import com.ssac.ssacbackend.domain.user.Gender;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.domain.user.UserRole;
 import com.ssac.ssacbackend.domain.user.UserType;
+import com.ssac.ssacbackend.dto.request.UpdateProfileRequest;
 import com.ssac.ssacbackend.dto.response.MyPageResponse;
+import com.ssac.ssacbackend.dto.response.UpdateProfileResponse;
+import com.ssac.ssacbackend.dto.response.ViewedContentsResponse;
 import com.ssac.ssacbackend.repository.ContentProgressRepository;
+import com.ssac.ssacbackend.repository.ContentRepository;
+import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
 import com.ssac.ssacbackend.repository.QuizAttemptRepository;
 import com.ssac.ssacbackend.repository.UserInterestRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +38,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
+/**
+ * UserService 단위 테스트.
+ */
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -46,6 +59,15 @@ class UserServiceTest {
     @Mock
     private HomeCacheEvictService homeCacheEvictService;
 
+    @Mock
+    private ContentViewHistoryRepository contentViewHistoryRepository;
+
+    @Mock
+    private ContentRepository contentRepository;
+
+    @Mock
+    private TokenService tokenService;
+
     @InjectMocks
     private UserService userService;
 
@@ -61,6 +83,16 @@ class UserServiceTest {
         if (!onboardingCompleted) {
             user.resetOnboarding();
         }
+        return user;
+    }
+
+    private User buildUserWithProfile() {
+        User user = User.builder()
+            .email("test@example.com")
+            .nickname("testnick")
+            .password("pw")
+            .build();
+        user.completeSignup("홍길동", LocalDate.of(2000, 1, 1), "01012345678", Gender.MALE);
         return user;
     }
 
@@ -89,6 +121,23 @@ class UserServiceTest {
         assertThat(response.interests()).containsExactly("finance", "tax");
         assertThat(response.stats().totalContentsCompleted()).isEqualTo(3L);
         assertThat(response.stats().totalQuizCompleted()).isEqualTo(5L);
+    }
+
+    @Test
+    @DisplayName("휴대폰 번호 하이픈 포함 형식으로 응답한다")
+    void getMyPage_phoneWithHyphen() {
+        User user = buildUserWithProfile();
+
+        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
+        given(userInterestRepository.findDomainIdsByUserId(any())).willReturn(List.of());
+        given(contentProgressRepository.countByUserEmailAndProgressRateGreaterThanEqual(any(), anyInt())).willReturn(0L);
+        given(quizAttemptRepository.aggregateOverallStats(any())).willReturn(List.of());
+        given(contentProgressRepository.findActivityTimestampsByUserEmail(any())).willReturn(List.of());
+        given(quizAttemptRepository.findActivityTimestampsByUserEmail(any())).willReturn(List.of());
+
+        MyPageResponse response = userService.getMyPage("test@example.com");
+
+        assertThat(response.phone()).isEqualTo("010-1234-5678");
     }
 
     @Test
@@ -137,5 +186,64 @@ class UserServiceTest {
         assertThat(user.isOnboardingCompleted()).isFalse();
         assertThat(user.getLevel()).isNull();
         verify(userInterestRepository).deleteByUserId(any());
+    }
+
+    @Test
+    @DisplayName("개인정보 name만 포함된 요청 시 name만 수정된다")
+    void updateProfile_onlyName() {
+        User user = buildUserWithProfile();
+        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
+        UpdateProfileRequest request = new UpdateProfileRequest("새이름", null, null, null, null);
+
+        UpdateProfileResponse response = userService.updateProfile("test@example.com", request);
+
+        assertThat(response.name()).isEqualTo("새이름");
+    }
+
+    @Test
+    @DisplayName("이름 20자 초과 시 NAME-002 에러")
+    void updateProfile_nameTooLong() {
+        User user = buildUserWithProfile();
+        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
+        UpdateProfileRequest request = new UpdateProfileRequest("a".repeat(21), null, null, null, null);
+
+        assertThatThrownBy(() -> userService.updateProfile("test@example.com", request))
+            .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    @DisplayName("잘못된 전화번호 형식 시 PHONE-001 에러")
+    void updateProfile_invalidPhone() {
+        User user = buildUserWithProfile();
+        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
+        UpdateProfileRequest request = new UpdateProfileRequest(null, null, "01012345678", null, null);
+
+        assertThatThrownBy(() -> userService.updateProfile("test@example.com", request))
+            .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    @DisplayName("중복 이메일 변경 시 EMAIL-002 에러")
+    void updateProfile_duplicateEmail() {
+        User user = buildUserWithProfile();
+        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
+        given(userRepository.existsByEmail("other@example.com")).willReturn(true);
+        UpdateProfileRequest request = new UpdateProfileRequest(null, null, null, null, "other@example.com");
+
+        assertThatThrownBy(() -> userService.updateProfile("test@example.com", request))
+            .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    @DisplayName("내가 본 콘텐츠 이력이 없으면 빈 리스트 반환")
+    void getViewedContents_emptyList() {
+        User user = buildUserWithProfile();
+        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
+        given(contentViewHistoryRepository.findByUserIdOrderByViewedAtDesc(any())).willReturn(List.of());
+
+        ViewedContentsResponse response = userService.getViewedContents("test@example.com");
+
+        assertThat(response.contents()).isEmpty();
+        assertThat(response.totalCount()).isZero();
     }
 }

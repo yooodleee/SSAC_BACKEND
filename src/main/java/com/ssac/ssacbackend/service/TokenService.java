@@ -63,6 +63,21 @@ public class TokenService {
     }
 
     /**
+     * userId로 사용자를 조회하고 Access Token과 Refresh Token을 발급한다.
+     * 토큰과 함께 사용자 엔티티를 반환하여 Controller가 Repository에 직접 접근하지 않도록 한다.
+     *
+     * @param userId 사용자 ID
+     * @return 토큰 쌍과 사용자 엔티티
+     * @throws com.ssac.ssacbackend.common.exception.NotFoundException 사용자가 존재하지 않는 경우
+     */
+    public ReissueResult issueTokensByUserIdWithUser(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+        TokenPair tokens = issueTokens(user);
+        return new ReissueResult(tokens, user);
+    }
+
+    /**
      * Refresh Token으로 새 Access Token과 Refresh Token을 재발급한다(Rotation).
      *
      * <p>기존 Refresh Token은 즉시 무효화된다.

@@ -34,15 +34,49 @@ public record AuthTokenResponse(
 
     @Nullable
     @Schema(description = "OAuth 공급자 (신규 회원 전용)", example = "NAVER")
-    String provider
+    String provider,
+
+    @Nullable
+    @Schema(description = "사용자 정보 (기존 회원 전용)")
+    UserInfo userInfo
 
 ) {
 
-    public static AuthTokenResponse existingUser(String accessToken, String refreshToken) {
-        return new AuthTokenResponse(false, accessToken, refreshToken, "Bearer", null, null);
+    /**
+     * 기존 회원 로그인 시 사용자 정보를 포함한 응답을 생성한다.
+     *
+     * @param accessToken  액세스 토큰
+     * @param refreshToken 리프레시 토큰
+     * @param userInfo     사용자 정보
+     * @return 기존 회원 응답
+     */
+    public static AuthTokenResponse existingUser(
+        String accessToken, String refreshToken, UserInfo userInfo) {
+        return new AuthTokenResponse(
+            false, accessToken, refreshToken, "Bearer", null, null, userInfo);
     }
 
+    /**
+     * 신규 회원 시 tempToken과 provider를 포함한 응답을 생성한다.
+     *
+     * @param tempToken 임시 토큰
+     * @param provider  OAuth 공급자
+     * @return 신규 회원 응답
+     */
     public static AuthTokenResponse newUser(String tempToken, String provider) {
-        return new AuthTokenResponse(true, null, null, null, tempToken, provider);
+        return new AuthTokenResponse(true, null, null, null, tempToken, provider, null);
     }
+
+    /**
+     * 기존 회원 로그인 응답에 포함되는 사용자 정보 DTO.
+     */
+    public record UserInfo(
+        String id,
+        String nickname,
+        String name,
+        String email,
+        String level,
+        boolean onboardingCompleted,
+        String userType
+    ) {}
 }

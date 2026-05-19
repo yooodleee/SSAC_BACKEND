@@ -1,4 +1,1 @@
-[2026-05-19 11:52:59]
-Command: railway logs --build --deployment d53d6c0d-b2cc-4e74-920b-b00a774eaeb8 2>&1 | tail -100
----
-{'stdout': "error: the argument '--build' cannot be used with '--deployment'\n\nUsage: railway.exe logs --build <DEPLOYMENT_ID>\n\nFor more information, try '--help'.", 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+[2026-05-19 15:47:48]

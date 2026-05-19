@@ -130,12 +130,14 @@ public class HomeService {
         List<CategoryDto> categories = buildCategories(email);
 
         LevelInfo levelInfo = LevelInfo.from(level);
+        String levelImageKey = resolveLevelImageKey(user.getLevel());
         HomeUserDto userDto = new HomeUserDto(
             user.getNickname(),
             user.getUserType() != null ? user.getUserType().name() : null,
             level.name(),
             levelInfo.getLabel(),
-            levelInfo.getEmoji()
+            levelInfo.getEmoji(),
+            levelImageKey
         );
 
         LastVisitDto lastVisit = buildLastVisit(user.getLastVisitedAt());
@@ -411,6 +413,17 @@ public class HomeService {
             case SEED -> "왕초보";
             case SPROUT -> "초보";
             case TREE -> "중급";
+        };
+    }
+
+    private String resolveLevelImageKey(UserLevel level) {
+        if (level == null) {
+            return "default";
+        }
+        return switch (level) {
+            case SEED -> "seed";
+            case SPROUT -> "sprout";
+            case TREE -> "tree";
         };
     }
 

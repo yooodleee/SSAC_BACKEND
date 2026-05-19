@@ -115,6 +115,12 @@ public class User {
     @Column(nullable = false)
     private boolean onboardingSkipped;
 
+    @Column(nullable = false)
+    private boolean nicknameExplicitlySet = false;
+
+    @Column
+    private LocalDateTime deletedAt;
+
     @Builder
     public User(String email, String password, String nickname, String provider,
         String providerId, UserRole role) {
@@ -146,6 +152,67 @@ public class User {
      */
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    /**
+     * 닉네임을 명시적으로 변경한다. nicknameExplicitlySet를 true로 설정한다.
+     *
+     * @param nickname 새 닉네임
+     */
+    public void updateNicknameExplicitly(String nickname) {
+        this.nickname = nickname;
+        this.nicknameExplicitlySet = true;
+    }
+
+    /**
+     * FE 헤더 표시용 닉네임. 명시적 설정 전에는 name을 반환한다.
+     *
+     * @return 표시용 닉네임
+     */
+    public String getDisplayNickname() {
+        return nicknameExplicitlySet ? nickname : (name != null ? name : nickname);
+    }
+
+    /**
+     * 회원 탈퇴 처리: soft delete + 개인정보 익명화.
+     */
+    public void withdraw() {
+        this.deletedAt = LocalDateTime.now();
+        this.email = "deleted_" + this.id + "@deleted.com";
+        this.name = "탈퇴한 사용자";
+        this.phone = null;
+        this.birthDate = null;
+        this.gender = null;
+        this.password = null;
+        this.providerId = null;
+        this.invalidatedBefore = LocalDateTime.now();
+    }
+
+    /**
+     * 개인정보를 선택적으로 수정한다. null 필드는 변경하지 않는다.
+     *
+     * @param name      이름 (null 시 변경 안 함)
+     * @param birthDate 생년월일 (null 시 변경 안 함)
+     * @param phone     전화번호 (null 시 변경 안 함)
+     * @param gender    성별 (null 시 변경 안 함)
+     * @param email     이메일 (null 시 변경 안 함)
+     */
+    public void updateProfile(String name, LocalDate birthDate, String phone, Gender gender, String email) {
+        if (name != null) {
+            this.name = name;
+        }
+        if (birthDate != null) {
+            this.birthDate = birthDate;
+        }
+        if (phone != null) {
+            this.phone = phone;
+        }
+        if (gender != null) {
+            this.gender = gender;
+        }
+        if (email != null) {
+            this.email = email;
+        }
     }
 
     /**

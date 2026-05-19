@@ -1,11 +1,13 @@
 package com.ssac.ssacbackend.service;
 
+import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ConflictException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.response.ProfileResponse;
 import com.ssac.ssacbackend.repository.UserRepository;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
+
+    /** 닉네임 허용 패턴: 한글·영문·숫자만, 2~10자 */
+    private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9]{2,10}$");
 
     private final UserRepository userRepository;
 
@@ -39,19 +44,19 @@ public class ProfileService {
      * 닉네임을 수정한다. 중복 닉네임이면 409 Conflict를 반환한다.
      *
      * @param email    JWT에서 추출한 사용자 이메일
-     * @param nickname 변경할 닉네임 (유효성 검사는 Controller 레이어에서 수행)
+     * @param nickname 변경할 닉네임
      */
     @Transactional
-    public ProfileResponse updateNickname(String email, String nickname) {
-        log.debug("닉네임 수정 요청: email={}, nickname={}", email, nickname);
+    public void updateNickname(String email, String nickname) {
+        if (!NICKNAME_PATTERN.matcher(nickname).matches()) {
+            throw new BadRequestException(ErrorCode.NICKNAME_INVALID);
+        }
         User user = findUserByEmail(email);
-
         if (!user.getNickname().equals(nickname) && userRepository.existsByNickname(nickname)) {
             throw new ConflictException(ErrorCode.NICKNAME_DUPLICATED);
         }
-
-        user.updateNickname(nickname);
-        return ProfileResponse.from(user);
+        user.updateNicknameExplicitly(nickname);
+        log.info("닉네임 수정 완료: userId={}", user.getId());
     }
 
     private User findUserByEmail(String email) {
