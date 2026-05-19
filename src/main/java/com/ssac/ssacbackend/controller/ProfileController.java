@@ -5,7 +5,6 @@ import com.ssac.ssacbackend.common.util.CookieUtils;
 import com.ssac.ssacbackend.config.CookieProperties;
 import com.ssac.ssacbackend.dto.request.UpdateNicknameRequest;
 import com.ssac.ssacbackend.dto.response.MyPageResponse;
-import com.ssac.ssacbackend.dto.response.ProfileResponse;
 import com.ssac.ssacbackend.service.ProfileService;
 import com.ssac.ssacbackend.service.TokenService;
 import com.ssac.ssacbackend.service.UserService;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 
 /**
  * 프로필 조회 및 닉네임 수정 엔드포인트.
@@ -90,13 +90,12 @@ public class ProfileController {
             responseCode = "409", description = "이미 사용 중인 닉네임")
     })
     @PatchMapping("/nickname")
-    public ResponseEntity<ApiResponse<ProfileResponse>> updateNickname(
+    public ResponseEntity<Void> updateNickname(
         Authentication authentication,
         @RequestBody @Valid UpdateNicknameRequest request) {
         log.debug("닉네임 수정 요청: email={}", authentication.getName());
-        ProfileResponse profile =
-            profileService.updateNickname(authentication.getName(), request.nickname());
-        return ResponseEntity.ok(ApiResponse.success(profile));
+        profileService.updateNickname(authentication.getName(), request.nickname());
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(

@@ -79,7 +79,7 @@ class ProfileServiceTest {
 
         profileService.updateNickname("user@test.com", "새닉네임");
 
-        then(user).should().updateNickname("새닉네임");
+        then(user).should().updateNicknameExplicitly("새닉네임");
     }
 
     @Test

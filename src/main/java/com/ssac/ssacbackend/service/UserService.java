@@ -1,20 +1,32 @@
 package com.ssac.ssacbackend.service;
 
 import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ConflictException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
+import com.ssac.ssacbackend.domain.content.Content;
+import com.ssac.ssacbackend.domain.content.ContentCategory;
+import com.ssac.ssacbackend.domain.content.ContentViewHistory;
 import com.ssac.ssacbackend.domain.onboarding.LevelInfo;
 import com.ssac.ssacbackend.domain.onboarding.UserInterest;
+import com.ssac.ssacbackend.domain.user.Gender;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.domain.user.UserType;
+import com.ssac.ssacbackend.dto.request.UpdateProfileRequest;
 import com.ssac.ssacbackend.dto.response.MyPageResponse;
+import com.ssac.ssacbackend.dto.response.UpdateProfileResponse;
+import com.ssac.ssacbackend.dto.response.ViewedContentsResponse;
 import com.ssac.ssacbackend.repository.ContentProgressRepository;
+import com.ssac.ssacbackend.repository.ContentRepository;
+import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
 import com.ssac.ssacbackend.repository.QuizAttemptRepository;
 import com.ssac.ssacbackend.repository.UserInterestRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +50,9 @@ public class UserService {
     private final ContentProgressRepository contentProgressRepository;
     private final QuizAttemptRepository quizAttemptRepository;
     private final HomeCacheEvictService homeCacheEvictService;
+    private final ContentViewHistoryRepository contentViewHistoryRepository;
+    private final ContentRepository contentRepository;
+    private final TokenService tokenService;
 
     /**
      * 마이페이지 프로필을 조회한다.
@@ -74,10 +89,16 @@ public class UserService {
         MyPageResponse.StatsDto stats = new MyPageResponse.StatsDto(
             totalContentsCompleted, totalQuizCompleted, correctRate, continuousLearningDays);
 
+        String phoneFormatted = formatPhone(user.getPhone());
+
         return new MyPageResponse(
             String.valueOf(user.getId()),
             user.getEmail(),
             user.getNickname(),
+            user.getName(),
+            user.getBirthDate(),
+            phoneFormatted,
+            user.getGender() != null ? user.getGender().name() : null,
             user.getUserType() != null ? user.getUserType().name() : null,
             userTypeLabel(user.getUserType()),
             level != null ? level.name() : null,
@@ -133,6 +154,137 @@ public class UserService {
             log.info("사용자 유형 변경에 따른 온보딩 초기화: email={}, newType={}", email, newType);
         }
         homeCacheEvictService.evict(user.getId());
+    }
+
+    /**
+     * 개인정보를 선택적으로 수정한다. null 필드는 변경하지 않는다.
+     *
+     * @param email   사용자 이메일
+     * @param request 수정 요청 DTO
+     * @return 수정된 개인정보 응답 DTO
+     */
+    @Transactional
+    public UpdateProfileResponse updateProfile(String email, UpdateProfileRequest request) {
+        User user = findUserByEmail(email);
+
+        if (request.name() != null) {
+            if (request.name().isBlank()) {
+                throw new BadRequestException(ErrorCode.NAME_REQUIRED);
+            }
+            if (request.name().length() > 20) {
+                throw new BadRequestException(ErrorCode.NAME_EXCEEDS_MAX_LENGTH);
+            }
+        }
+
+        LocalDate birthDate = null;
+        if (request.birthDate() != null) {
+            try {
+                birthDate = LocalDate.parse(request.birthDate());
+            } catch (DateTimeParseException e) {
+                throw new BadRequestException(ErrorCode.BIRTH_DATE_FORMAT_INVALID);
+            }
+            if (Period.between(birthDate, LocalDate.now()).getYears() < 14) {
+                throw new BadRequestException(ErrorCode.BIRTH_DATE_UNDER_14);
+            }
+        }
+
+        if (request.phone() != null) {
+            if (!request.phone().matches("^010-\\d{4}-\\d{4}$")) {
+                throw new BadRequestException(ErrorCode.PHONE_FORMAT_INVALID);
+            }
+            String phoneRawCheck = request.phone().replace("-", "");
+            if (!phoneRawCheck.equals(user.getPhone()) && userRepository.existsByPhone(phoneRawCheck)) {
+                throw new ConflictException(ErrorCode.PHONE_DUPLICATED);
+            }
+        }
+
+        if (request.email() != null) {
+            if (!request.email().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+                throw new BadRequestException(ErrorCode.EMAIL_FORMAT_INVALID);
+            }
+            if (!request.email().equals(user.getEmail()) && userRepository.existsByEmail(request.email())) {
+                throw new ConflictException(ErrorCode.EMAIL_DUPLICATED);
+            }
+        }
+
+        Gender gender = null;
+        if (request.gender() != null) {
+            try {
+                gender = Gender.valueOf(request.gender().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException(ErrorCode.GENDER_INVALID);
+            }
+        }
+
+        String phoneRaw = request.phone() != null ? request.phone().replace("-", "") : null;
+
+        user.updateProfile(request.name(), birthDate, phoneRaw, gender, request.email());
+        log.info("개인정보 수정 완료: email={}", email);
+
+        return new UpdateProfileResponse(
+            user.getName(),
+            user.getBirthDate() != null ? user.getBirthDate().toString() : null,
+            formatPhone(user.getPhone()),
+            user.getGender() != null ? user.getGender().name() : null,
+            user.getEmail()
+        );
+    }
+
+    /**
+     * 회원 탈퇴 처리. soft delete + 개인정보 익명화 + Refresh Token 전체 무효화.
+     *
+     * @param email 사용자 이메일
+     */
+    @Transactional
+    public void withdraw(String email) {
+        User user = findUserByEmail(email);
+        tokenService.logoutAll(email);
+        user.withdraw();
+        log.info("회원 탈퇴 완료: userId={}", user.getId());
+    }
+
+    /**
+     * 내가 본 콘텐츠 목록을 반환한다.
+     *
+     * @param email 사용자 이메일
+     * @return 조회 이력 응답 DTO
+     */
+    @Transactional(readOnly = true)
+    public ViewedContentsResponse getViewedContents(String email) {
+        User user = findUserByEmail(email);
+        List<ContentViewHistory> histories =
+            contentViewHistoryRepository.findByUserIdOrderByViewedAtDesc(user.getId());
+
+        List<ViewedContentsResponse.ViewedContentDto> contents = histories.stream()
+            .map(h -> {
+                Content content = contentRepository.findById(h.getContentId()).orElse(null);
+                if (content == null) {
+                    return null;
+                }
+                String emoji = ContentCategory
+                    .findById(content.getCategory())
+                    .map(ContentCategory::getEmoji).orElse("");
+                return new ViewedContentsResponse.ViewedContentDto(
+                    String.valueOf(content.getId()),
+                    content.getTitle(),
+                    content.getCategory(),
+                    emoji,
+                    content.getDifficulty() != null ? content.getDifficulty().name() : null,
+                    h.getViewedAt(),
+                    h.isCompleted()
+                );
+            })
+            .filter(d -> d != null)
+            .toList();
+
+        return new ViewedContentsResponse(contents.size(), contents);
+    }
+
+    private static String formatPhone(String phone) {
+        if (phone == null || phone.length() != 11) {
+            return phone;
+        }
+        return phone.substring(0, 3) + "-" + phone.substring(3, 7) + "-" + phone.substring(7);
     }
 
     private int calculateContinuousLearningDays(String email) {

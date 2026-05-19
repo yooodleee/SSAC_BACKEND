@@ -345,7 +345,7 @@ class HomeServiceTest {
     private HomeResponse mockHomeResponse() {
         return new HomeResponse(
             false,
-            new HomeResponse.HomeUserDto("닉네임", "HIGH_SCHOOL", "SPROUT", "새싹", "🌱"),
+            new HomeResponse.HomeUserDto("닉네임", "HIGH_SCHOOL", "SPROUT", "새싹", "🌱", "sprout"),
             null, List.of(), null, null, List.of(), null, null
         );
     }

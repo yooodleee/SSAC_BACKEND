@@ -7,11 +7,13 @@ import static org.mockito.Mockito.mock;
 
 import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
+import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.AuthCodeResult;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.request.AuthCodeExchangeRequest;
 import com.ssac.ssacbackend.dto.response.AuthTokenResponse;
 import com.ssac.ssacbackend.service.AuthCodeService;
+import com.ssac.ssacbackend.service.ReissueResult;
 import com.ssac.ssacbackend.service.TokenService;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,9 +46,14 @@ class AuthTokenControllerTest {
         @Test
         @DisplayName("유효한 authCode이면 accessToken, refreshToken을 포함한 200을 반환한다")
         void returnsTokensForExistingUser() {
+            User user = User.builder()
+                .email("user@example.com")
+                .nickname("tester")
+                .build();
             given(authCodeService.consume("the-code"))
                 .willReturn(Optional.of(AuthCodeResult.existingUser(10L)));
-            given(tokenService.issueTokensByUserId(10L)).willReturn(new TokenPair("at", "rt"));
+            given(tokenService.issueTokensByUserIdWithUser(10L))
+                .willReturn(new ReissueResult(new TokenPair("at", "rt"), user));
 
             ResponseEntity<AuthTokenResponse> response =
                 controller.exchangeToken(new AuthCodeExchangeRequest("the-code"));
@@ -65,7 +72,7 @@ class AuthTokenControllerTest {
         void throwsNotFoundWhenUserMissing() {
             given(authCodeService.consume("the-code"))
                 .willReturn(Optional.of(AuthCodeResult.existingUser(99L)));
-            given(tokenService.issueTokensByUserId(99L))
+            given(tokenService.issueTokensByUserIdWithUser(99L))
                 .willThrow(new NotFoundException(com.ssac.ssacbackend.common.exception.ErrorCode.USER_NOT_FOUND));
 
             assertThatThrownBy(() ->

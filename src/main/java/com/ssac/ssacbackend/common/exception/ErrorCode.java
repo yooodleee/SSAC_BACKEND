@@ -73,9 +73,11 @@ public enum ErrorCode {
 
     // ── 회원 가입 입력 값 (NAME/BIRTH/PHONE/GENDER/EMAIL) ────────────────────
     NAME_REQUIRED("NAME-001", 400, "이름을 입력해주세요."),
+    NAME_EXCEEDS_MAX_LENGTH("NAME-002", 400, "이름은 20자 이하로 입력해주세요."),
     BIRTH_DATE_FORMAT_INVALID("BIRTH-001", 400, "생년월일 형식이 올바르지 않습니다."),
     BIRTH_DATE_UNDER_14("BIRTH-002", 400, "만 14세 이상만 가입할 수 있습니다."),
     PHONE_FORMAT_INVALID("PHONE-001", 400, "휴대폰 번호 형식이 올바르지 않습니다."),
+    PHONE_DUPLICATED("PHONE-002", 409, "이미 사용 중인 휴대폰 번호입니다."),
     GENDER_INVALID("GENDER-001", 400, "유효하지 않은 성별 값입니다."),
     EMAIL_FORMAT_INVALID("EMAIL-001", 400, "이메일 형식이 올바르지 않습니다."),
     EMAIL_DUPLICATED("EMAIL-002", 409, "이미 사용 중인 이메일입니다."),
