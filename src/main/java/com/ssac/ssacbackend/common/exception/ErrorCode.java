@@ -91,7 +91,11 @@ public enum ErrorCode {
     ONBOARDING_QUESTION_TYPE_MISMATCH("ONBOARDING-005", 400, "사용자 유형에 맞지 않는 문제입니다."),
     ONBOARDING_NOT_COMPLETED("ONBOARDING-006", 404, "온보딩 테스트를 먼저 완료해주세요."),
     ONBOARDING_INTEREST_INVALID_COUNT("ONBOARDING-007", 400, "관심 도메인은 1개 이상 3개 이하로 선택해주세요."),
-    ONBOARDING_RETAKE_CONFLICT("ONBOARDING-006", 409, "완료된 온보딩 테스트가 없습니다.");
+    ONBOARDING_RETAKE_CONFLICT("ONBOARDING-006", 409, "완료된 온보딩 테스트가 없습니다."),
+
+    // ── 피드백 (FEEDBACK) ────────────────────────────────────────────────────
+    FEEDBACK_MESSAGE_REQUIRED("FEEDBACK-001", 400, "피드백 내용을 입력해주세요."),
+    FEEDBACK_MESSAGE_TOO_LONG("FEEDBACK-002", 400, "피드백은 1000자 이내로 입력해주세요.");
 
     private final String code;
     private final int status;

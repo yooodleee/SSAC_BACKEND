@@ -66,7 +66,9 @@ public class SecurityConfig {
         "/api/ab-test/menu",
         // Actuator: 로드밸런서 헬스체크 및 일반 정보는 공개
         "/actuator/health",
-        "/actuator/info"
+        "/actuator/info",
+        // 피드백: 비로그인 사용자도 전송 가능
+        "/api/v1/feedback"
     };
 
     @Bean
