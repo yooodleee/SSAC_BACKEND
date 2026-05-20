@@ -151,7 +151,12 @@
       "Bash(POST /api/v1/auth/register)",
       "Bash(GET /api/v1/auth/email/check)",
       "Bash(Gender)",
-      "Bash(gh run:*)"
+      "Bash(gh run:*)",
+      "Bash(POST /api/v1/feedback)",
+      "Bash(Feedback)",
+      "Bash(ErrorCode)",
+      "Bash(SecurityConfig)",
+      "Bash(/api/v1/feedback)"
     ]
   }
 }
