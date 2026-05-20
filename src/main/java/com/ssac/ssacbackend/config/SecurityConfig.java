@@ -68,7 +68,9 @@ public class SecurityConfig {
         "/actuator/health",
         "/actuator/info",
         // 피드백: 비로그인 사용자도 전송 가능
-        "/api/v1/feedback"
+        "/api/v1/feedback",
+        // 인증 상태 확인: 비로그인 사용자도 접근 가능
+        "/api/v1/auth/status"
     };
 
     @Bean
@@ -118,13 +120,18 @@ public class SecurityConfig {
                     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                     boolean isGuest = auth != null && auth.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("ROLE_GUEST"));
+                    boolean isAdminPath = req.getRequestURI().startsWith("/api/v1/admin");
                     if (isGuest) {
                         res.getWriter().write(
-                            "{\"status\":403,\"code\":\"GUEST_NOT_ALLOWED\","
+                            "{\"status\":403,\"code\":\"GUEST-001\","
                             + "\"message\":\"로그인이 필요한 기능입니다.\"}");
+                    } else if (isAdminPath) {
+                        res.getWriter().write(
+                            "{\"status\":403,\"code\":\"ADMIN-003\","
+                            + "\"message\":\"관리자 권한이 필요합니다.\"}");
                     } else {
                         res.getWriter().write(
-                            "{\"status\":403,\"code\":\"FORBIDDEN\","
+                            "{\"status\":403,\"code\":\"AUTH-004\","
                             + "\"message\":\"접근 권한이 없습니다.\"}");
                     }
                 })

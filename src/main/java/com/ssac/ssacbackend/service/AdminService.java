@@ -3,10 +3,18 @@ package com.ssac.ssacbackend.service;
 import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
+import com.ssac.ssacbackend.domain.auth.AdminCode;
+import com.ssac.ssacbackend.domain.feedback.FeedbackStatus;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserRole;
+import com.ssac.ssacbackend.dto.response.AdminCodeCreateResponse;
+import com.ssac.ssacbackend.dto.response.AdminHomeResponse;
 import com.ssac.ssacbackend.dto.response.UserSummaryResponse;
+import com.ssac.ssacbackend.repository.AdminCodeRepository;
+import com.ssac.ssacbackend.repository.FeedbackRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 관리자 전용 사용자 관리 비즈니스 로직.
- *
- * <p>사용자 목록 조회 및 권한 변경을 제공한다.
- * 권한 변경은 DB에 즉시 반영되며, JwtAuthenticationFilter의 DB 조회로 다음 요청부터 적용된다.
+ * 관리자 전용 사용자 관리 및 홈 대시보드 비즈니스 로직.
  */
 @Slf4j
 @Service
@@ -26,6 +31,67 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminService {
 
     private final UserRepository userRepository;
+    private final FeedbackRepository feedbackRepository;
+    private final AdminCodeRepository adminCodeRepository;
+
+    /**
+     * 관리자 홈 화면 데이터를 조회한다.
+     *
+     * @param adminEmail 관리자 이메일 (SecurityContext principal)
+     */
+    @Transactional(readOnly = true)
+    public AdminHomeResponse getAdminHome(String adminEmail) {
+        User admin = userRepository.findByEmail(adminEmail)
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        long totalUsers = userRepository.countByRoleNot(UserRole.GUEST);
+        long totalFeedbacks = feedbackRepository.count();
+        long pendingFeedbacks = feedbackRepository.countByStatus(FeedbackStatus.PENDING);
+
+        return new AdminHomeResponse(
+            new AdminHomeResponse.AdminInfo(admin.getDisplayNickname(), admin.getRole().name()),
+            new AdminHomeResponse.Stats(totalUsers, totalFeedbacks, pendingFeedbacks)
+        );
+    }
+
+    /**
+     * 관리자 코드를 발급한다.
+     *
+     * <p>UUID로 원문 코드를 생성하고 SHA-256 해시로 저장한다.
+     * 원문은 이 응답에서 단 한 번만 반환된다.
+     *
+     * @param adminUserId 코드와 연결할 관리자 사용자 ID (ADMIN 역할이어야 함)
+     * @param expiresAt   만료 일시 (null이면 무기한)
+     */
+    @Transactional
+    public AdminCodeCreateResponse createAdminCode(Long adminUserId, LocalDateTime expiresAt) {
+        User targetUser = userRepository.findById(adminUserId)
+            .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        if (targetUser.getRole() != UserRole.ADMIN) {
+            throw new BadRequestException(ErrorCode.ROLE_ASSIGNMENT_INVALID);
+        }
+
+        String rawCode = UUID.randomUUID().toString();
+        String codeHash = AdminLoginService.sha256(rawCode);
+
+        AdminCode adminCode = AdminCode.builder()
+            .codeHash(codeHash)
+            .adminUserId(adminUserId)
+            .expiresAt(expiresAt)
+            .build();
+
+        AdminCode saved = adminCodeRepository.save(adminCode);
+        log.info("관리자 코드 발급: adminUserId={}, codeId={}", adminUserId, saved.getId());
+
+        return new AdminCodeCreateResponse(
+            String.valueOf(saved.getId()),
+            rawCode,
+            adminUserId,
+            expiresAt,
+            saved.getCreatedAt()
+        );
+    }
 
     /**
      * 전체 사용자 목록을 페이지네이션으로 조회한다.
@@ -37,12 +103,6 @@ public class AdminService {
 
     /**
      * 특정 사용자의 권한을 변경한다.
-     *
-     * <p>변경된 권한은 DB에 즉시 반영된다. 해당 사용자의 다음 API 요청부터 새 권한이 적용된다.
-     * GUEST 역할로의 변경은 허용하지 않는다.
-     *
-     * @param userId  대상 사용자 ID
-     * @param newRole 변경할 권한
      */
     @Transactional
     public UserSummaryResponse updateUserRole(Long userId, UserRole newRole) {

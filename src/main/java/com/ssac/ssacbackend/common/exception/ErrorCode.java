@@ -95,7 +95,13 @@ public enum ErrorCode {
 
     // ── 피드백 (FEEDBACK) ────────────────────────────────────────────────────
     FEEDBACK_MESSAGE_REQUIRED("FEEDBACK-001", 400, "피드백 내용을 입력해주세요."),
-    FEEDBACK_MESSAGE_TOO_LONG("FEEDBACK-002", 400, "피드백은 1000자 이내로 입력해주세요.");
+    FEEDBACK_MESSAGE_TOO_LONG("FEEDBACK-002", 400, "피드백은 1000자 이내로 입력해주세요."),
+    FEEDBACK_NOT_FOUND("FEEDBACK-003", 404, "존재하지 않는 피드백입니다."),
+
+    // ── 관리자 (ADMIN) ───────────────────────────────────────────────────────
+    ADMIN_CODE_INVALID("ADMIN-001", 401, "유효하지 않은 관리자 코드입니다."),
+    ADMIN_CODE_EXPIRED("ADMIN-002", 401, "만료된 관리자 코드입니다."),
+    ADMIN_FORBIDDEN("ADMIN-003", 403, "관리자 권한이 필요합니다.");
 
     private final String code;
     private final int status;
