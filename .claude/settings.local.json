@@ -156,7 +156,8 @@
       "Bash(Feedback)",
       "Bash(ErrorCode)",
       "Bash(SecurityConfig)",
-      "Bash(/api/v1/feedback)"
+      "Bash(/api/v1/feedback)",
+      "Bash(ls -la Dockerfile* nixpacks* .nixpacks* railway*)"
     ]
   }
 }

@@ -3,13 +3,11 @@ package com.ssac.ssacbackend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.domain.feedback.Feedback;
 import com.ssac.ssacbackend.domain.feedback.FeedbackStatus;
-import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.response.FeedbackListResponse;
 import com.ssac.ssacbackend.repository.FeedbackRepository;
 import com.ssac.ssacbackend.repository.UserRepository;

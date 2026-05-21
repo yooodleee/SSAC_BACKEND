@@ -13,7 +13,6 @@ import com.ssac.ssacbackend.domain.auth.AdminCode;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserRole;
 import com.ssac.ssacbackend.dto.TokenPair;
-import com.ssac.ssacbackend.dto.response.AdminLoginResponse;
 import com.ssac.ssacbackend.repository.AdminCodeRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import com.ssac.ssacbackend.service.AdminLoginService.LoginResult;
@@ -25,7 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class AdminLoginServiceTest {
