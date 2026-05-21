@@ -9,8 +9,8 @@
 #   삭제/변경 → Major 증가 (1.0.0 -> 2.0.0)
 #
 # 검증: ./gradlew validateErrorContract
-version: "1.0.8"
-updatedAt: "2026-05-20"
+version: "1.0.9"
+updatedAt: "2026-05-21"
 errors:
   - code: "COMMON-001"
     status: 400
@@ -246,3 +246,8 @@ errors:
     status: 403
     message: "관리자 권한이 필요합니다."
     domain: "ADMIN"
+
+  - code: "SEARCH-001"
+    status: 400
+    message: "검색어를 입력해주세요."
+    domain: "SEARCH"

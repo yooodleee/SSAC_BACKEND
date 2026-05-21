@@ -101,7 +101,10 @@ public enum ErrorCode {
     // ── 관리자 (ADMIN) ───────────────────────────────────────────────────────
     ADMIN_CODE_INVALID("ADMIN-001", 401, "유효하지 않은 관리자 코드입니다."),
     ADMIN_CODE_EXPIRED("ADMIN-002", 401, "만료된 관리자 코드입니다."),
-    ADMIN_FORBIDDEN("ADMIN-003", 403, "관리자 권한이 필요합니다.");
+    ADMIN_FORBIDDEN("ADMIN-003", 403, "관리자 권한이 필요합니다."),
+
+    // ── 검색 (SEARCH) ────────────────────────────────────────────────────────
+    SEARCH_QUERY_REQUIRED("SEARCH-001", 400, "검색어를 입력해주세요.");
 
     private final String code;
     private final int status;
