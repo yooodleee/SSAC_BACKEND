@@ -70,7 +70,10 @@ public class SecurityConfig {
         // 피드백: 비로그인 사용자도 전송 가능
         "/api/v1/feedback",
         // 인증 상태 확인: 비로그인 사용자도 접근 가능
-        "/api/v1/auth/status"
+        "/api/v1/auth/status",
+        // 검색: 비로그인 사용자도 접근 가능
+        "/api/v1/search",
+        "/api/v1/search/**"
     };
 
     @Bean

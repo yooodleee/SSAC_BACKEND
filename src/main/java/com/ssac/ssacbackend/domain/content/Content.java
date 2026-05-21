@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -26,6 +27,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Content {
+
+    private static final char[] CHOSUNG_LIST = {
+        'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ',
+        'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+    };
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,6 +53,9 @@ public class Content {
     @Column(name = "view_count", nullable = false)
     private long viewCount;
 
+    @Column(name = "title_chosung", length = 255)
+    private String titleChosung;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -66,5 +75,26 @@ public class Content {
     @PrePersist
     private void prePersist() {
         this.createdAt = LocalDateTime.now();
+        this.titleChosung = extractChosung(this.title);
+    }
+
+    @PreUpdate
+    private void preUpdate() {
+        this.titleChosung = extractChosung(this.title);
+    }
+
+    private static String extractChosung(String text) {
+        if (text == null) {
+            return null;
+        }
+        StringBuilder result = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            if (c >= 0xAC00 && c <= 0xD7A3) {
+                result.append(CHOSUNG_LIST[(c - 0xAC00) / 588]);
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 }

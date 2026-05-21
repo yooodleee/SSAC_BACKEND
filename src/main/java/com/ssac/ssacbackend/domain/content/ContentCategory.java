@@ -28,6 +28,10 @@ public enum ContentCategory {
         return Arrays.stream(values()).filter(c -> c.id.equals(id)).findFirst();
     }
 
+    public static Optional<ContentCategory> findByName(String name) {
+        return Arrays.stream(values()).filter(c -> c.name.equals(name)).findFirst();
+    }
+
     public static List<ContentCategory> all() {
         return List.of(values());
     }
