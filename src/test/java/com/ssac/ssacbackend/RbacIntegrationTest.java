@@ -306,6 +306,57 @@ class RbacIntegrationTest {
             .andExpect(status().isNotFound());
     }
 
+    // ── 온보딩 접근 제어 ────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("비로그인 사용자 onboarding/submit 요청 시 401을 응답받는다")
+    void noTokenOnboardingSubmitReturns401() throws Exception {
+        mockMvc.perform(post("/api/v1/onboarding/submit")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"answers\":[]}"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("비로그인 사용자 onboarding/skip 요청 시 401을 응답받는다")
+    void noTokenOnboardingSkipReturns401() throws Exception {
+        mockMvc.perform(post("/api/v1/onboarding/skip"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("비로그인 사용자 onboarding/result 조회 시 401을 응답받는다")
+    void noTokenOnboardingResultReturns401() throws Exception {
+        mockMvc.perform(get("/api/v1/onboarding/result"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("비로그인 + userType=HIGH_SCHOOL으로 온보딩 문제 조회 시 200을 응답받는다")
+    void noTokenOnboardingQuestionsWithUserTypeReturns200() throws Exception {
+        mockMvc.perform(get("/api/v1/onboarding/questions")
+                .param("userType", "HIGH_SCHOOL"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("비로그인 + userType 없이 온보딩 문제 조회 시 400 (ONBOARDING-001)을 응답받는다")
+    void noTokenOnboardingQuestionsWithoutUserTypeReturns400() throws Exception {
+        mockMvc.perform(get("/api/v1/onboarding/questions"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("ONBOARDING-001"));
+    }
+
+    @Test
+    @DisplayName("비로그인 + 유효하지 않은 userType으로 온보딩 문제 조회 시 400 (USER-TYPE-002)을 응답받는다")
+    void noTokenOnboardingQuestionsWithInvalidUserTypeReturns400() throws Exception {
+        mockMvc.perform(get("/api/v1/onboarding/questions")
+                .param("userType", "INVALID_TYPE"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("USER-TYPE-002"));
+    }
+
     // ── GUEST 역할 직접 부여 방지 ────────────────────────────────────────────
 
     @Test

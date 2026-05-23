@@ -1,6 +1,9 @@
 package com.ssac.ssacbackend.controller;
 
+import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.response.ApiResponse;
+import com.ssac.ssacbackend.domain.user.UserType;
 import com.ssac.ssacbackend.dto.request.OnboardingInterestsRequest;
 import com.ssac.ssacbackend.dto.request.OnboardingSubmitRequest;
 import com.ssac.ssacbackend.dto.response.OnboardingQuestionsResponse;
@@ -17,12 +20,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -43,27 +48,49 @@ public class OnboardingController {
         summary = "온보딩 문제 조회",
         description = """
             [호출 화면] 온보딩 테스트 시작 시 호출.
-            [권한 조건] 로그인 회원 전용 (USER, ADMIN).
-            [특이 동작] userType 미설정 시 400, 이미 완료한 경우 409 반환.
-            """,
-        security = @SecurityRequirement(name = "bearerAuth")
+            [권한 조건] 비로그인 허용 (userType 쿼리 파라미터 필수) / 로그인 시 계정 userType 자동 적용.
+            [특이 동작]
+            - 비로그인: userType 쿼리 파라미터 필수. 없으면 400, 유효하지 않으면 400.
+            - 로그인: 계정의 userType 기반 조회. userType 미설정 시 400, 이미 완료 시 409.
+            """
     )
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200", description = "문제 목록 조회 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "400", description = "ONBOARDING-001: userType 미설정"),
+            responseCode = "400",
+            description = "ONBOARDING-001: userType 미설정 / USER-TYPE-002: 유효하지 않은 userType"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "401", description = "비로그인 사용자"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "409", description = "ONBOARDING-002: 이미 온보딩 완료")
+            responseCode = "409", description = "ONBOARDING-002: 이미 온보딩 완료 (로그인 사용자)")
     })
     @GetMapping("/questions")
     public ResponseEntity<ApiResponse<OnboardingQuestionsResponse>> getQuestions(
-        Authentication authentication) {
-        log.debug("온보딩 문제 조회 요청: email={}", authentication.getName());
+        Authentication authentication,
+        @RequestParam(required = false) String userType) {
+
+        boolean isLoggedIn = authentication != null
+            && authentication.isAuthenticated()
+            && !(authentication instanceof AnonymousAuthenticationToken);
+
+        if (isLoggedIn) {
+            log.debug("온보딩 문제 조회 요청 (로그인): email={}", authentication.getName());
+            OnboardingQuestionsResponse response =
+                onboardingService.getQuestions(authentication.getName());
+            return ResponseEntity.ok(ApiResponse.success(response));
+        }
+
+        if (userType == null) {
+            throw new BadRequestException(ErrorCode.ONBOARDING_USER_TYPE_MISSING);
+        }
+        UserType parsedUserType;
+        try {
+            parsedUserType = UserType.valueOf(userType);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(ErrorCode.USER_TYPE_INVALID);
+        }
+        log.debug("온보딩 문제 조회 요청 (비로그인): userType={}", parsedUserType);
         OnboardingQuestionsResponse response =
-            onboardingService.getQuestions(authentication.getName());
+            onboardingService.getQuestionsByUserType(parsedUserType);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

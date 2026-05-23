@@ -101,6 +101,8 @@ public class SecurityConfig {
                 // 퀴즈 기록/통계 조회: 로그인 회원만 허용
                 .requestMatchers(HttpMethod.GET, "/api/v1/quiz-attempts", "/api/v1/quiz-attempts/**")
                     .hasAnyRole("USER", "ADMIN")
+                // 온보딩 문제 조회: 비로그인 허용 (로그인 여부에 따라 Controller에서 분기)
+                .requestMatchers(HttpMethod.GET, "/api/v1/onboarding/questions").permitAll()
                 // 온보딩 테스트: 로그인 회원만 허용 (GUEST 차단)
                 .requestMatchers("/api/v1/onboarding/**").hasAnyRole("USER", "ADMIN")
                 // 홈 화면 / 콘텐츠 목록 / 콘텐츠 완료: 로그인 회원만 허용

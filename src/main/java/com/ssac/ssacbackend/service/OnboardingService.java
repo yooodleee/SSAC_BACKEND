@@ -124,6 +124,18 @@ public class OnboardingService {
     }
 
     /**
+     * 비로그인 사용자의 userType 기반 온보딩 문제 목록을 반환한다.
+     *
+     * @param userType 사용자 유형 (쿼리 파라미터에서 전달)
+     */
+    @Transactional(readOnly = true)
+    public OnboardingQuestionsResponse getQuestionsByUserType(UserType userType) {
+        List<OnboardingQuestion> questions = onboardingQuestionRepository
+            .findByUserTypeAndIsActiveTrueOrderByQuestionOrderAsc(userType);
+        return OnboardingQuestionsResponse.from(userType, questions);
+    }
+
+    /**
      * 온보딩 응답을 검증하고 레벨을 판정하여 저장한다.
      *
      * <p>레벨 판정 기준: 0~3점 SEED / 4~7점 SPROUT / 8~10점 TREE

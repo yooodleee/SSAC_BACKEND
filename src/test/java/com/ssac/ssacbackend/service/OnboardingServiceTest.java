@@ -51,6 +51,40 @@ class OnboardingServiceTest {
     @InjectMocks
     private OnboardingService onboardingService;
 
+    // ── getQuestionsByUserType (비로그인) ────────────────────────────────────
+
+    @Test
+    @DisplayName("비로그인 HIGH_SCHOOL userType으로 문제 5개 조회 성공")
+    void 비로그인_HIGH_SCHOOL_유형_문제_조회_성공() {
+        List<OnboardingQuestion> questions = buildQuestions(UserType.HIGH_SCHOOL, 5);
+        given(onboardingQuestionRepository
+            .findByUserTypeAndIsActiveTrueOrderByQuestionOrderAsc(UserType.HIGH_SCHOOL))
+            .willReturn(questions);
+
+        OnboardingQuestionsResponse response =
+            onboardingService.getQuestionsByUserType(UserType.HIGH_SCHOOL);
+
+        assertThat(response.userType()).isEqualTo(UserType.HIGH_SCHOOL);
+        assertThat(response.totalCount()).isEqualTo(5);
+        assertThat(response.questions()).hasSize(5);
+    }
+
+    @Test
+    @DisplayName("비로그인 EARLY_CAREER userType으로 문제 5개 조회 성공")
+    void 비로그인_EARLY_CAREER_유형_문제_조회_성공() {
+        List<OnboardingQuestion> questions = buildQuestions(UserType.EARLY_CAREER, 5);
+        given(onboardingQuestionRepository
+            .findByUserTypeAndIsActiveTrueOrderByQuestionOrderAsc(UserType.EARLY_CAREER))
+            .willReturn(questions);
+
+        OnboardingQuestionsResponse response =
+            onboardingService.getQuestionsByUserType(UserType.EARLY_CAREER);
+
+        assertThat(response.userType()).isEqualTo(UserType.EARLY_CAREER);
+        assertThat(response.totalCount()).isEqualTo(5);
+        assertThat(response.questions()).hasSize(5);
+    }
+
     // ── getQuestions ─────────────────────────────────────────────────────────
 
     @Test
