@@ -159,7 +159,10 @@
       "Bash(/api/v1/feedback)",
       "Bash(ls -la Dockerfile* nixpacks* .nixpacks* railway*)",
       "Bash(GET /api/v1/search/suggestions)",
-      "Bash(GET /api/v1/search)"
+      "Bash(GET /api/v1/search)",
+      "Bash(GET /api/v1/onboarding/questions)",
+      "Bash(OnboardingControllerTest.java)",
+      "Bash(RbacIntegrationTest)"
     ]
   }
 }
