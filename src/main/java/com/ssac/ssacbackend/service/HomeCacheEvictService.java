@@ -2,6 +2,7 @@ package com.ssac.ssacbackend.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,11 @@ public class HomeCacheEvictService {
      * 특정 사용자의 홈 캐시를 무효화한다.
      */
     public void evict(Long userId) {
-        redisTemplate.delete(HOME_CACHE_PREFIX + userId);
-        log.debug("홈 캐시 무효화: userId={}", userId);
+        try {
+            redisTemplate.delete(HOME_CACHE_PREFIX + userId);
+            log.debug("홈 캐시 무효화: userId={}", userId);
+        } catch (RedisConnectionFailureException e) {
+            log.warn("홈 캐시 무효화 실패 (Redis 연결 오류) - 무시하고 진행: userId={}", userId);
+        }
     }
 }

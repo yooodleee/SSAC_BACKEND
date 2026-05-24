@@ -279,6 +279,7 @@ public class OnboardingService {
 
         user.resetOnboarding();
         userInterestRepository.deleteByUserId(user.getId());
+        homeCacheEvictService.evict(user.getId());
         log.info("온보딩 초기화 완료: email={}", email);
     }
 
