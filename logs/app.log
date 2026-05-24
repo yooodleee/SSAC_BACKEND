@@ -1,72 +1,483 @@
-2026-05-23 15:49:11.406 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
-2026-05-23 15:49:11.824 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
-2026-05-23 15:49:19.317 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-05-23 16:13:17.540 WARN  [traceId=96533ef6-f539-4fa8-842f-da88cd8e3c97] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=96533ef6-f539-4fa8-842f-da88cd8e3c97 | userId=anonymous
+2026-05-24 21:33:12.267 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
+2026-05-24 21:33:12.453 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
+2026-05-24 21:33:16.467 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-24 21:34:01.963 WARN  [traceId=3081fa1b-431a-4956-b9a4-59339c6f676c] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=3081fa1b-431a-4956-b9a4-59339c6f676c | userId=anonymous
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:13:17.576 WARN  [traceId=96533ef6-f539-4fa8-842f-da88cd8e3c97] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:13:17.610 WARN  [traceId=aeaacffd-6c2b-4a04-a747-9d59cdb087fe] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=aeaacffd-6c2b-4a04-a747-9d59cdb087fe | userId=anonymous
+2026-05-24 21:34:01.977 WARN  [traceId=3081fa1b-431a-4956-b9a4-59339c6f676c] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 21:34:02.046 WARN  [traceId=56c83e97-c668-4f02-b66c-8938ded4d93f] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=56c83e97-c668-4f02-b66c-8938ded4d93f | userId=anonymous
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:13:17.613 WARN  [traceId=aeaacffd-6c2b-4a04-a747-9d59cdb087fe] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:13:17.630 WARN  [traceId=0315cf5a-51da-4305-9509-15cd81669a63] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=0315cf5a-51da-4305-9509-15cd81669a63 | userId=anonymous
+2026-05-24 21:34:02.046 WARN  [traceId=56c83e97-c668-4f02-b66c-8938ded4d93f] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 21:34:02.529 WARN  [traceId=c89b41cb-4192-4799-b09c-8a048433c97e] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=c89b41cb-4192-4799-b09c-8a048433c97e | userId=accia25@naver.com
+-> 이미 온보딩 테스트를 완료했습니다.
+2026-05-24 21:34:02.530 WARN  [traceId=c89b41cb-4192-4799-b09c-8a048433c97e] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
+2026-05-24 21:38:59.815 WARN  [traceId=1942d8a7-83d2-4b20-9d9f-db18457aae3d] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=1942d8a7-83d2-4b20-9d9f-db18457aae3d | userId=accia25@naver.com
+-> 이미 온보딩 테스트를 완료했습니다.
+2026-05-24 21:38:59.815 WARN  [traceId=1942d8a7-83d2-4b20-9d9f-db18457aae3d] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
+2026-05-24 21:39:12.498 WARN  [traceId=49bf36a6-2cee-44d0-9f6b-af61b166d5d6] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=49bf36a6-2cee-44d0-9f6b-af61b166d5d6 | userId=accia25@naver.com
+-> 이미 온보딩 테스트를 완료했습니다.
+2026-05-24 21:39:12.502 WARN  [traceId=49bf36a6-2cee-44d0-9f6b-af61b166d5d6] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
+2026-05-24 21:39:18.306 WARN  [traceId=d66c7199-a0c2-4e21-ac1a-afe70c1f7ff3] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=d66c7199-a0c2-4e21-ac1a-afe70c1f7ff3 | userId=accia25@naver.com
+-> 이미 온보딩 테스트를 완료했습니다.
+2026-05-24 21:39:18.308 WARN  [traceId=d66c7199-a0c2-4e21-ac1a-afe70c1f7ff3] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
+2026-05-24 21:52:01.189 WARN  [traceId=09c07af8-e921-4d1b-b15b-ea86d6318432] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=09c07af8-e921-4d1b-b15b-ea86d6318432 | userId=accia25@naver.com
+-> 이미 온보딩 테스트를 완료했습니다.
+2026-05-24 21:52:01.189 WARN  [traceId=09c07af8-e921-4d1b-b15b-ea86d6318432] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
+2026-05-24 21:52:12.232 ERROR [traceId=11f7785a-4357-4165-abde-086ac00073a7] [userId=accia25@naver.com] [POST /api/v1/onboarding/submit] c.s.s.c.e.GlobalExceptionHandler - [SERVER-001] POST /api/v1/onboarding/submit | traceId=11f7785a-4357-4165-abde-086ac00073a7 | userId=accia25@naver.com
+-> Unable to connect to Redis
+org.springframework.data.redis.RedisConnectionFailureException: Unable to connect to Redis
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$ExceptionTranslatingConnectionProvider.translateException(LettuceConnectionFactory.java:1868)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$ExceptionTranslatingConnectionProvider.getConnection(LettuceConnectionFactory.java:1799)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$SharedConnection.getNativeConnection(LettuceConnectionFactory.java:1596)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$SharedConnection.lambda$getConnection$0(LettuceConnectionFactory.java:1576)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory.doInLock(LettuceConnectionFactory.java:1537)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$SharedConnection.getConnection(LettuceConnectionFactory.java:1573)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory.getSharedConnection(LettuceConnectionFactory.java:1258)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory.getConnection(LettuceConnectionFactory.java:1054)
+	at org.springframework.data.redis.core.RedisConnectionUtils.fetchConnection(RedisConnectionUtils.java:195)
+	at org.springframework.data.redis.core.RedisConnectionUtils.doGetConnection(RedisConnectionUtils.java:144)
+	at org.springframework.data.redis.core.RedisConnectionUtils.getConnection(RedisConnectionUtils.java:105)
+	at org.springframework.data.redis.core.RedisTemplate.execute(RedisTemplate.java:401)
+	at org.springframework.data.redis.core.RedisTemplate.execute(RedisTemplate.java:381)
+	at org.springframework.data.redis.core.RedisTemplate.doWithKeys(RedisTemplate.java:782)
+	at org.springframework.data.redis.core.RedisTemplate.delete(RedisTemplate.java:599)
+	at com.ssac.ssacbackend.service.HomeCacheEvictService.evict(HomeCacheEvictService.java:26)
+	at com.ssac.ssacbackend.service.OnboardingService.submit(OnboardingService.java:185)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:133)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:371)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:130)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.ssac.ssacbackend.service.OnboardingService$$SpringCGLIB$$0.submit(<generated>)
+	at com.ssac.ssacbackend.controller.OnboardingController.submit(OnboardingController.java:122)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:493)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:354)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:132)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at com.ssac.ssacbackend.config.MdcLoggingFilter.doFilterInternal(MdcLoggingFilter.java:51)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at com.ssac.ssacbackend.config.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:58)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at com.ssac.ssacbackend.config.OAuth2RedirectFilter.doFilterInternal(OAuth2RedirectFilter.java:45)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:245)
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:239)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter.doFilterInternal(OAuth2AuthorizationRequestRedirectFilter.java:195)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:337)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at com.ssac.ssacbackend.config.CorsRejectionFilter.doFilterInternal(CorsRejectionFilter.java:63)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1779)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:946)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: io.lettuce.core.RedisConnectionException: Unable to connect to localhost/<unresolved>:6379
+	at io.lettuce.core.RedisConnectionException.create(RedisConnectionException.java:63)
+	at io.lettuce.core.RedisConnectionException.create(RedisConnectionException.java:41)
+	at io.lettuce.core.AbstractRedisClient.getConnection(AbstractRedisClient.java:352)
+	at io.lettuce.core.RedisClient.connect(RedisClient.java:220)
+	at org.springframework.data.redis.connection.lettuce.StandaloneConnectionProvider.lambda$getConnection$1(StandaloneConnectionProvider.java:113)
+	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+	at org.springframework.data.redis.connection.lettuce.StandaloneConnectionProvider.getConnection(StandaloneConnectionProvider.java:113)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$ExceptionTranslatingConnectionProvider.getConnection(LettuceConnectionFactory.java:1797)
+	... 185 common frames omitted
+Caused by: io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: localhost/127.0.0.1:6379
+Caused by: java.net.ConnectException: Connection refused: getsockopt
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:672)
+	at java.base/sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:946)
+	at io.netty.channel.socket.nio.NioSocketChannel.doFinishConnect(NioSocketChannel.java:330)
+	at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.finishConnect(AbstractNioChannel.java:384)
+	at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.handle(AbstractNioChannel.java:432)
+	at io.netty.channel.nio.NioIoHandler$DefaultNioRegistration.handle(NioIoHandler.java:388)
+	at io.netty.channel.nio.NioIoHandler.processSelectedKey(NioIoHandler.java:596)
+	at io.netty.channel.nio.NioIoHandler.processSelectedKeysOptimized(NioIoHandler.java:571)
+	at io.netty.channel.nio.NioIoHandler.processSelectedKeys(NioIoHandler.java:512)
+	at io.netty.channel.nio.NioIoHandler.run(NioIoHandler.java:484)
+	at io.netty.channel.SingleThreadIoEventLoop.runIo(SingleThreadIoEventLoop.java:225)
+	at io.netty.channel.SingleThreadIoEventLoop.run(SingleThreadIoEventLoop.java:196)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:1195)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+2026-05-24 21:52:12.233 WARN  [traceId=11f7785a-4357-4165-abde-086ac00073a7] [userId=accia25@naver.com] [POST /api/v1/onboarding/submit] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.data.redis.RedisConnectionFailureException: Unable to connect to Redis]
+2026-05-24 22:04:10.557 WARN  [traceId=c1ff6f07-f8e6-4183-8473-b4a007fca834] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=c1ff6f07-f8e6-4183-8473-b4a007fca834 | userId=anonymous
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:13:17.634 WARN  [traceId=0315cf5a-51da-4305-9509-15cd81669a63] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:13:17.651 WARN  [traceId=93053f04-021d-47ea-b8b1-5ab2f66b6bd7] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=93053f04-021d-47ea-b8b1-5ab2f66b6bd7 | userId=anonymous
+2026-05-24 22:04:10.558 WARN  [traceId=c1ff6f07-f8e6-4183-8473-b4a007fca834] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:04:10.624 WARN  [traceId=b2a4c6d3-a9be-4eab-a8ba-79d9b00b4d7d] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=b2a4c6d3-a9be-4eab-a8ba-79d9b00b4d7d | userId=anonymous
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:13:17.655 WARN  [traceId=93053f04-021d-47ea-b8b1-5ab2f66b6bd7] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:17:51.624 WARN  [traceId=9c9a3269-e90b-4ed4-840e-074ff2af1e6d] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=9c9a3269-e90b-4ed4-840e-074ff2af1e6d | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 16:17:51.629 WARN  [traceId=9c9a3269-e90b-4ed4-840e-074ff2af1e6d] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 16:17:58.452 WARN  [traceId=8bbd58da-0948-41d7-954c-54daf394c19e] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=8bbd58da-0948-41d7-954c-54daf394c19e | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 16:17:58.452 WARN  [traceId=8bbd58da-0948-41d7-954c-54daf394c19e] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 16:18:07.089 WARN  [traceId=fb2adf4f-2cba-4fad-8800-01bdd73ea122] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=fb2adf4f-2cba-4fad-8800-01bdd73ea122 | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 16:18:07.093 WARN  [traceId=fb2adf4f-2cba-4fad-8800-01bdd73ea122] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 16:18:38.984 WARN  [traceId=a540f035-21df-4e34-973a-9ee83801c377] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=a540f035-21df-4e34-973a-9ee83801c377 | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 16:18:38.986 WARN  [traceId=a540f035-21df-4e34-973a-9ee83801c377] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 16:30:16.902 WARN  [traceId=20925894-24d2-4014-8218-654c6c959259] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=20925894-24d2-4014-8218-654c6c959259 | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:30:16.905 WARN  [traceId=20925894-24d2-4014-8218-654c6c959259] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:30:16.949 WARN  [traceId=55fd4ae4-0252-48aa-a477-701489341715] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=55fd4ae4-0252-48aa-a477-701489341715 | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:30:16.950 WARN  [traceId=55fd4ae4-0252-48aa-a477-701489341715] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:30:16.998 WARN  [traceId=829bc6b3-a48a-4299-9d7e-72fe2e688b27] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=829bc6b3-a48a-4299-9d7e-72fe2e688b27 | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:30:16.999 WARN  [traceId=829bc6b3-a48a-4299-9d7e-72fe2e688b27] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:30:17.025 WARN  [traceId=178aaadf-eb3b-44fe-9d22-cacb9f67f13e] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=178aaadf-eb3b-44fe-9d22-cacb9f67f13e | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:30:17.025 WARN  [traceId=178aaadf-eb3b-44fe-9d22-cacb9f67f13e] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:30:39.316 WARN  [traceId=8cfe28f5-c770-471c-afa0-7db4d6ad714f] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=8cfe28f5-c770-471c-afa0-7db4d6ad714f | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 16:30:39.316 WARN  [traceId=8cfe28f5-c770-471c-afa0-7db4d6ad714f] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 16:30:52.658 WARN  [traceId=53356b32-bfb7-4107-8de6-38776ad0ba7a] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=53356b32-bfb7-4107-8de6-38776ad0ba7a | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:30:52.663 WARN  [traceId=53356b32-bfb7-4107-8de6-38776ad0ba7a] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:30:52.687 WARN  [traceId=1a68bc9b-90e8-4403-af73-e7c86217fe6e] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=1a68bc9b-90e8-4403-af73-e7c86217fe6e | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:30:52.688 WARN  [traceId=1a68bc9b-90e8-4403-af73-e7c86217fe6e] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:30:52.714 WARN  [traceId=912c6f54-57cf-4216-9f0e-6e0dafd79681] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=912c6f54-57cf-4216-9f0e-6e0dafd79681 | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:30:52.716 WARN  [traceId=912c6f54-57cf-4216-9f0e-6e0dafd79681] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:30:52.744 WARN  [traceId=1b0c4d60-4c50-4d1d-8db3-e1fafdfcb234] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=1b0c4d60-4c50-4d1d-8db3-e1fafdfcb234 | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 16:30:52.745 WARN  [traceId=1b0c4d60-4c50-4d1d-8db3-e1fafdfcb234] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 16:30:54.513 WARN  [traceId=7c1c8649-04d2-47af-8867-83db2b7e3e07] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=7c1c8649-04d2-47af-8867-83db2b7e3e07 | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 16:30:54.514 WARN  [traceId=7c1c8649-04d2-47af-8867-83db2b7e3e07] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 16:44:29.816 WARN  [traceId=70a26615-9492-4382-a08d-47bc965a2d2e] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=70a26615-9492-4382-a08d-47bc965a2d2e | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 16:44:29.816 WARN  [traceId=70a26615-9492-4382-a08d-47bc965a2d2e] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 16:44:29.816 ERROR [traceId=] [userId=] [ ] c.s.s.service.ErrorLogService - 에러 로그 저장 실패 (WARN): traceId=70a26615-9492-4382-a08d-47bc965a2d2e
+2026-05-24 22:04:10.625 WARN  [traceId=b2a4c6d3-a9be-4eab-a8ba-79d9b00b4d7d] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:04:10.864 ERROR [traceId=b1d29b91-c163-4046-9614-339d39246f7f] [userId=accia25@naver.com] [POST /api/v1/onboarding/submit] c.s.s.c.e.GlobalExceptionHandler - [SERVER-001] POST /api/v1/onboarding/submit | traceId=b1d29b91-c163-4046-9614-339d39246f7f | userId=accia25@naver.com
+-> Unable to connect to Redis
+org.springframework.data.redis.RedisConnectionFailureException: Unable to connect to Redis
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$ExceptionTranslatingConnectionProvider.translateException(LettuceConnectionFactory.java:1868)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$ExceptionTranslatingConnectionProvider.getConnection(LettuceConnectionFactory.java:1799)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$SharedConnection.getNativeConnection(LettuceConnectionFactory.java:1596)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$SharedConnection.lambda$getConnection$0(LettuceConnectionFactory.java:1576)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory.doInLock(LettuceConnectionFactory.java:1537)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$SharedConnection.getConnection(LettuceConnectionFactory.java:1573)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory.getSharedConnection(LettuceConnectionFactory.java:1258)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory.getConnection(LettuceConnectionFactory.java:1054)
+	at org.springframework.data.redis.core.RedisConnectionUtils.fetchConnection(RedisConnectionUtils.java:195)
+	at org.springframework.data.redis.core.RedisConnectionUtils.doGetConnection(RedisConnectionUtils.java:144)
+	at org.springframework.data.redis.core.RedisConnectionUtils.getConnection(RedisConnectionUtils.java:105)
+	at org.springframework.data.redis.core.RedisTemplate.execute(RedisTemplate.java:401)
+	at org.springframework.data.redis.core.RedisTemplate.execute(RedisTemplate.java:381)
+	at org.springframework.data.redis.core.RedisTemplate.doWithKeys(RedisTemplate.java:782)
+	at org.springframework.data.redis.core.RedisTemplate.delete(RedisTemplate.java:599)
+	at com.ssac.ssacbackend.service.HomeCacheEvictService.evict(HomeCacheEvictService.java:26)
+	at com.ssac.ssacbackend.service.OnboardingService.submit(OnboardingService.java:185)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:133)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:371)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:130)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.ssac.ssacbackend.service.OnboardingService$$SpringCGLIB$$0.submit(<generated>)
+	at com.ssac.ssacbackend.controller.OnboardingController.submit(OnboardingController.java:122)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:493)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:354)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:132)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at com.ssac.ssacbackend.config.MdcLoggingFilter.doFilterInternal(MdcLoggingFilter.java:51)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at com.ssac.ssacbackend.config.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:58)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at com.ssac.ssacbackend.config.OAuth2RedirectFilter.doFilterInternal(OAuth2RedirectFilter.java:45)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:245)
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:239)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter.doFilterInternal(OAuth2AuthorizationRequestRedirectFilter.java:195)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:337)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at com.ssac.ssacbackend.config.CorsRejectionFilter.doFilterInternal(CorsRejectionFilter.java:63)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1779)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:946)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: io.lettuce.core.RedisConnectionException: Unable to connect to localhost/<unresolved>:6379
+	at io.lettuce.core.RedisConnectionException.create(RedisConnectionException.java:63)
+	at io.lettuce.core.RedisConnectionException.create(RedisConnectionException.java:41)
+	at io.lettuce.core.AbstractRedisClient.getConnection(AbstractRedisClient.java:352)
+	at io.lettuce.core.RedisClient.connect(RedisClient.java:220)
+	at org.springframework.data.redis.connection.lettuce.StandaloneConnectionProvider.lambda$getConnection$1(StandaloneConnectionProvider.java:113)
+	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+	at org.springframework.data.redis.connection.lettuce.StandaloneConnectionProvider.getConnection(StandaloneConnectionProvider.java:113)
+	at org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory$ExceptionTranslatingConnectionProvider.getConnection(LettuceConnectionFactory.java:1797)
+	... 185 common frames omitted
+Caused by: io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: localhost/127.0.0.1:6379
+Caused by: java.net.ConnectException: Connection refused: getsockopt
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:672)
+	at java.base/sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:946)
+	at io.netty.channel.socket.nio.NioSocketChannel.doFinishConnect(NioSocketChannel.java:330)
+	at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.finishConnect(AbstractNioChannel.java:384)
+	at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.handle(AbstractNioChannel.java:432)
+	at io.netty.channel.nio.NioIoHandler$DefaultNioRegistration.handle(NioIoHandler.java:388)
+	at io.netty.channel.nio.NioIoHandler.processSelectedKey(NioIoHandler.java:596)
+	at io.netty.channel.nio.NioIoHandler.processSelectedKeysOptimized(NioIoHandler.java:571)
+	at io.netty.channel.nio.NioIoHandler.processSelectedKeys(NioIoHandler.java:512)
+	at io.netty.channel.nio.NioIoHandler.run(NioIoHandler.java:484)
+	at io.netty.channel.SingleThreadIoEventLoop.runIo(SingleThreadIoEventLoop.java:225)
+	at io.netty.channel.SingleThreadIoEventLoop.run(SingleThreadIoEventLoop.java:196)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:1195)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+2026-05-24 22:04:10.867 WARN  [traceId=b1d29b91-c163-4046-9614-339d39246f7f] [userId=accia25@naver.com] [POST /api/v1/onboarding/submit] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.data.redis.RedisConnectionFailureException: Unable to connect to Redis]
+2026-05-24 22:04:10.868 ERROR [traceId=] [userId=] [ ] c.s.s.service.ErrorLogService - 에러 로그 저장 실패 (ERROR): traceId=b1d29b91-c163-4046-9614-339d39246f7f
 java.lang.IllegalStateException: The request object has been recycled and is no longer associated with this facade
 	at org.apache.catalina.connector.RequestFacade.checkFacade(RequestFacade.java:609)
 	at org.apache.catalina.connector.RequestFacade.getMethod(RequestFacade.java:322)
 	at jakarta.servlet.http.HttpServletRequestWrapper.getMethod(HttpServletRequestWrapper.java:125)
 	at jakarta.servlet.http.HttpServletRequestWrapper.getMethod(HttpServletRequestWrapper.java:125)
 	at jakarta.servlet.http.HttpServletRequestWrapper.getMethod(HttpServletRequestWrapper.java:125)
-	at com.ssac.ssacbackend.service.ErrorLogService.saveWarn(ErrorLogService.java:41)
-	at jdk.internal.reflect.GeneratedMethodAccessor224.invoke(Unknown Source)
+	at com.ssac.ssacbackend.service.ErrorLogService.saveError(ErrorLogService.java:66)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
 	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
@@ -77,60 +488,34 @@ java.lang.IllegalStateException: The request object has been recycled and is no 
 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
 	at java.base/java.lang.Thread.run(Thread.java:840)
-2026-05-23 16:44:41.386 WARN  [traceId=f02b7c0e-6c51-4d18-afbd-5fd8e986018a] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=f02b7c0e-6c51-4d18-afbd-5fd8e986018a | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 16:44:41.390 WARN  [traceId=f02b7c0e-6c51-4d18-afbd-5fd8e986018a] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 17:06:23.625 WARN  [traceId=95645a30-deba-4624-a951-d667cebc17a4] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=95645a30-deba-4624-a951-d667cebc17a4 | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 17:06:23.625 WARN  [traceId=95645a30-deba-4624-a951-d667cebc17a4] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 17:06:29.898 WARN  [traceId=a257d347-c78b-4c43-9a9e-654d9810db8d] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=a257d347-c78b-4c43-9a9e-654d9810db8d | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 17:06:29.898 WARN  [traceId=a257d347-c78b-4c43-9a9e-654d9810db8d] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 18:49:25.498 WARN  [traceId=a91649e3-72b5-4294-94ca-d28705d7145e] [userId=anonymous] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-001] GET /api/v1/onboarding/questions | traceId=a91649e3-72b5-4294-94ca-d28705d7145e | userId=anonymous
--> 사용자 유형을 먼저 선택해주세요.
-2026-05-23 18:49:25.500 WARN  [traceId=a91649e3-72b5-4294-94ca-d28705d7145e] [userId=anonymous] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: 사용자 유형을 먼저 선택해주세요.]
-2026-05-23 18:49:30.145 WARN  [traceId=aad00109-a907-4f05-891d-5f39c62ffee2] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=aad00109-a907-4f05-891d-5f39c62ffee2 | userId=anonymous
+2026-05-24 22:22:15.081 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
+2026-05-24 22:22:15.162 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
+2026-05-24 22:22:18.357 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-24 22:22:51.559 WARN  [traceId=8dce0822-918f-41e2-863c-8f9a75864895] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=8dce0822-918f-41e2-863c-8f9a75864895 | userId=anonymous
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 18:49:30.145 WARN  [traceId=aad00109-a907-4f05-891d-5f39c62ffee2] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 18:49:30.210 WARN  [traceId=e871a482-303e-4fbe-9175-5531584f0b04] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=e871a482-303e-4fbe-9175-5531584f0b04 | userId=anonymous
+2026-05-24 22:22:51.576 WARN  [traceId=8dce0822-918f-41e2-863c-8f9a75864895] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:22:51.636 WARN  [traceId=4a57d441-1edd-4294-a0ba-af96a24dc27d] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=4a57d441-1edd-4294-a0ba-af96a24dc27d | userId=anonymous
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 18:49:30.212 WARN  [traceId=e871a482-303e-4fbe-9175-5531584f0b04] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 18:49:40.813 WARN  [traceId=4c2e1223-c906-4a56-8d8f-518037aba11a] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=4c2e1223-c906-4a56-8d8f-518037aba11a | userId=accia25@naver.com
+2026-05-24 22:22:51.640 WARN  [traceId=4a57d441-1edd-4294-a0ba-af96a24dc27d] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:22:52.601 WARN  [traceId=794fe2ef-d92b-47fb-9fcd-9284c04b1931] [userId=accia25@naver.com] [POST /api/v1/onboarding/submit] c.s.s.service.HomeCacheEvictService - 홈 캐시 무효화 실패 (Redis 연결 오류) - 무시하고 진행: userId=6
+2026-05-24 22:23:21.524 WARN  [traceId=80b074a4-e950-4c26-a35e-aaa6066be92e] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=80b074a4-e950-4c26-a35e-aaa6066be92e | userId=accia25@naver.com
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 18:49:40.814 WARN  [traceId=4c2e1223-c906-4a56-8d8f-518037aba11a] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 18:49:40.894 WARN  [traceId=47ae7ac4-a300-4711-88ce-3343eeb67cd2] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=47ae7ac4-a300-4711-88ce-3343eeb67cd2 | userId=accia25@naver.com
+2026-05-24 22:23:21.525 WARN  [traceId=80b074a4-e950-4c26-a35e-aaa6066be92e] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:23:21.628 WARN  [traceId=879560d5-9e7e-491e-a8bf-bf10c5b66c9f] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=879560d5-9e7e-491e-a8bf-bf10c5b66c9f | userId=accia25@naver.com
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 18:49:40.895 WARN  [traceId=47ae7ac4-a300-4711-88ce-3343eeb67cd2] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 18:49:40.955 WARN  [traceId=f652f7be-07f8-40f0-8055-2e33e0a2efec] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=f652f7be-07f8-40f0-8055-2e33e0a2efec | userId=accia25@naver.com
+2026-05-24 22:23:21.629 WARN  [traceId=879560d5-9e7e-491e-a8bf-bf10c5b66c9f] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:23:21.673 WARN  [traceId=c6a30b5a-d370-44d3-8c97-a7296c00c016] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=c6a30b5a-d370-44d3-8c97-a7296c00c016 | userId=accia25@naver.com
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 18:49:40.956 WARN  [traceId=f652f7be-07f8-40f0-8055-2e33e0a2efec] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 18:49:40.990 WARN  [traceId=81dd6efd-fa1d-4f8b-bd88-fba5a16e0ec6] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=81dd6efd-fa1d-4f8b-bd88-fba5a16e0ec6 | userId=accia25@naver.com
+2026-05-24 22:23:21.673 WARN  [traceId=c6a30b5a-d370-44d3-8c97-a7296c00c016] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:23:21.711 WARN  [traceId=f86577d7-5cb2-46ce-95db-3fcb5fd82829] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=f86577d7-5cb2-46ce-95db-3fcb5fd82829 | userId=accia25@naver.com
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 18:49:40.991 WARN  [traceId=81dd6efd-fa1d-4f8b-bd88-fba5a16e0ec6] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 18:49:48.851 WARN  [traceId=b228ce4a-8232-4f62-adef-bcb9f1a35c54] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=b228ce4a-8232-4f62-adef-bcb9f1a35c54 | userId=accia25@naver.com
+2026-05-24 22:23:21.712 WARN  [traceId=f86577d7-5cb2-46ce-95db-3fcb5fd82829] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:23:33.509 WARN  [traceId=9ad03f69-88f5-4ba3-9c05-f0406c05f271] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=9ad03f69-88f5-4ba3-9c05-f0406c05f271 | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-24 22:23:33.510 WARN  [traceId=9ad03f69-88f5-4ba3-9c05-f0406c05f271] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:23:33.536 WARN  [traceId=f3f50e71-0c1d-4ebf-ad6c-76074f592f6a] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=f3f50e71-0c1d-4ebf-ad6c-76074f592f6a | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-24 22:23:33.537 WARN  [traceId=f3f50e71-0c1d-4ebf-ad6c-76074f592f6a] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-24 22:23:38.884 WARN  [traceId=d9aae204-af00-4b2d-915e-1574cffa1e50] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=d9aae204-af00-4b2d-915e-1574cffa1e50 | userId=accia25@naver.com
 -> 이미 온보딩 테스트를 완료했습니다.
-2026-05-23 18:49:48.851 WARN  [traceId=b228ce4a-8232-4f62-adef-bcb9f1a35c54] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
-2026-05-23 18:49:54.106 WARN  [traceId=c9bc3305-ecdf-4246-b993-c323d7a1c699] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=c9bc3305-ecdf-4246-b993-c323d7a1c699 | userId=accia25@naver.com
--> 이미 온보딩 테스트를 완료했습니다.
-2026-05-23 18:49:54.106 WARN  [traceId=c9bc3305-ecdf-4246-b993-c323d7a1c699] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
-2026-05-23 19:07:15.790 WARN  [traceId=04ca652b-c3e9-491c-9fa1-802b5659735c] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=04ca652b-c3e9-491c-9fa1-802b5659735c | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 19:07:15.790 WARN  [traceId=04ca652b-c3e9-491c-9fa1-802b5659735c] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 19:07:15.892 WARN  [traceId=4abea5a3-6719-477c-b106-5f1037faff3b] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=4abea5a3-6719-477c-b106-5f1037faff3b | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 19:07:15.893 WARN  [traceId=4abea5a3-6719-477c-b106-5f1037faff3b] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 19:07:16.569 WARN  [traceId=926a661b-48cc-4544-89e1-4f810c121e40] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=926a661b-48cc-4544-89e1-4f810c121e40 | userId=accia25@naver.com
--> 이미 온보딩 테스트를 완료했습니다.
-2026-05-23 19:07:16.573 WARN  [traceId=926a661b-48cc-4544-89e1-4f810c121e40] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
-2026-05-23 19:10:40.992 WARN  [traceId=c2577315-6048-41f7-80bb-d18385f46129] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=c2577315-6048-41f7-80bb-d18385f46129 | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 19:10:40.992 WARN  [traceId=c2577315-6048-41f7-80bb-d18385f46129] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 19:10:41.097 WARN  [traceId=b68592ca-a9d4-4c23-9a51-0d8e35014bda] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=b68592ca-a9d4-4c23-9a51-0d8e35014bda | userId=anonymous
--> userId 또는 guestId 중 하나는 반드시 필요합니다.
-2026-05-23 19:10:41.098 WARN  [traceId=b68592ca-a9d4-4c23-9a51-0d8e35014bda] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
-2026-05-23 19:10:41.282 WARN  [traceId=77059808-b9c9-4a81-a6cc-983daa04f550] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=77059808-b9c9-4a81-a6cc-983daa04f550 | userId=accia25@naver.com
--> 이미 온보딩 테스트를 완료했습니다.
-2026-05-23 19:10:41.283 WARN  [traceId=77059808-b9c9-4a81-a6cc-983daa04f550] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
-2026-05-23 19:10:46.748 WARN  [traceId=3e83d629-5156-4a4f-adfc-cee0fc400dd7] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] c.s.s.c.e.GlobalExceptionHandler - [ONBOARDING-002] GET /api/v1/onboarding/questions | traceId=3e83d629-5156-4a4f-adfc-cee0fc400dd7 | userId=accia25@naver.com
--> 이미 온보딩 테스트를 완료했습니다.
-2026-05-23 19:10:46.749 WARN  [traceId=3e83d629-5156-4a4f-adfc-cee0fc400dd7] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
+2026-05-24 22:23:38.885 WARN  [traceId=d9aae204-af00-4b2d-915e-1574cffa1e50] [userId=accia25@naver.com] [GET /api/v1/onboarding/questions] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.ConflictException: 이미 온보딩 테스트를 완료했습니다.]
