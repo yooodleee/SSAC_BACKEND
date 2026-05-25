@@ -9,8 +9,8 @@
 #   삭제/변경 → Major 증가 (1.0.0 -> 2.0.0)
 #
 # 검증: ./gradlew validateErrorContract
-version: "1.0.9"
-updatedAt: "2026-05-21"
+version: "1.2.0"
+updatedAt: "2026-05-25"
 errors:
   - code: "COMMON-001"
     status: 400
@@ -139,7 +139,22 @@ errors:
 
   - code: "CONTENT-001"
     status: 404
-    message: "진행 중인 콘텐츠를 찾을 수 없습니다."
+    message: "존재하지 않는 콘텐츠입니다."
+    domain: "CONTENT"
+
+  - code: "CONTENT-002"
+    status: 400
+    message: "허용되지 않는 파일 형식입니다."
+    domain: "CONTENT"
+
+  - code: "CONTENT-003"
+    status: 400
+    message: "게시할 도메인을 하나 이상 선택해주세요."
+    domain: "CONTENT"
+
+  - code: "CONTENT-004"
+    status: 500
+    message: "Notion 동기화 중 오류가 발생했습니다."
     domain: "CONTENT"
 
   - code: "EVENT-001"
@@ -216,6 +231,41 @@ errors:
     status: 401
     message: "이메일 또는 비밀번호가 올바르지 않습니다."
     domain: "AUTH"
+
+  - code: "ONBOARDING-001"
+    status: 400
+    message: "사용자 유형을 먼저 선택해주세요."
+    domain: "ONBOARDING"
+
+  - code: "ONBOARDING-002"
+    status: 409
+    message: "이미 온보딩 테스트를 완료했습니다."
+    domain: "ONBOARDING"
+
+  - code: "ONBOARDING-003"
+    status: 400
+    message: "모든 문제에 응답해주세요."
+    domain: "ONBOARDING"
+
+  - code: "ONBOARDING-004"
+    status: 400
+    message: "유효하지 않은 문제입니다."
+    domain: "ONBOARDING"
+
+  - code: "ONBOARDING-005"
+    status: 400
+    message: "사용자 유형에 맞지 않는 문제입니다."
+    domain: "ONBOARDING"
+
+  - code: "ONBOARDING-006"
+    status: 409
+    message: "완료된 온보딩 테스트가 없습니다."
+    domain: "ONBOARDING"
+
+  - code: "ONBOARDING-007"
+    status: 400
+    message: "관심 도메인은 1개 이상 3개 이하로 선택해주세요."
+    domain: "ONBOARDING"
 
   - code: "FEEDBACK-001"
     status: 400

@@ -162,7 +162,20 @@
       "Bash(GET /api/v1/search)",
       "Bash(GET /api/v1/onboarding/questions)",
       "Bash(OnboardingControllerTest.java)",
-      "Bash(RbacIntegrationTest)"
+      "Bash(RbacIntegrationTest)",
+      "Bash(./gradlew validateErrorContract)",
+      "Bash(./gradlew verify:*)",
+      "Bash(./gradlew checkstyleMain checkstyleTest compileJava validateErrorContract)",
+      "Bash(AdminContent)",
+      "Bash(ContentStatus)",
+      "Bash(admin_contents)",
+      "Bash(./gradlew checkstyleMain checkstyleTest compileJava test jacocoTestReport jacocoTestCoverageVerification validateErrorContract)",
+      "Bash(javap -classpath \"/c/Users/LEGION/.gradle/caches/modules-2/files-2.1/com.github.seratch/notion-sdk-jvm-core/1.1.0/a2934f8d912c9f9a66cae3fa361d28dbe03f5fba/notion-sdk-jvm-core-1.1.0.jar\" \"notion.api.v1.model.pages.PageProperty\")",
+      "Bash(javap -classpath /c/Users/LEGION/.gradle/caches/modules-2/files-2.1/com.github.seratch/notion-sdk-jvm-core/1.1.0/a2934f8d912c9f9a66cae3fa361d28dbe03f5fba/notion-sdk-jvm-core-1.1.0.jar 'notion.api.v1.model.pages.PageProperty$RichText')",
+      "Bash(javap -classpath /c/Users/LEGION/.gradle/caches/modules-2/files-2.1/com.github.seratch/notion-sdk-jvm-core/1.1.0/a2934f8d912c9f9a66cae3fa361d28dbe03f5fba/notion-sdk-jvm-core-1.1.0.jar 'notion.api.v1.model.databases.DatabaseProperty$Select$Option')",
+      "Bash(./gradlew checkstyleTest)",
+      "Bash(./gradlew cleanTest test --tests \"com.ssac.ssacbackend.service.NotionSyncServiceTest\")",
+      "Bash(./gradlew checkstyleMain checkstyleTest jacocoTestReport jacocoTestCoverageVerification)"
     ]
   }
 }

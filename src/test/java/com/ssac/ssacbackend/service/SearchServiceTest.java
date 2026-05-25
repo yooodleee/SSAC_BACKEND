@@ -12,7 +12,6 @@ import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.search.SearchKeyword;
-import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.SearchResultResponse;
 import com.ssac.ssacbackend.dto.response.SearchSuggestionResponse;
 import com.ssac.ssacbackend.repository.ContentRepository;
@@ -49,7 +48,7 @@ class SearchServiceTest {
     void 검색어_자동완성_가나다순() {
         Content c1 = makeContent(1L, "재테크 기초", "재테크/신용", 100);
         Content c2 = makeContent(2L, "개인연금 가이드", "재테크/신용", 200);
-        given(contentRepository.findByTitleContainingOrdered("연"))
+        given(contentRepository.findByIsPublishedTrueAndTitleContaining("연"))
             .willReturn(List.of(c2, c1));
 
         SearchSuggestionResponse result = searchService.getSuggestions("연");
@@ -64,7 +63,7 @@ class SearchServiceTest {
     void 초성_ㄱ_검색() {
         Content c1 = makeContent(1L, "개인연금", "재테크/신용", 100);
         Content c2 = makeContent(2L, "근로장려금", "재테크/신용", 200);
-        given(contentRepository.findByChosungContainingOrdered("ㄱ"))
+        given(contentRepository.findByIsPublishedTrueAndTitleContaining("ㄱ"))
             .willReturn(List.of(c1, c2));
 
         SearchSuggestionResponse result = searchService.getSuggestions("ㄱ");
@@ -95,7 +94,7 @@ class SearchServiceTest {
         List<Content> manyContents = IntStream.rangeClosed(1, 15)
             .mapToObj(i -> makeContent((long) i, "연말정산" + i, "세금/연말정산", i * 10))
             .toList();
-        given(contentRepository.findByTitleContainingOrdered("연말"))
+        given(contentRepository.findByIsPublishedTrueAndTitleContaining("연말"))
             .willReturn(manyContents);
 
         SearchSuggestionResponse result = searchService.getSuggestions("연말");
@@ -110,7 +109,7 @@ class SearchServiceTest {
     @DisplayName("검색 결과가 있는 경우 정상 응답된다")
     void 검색_결과_있음() {
         Content c = makeContent(1L, "연말정산 공제 항목", "세금/연말정산", 50);
-        given(contentRepository.findByTitleContainingOrderedPaged(eq("연말정산"), any(Pageable.class)))
+        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(eq("연말정산"), any(Pageable.class)))
             .willReturn(new PageImpl<>(List.of(c)));
         given(searchKeywordRepository.findByKeyword("연말정산")).willReturn(Optional.empty());
 
@@ -126,7 +125,7 @@ class SearchServiceTest {
     @Test
     @DisplayName("검색 결과가 없는 경우 totalCount 0으로 응답된다")
     void 검색_결과_없음() {
-        given(contentRepository.findByTitleContainingOrderedPaged(eq("없는키워드"), any(Pageable.class)))
+        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(eq("없는키워드"), any(Pageable.class)))
             .willReturn(new PageImpl<>(List.of()));
         given(searchKeywordRepository.findByKeyword("없는키워드")).willReturn(Optional.empty());
 
@@ -140,7 +139,7 @@ class SearchServiceTest {
     @DisplayName("검색 제출 시 기존 키워드의 searchCount가 증가한다")
     void 검색_제출_searchCount_증가() {
         SearchKeyword keyword = makeSearchKeyword("연말정산", 5);
-        given(contentRepository.findByTitleContainingOrderedPaged(eq("연말정산"), any(Pageable.class)))
+        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(eq("연말정산"), any(Pageable.class)))
             .willReturn(new PageImpl<>(List.of()));
         given(searchKeywordRepository.findByKeyword("연말정산")).willReturn(Optional.of(keyword));
 
@@ -158,20 +157,17 @@ class SearchServiceTest {
                 .isEqualTo(ErrorCode.SEARCH_QUERY_REQUIRED));
 
         verify(contentRepository, never())
-            .findByTitleContainingOrderedPaged(any(), any());
+            .findByIsPublishedTrueAndTitleContainingPaged(any(), any());
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────
 
     private Content makeContent(Long id, String title, String category, long viewCount) {
-        Content c = Content.builder()
-            .title(title)
-            .category(category)
-            .difficulty(UserLevel.SEED)
-            .estimatedMinutes(3)
-            .build();
+        Content c = Content.fromNotion("page-" + id, "db-id");
         ReflectionTestUtils.setField(c, "id", id);
-        ReflectionTestUtils.setField(c, "viewCount", viewCount);
+        ReflectionTestUtils.setField(c, "title", title);
+        ReflectionTestUtils.setField(c, "categories", List.of(category));
+        ReflectionTestUtils.setField(c, "domains", List.of());
         return c;
     }
 
