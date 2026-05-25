@@ -1,26 +1,31 @@
 package com.ssac.ssacbackend.domain.content;
 
-import com.ssac.ssacbackend.domain.user.UserLevel;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 학습 콘텐츠 엔티티.
  *
- * <p>카테고리와 난이도 기반으로 사용자에게 추천된다.
+ * <p>Notion 데이터베이스와 동기화되며, NotionSyncService가 1시간마다 갱신한다.
+ * 콘텐츠 편집은 Notion에서만 이루어지고 BE는 조회·제공만 담당한다.
  */
 @Entity
 @Table(name = "contents")
@@ -28,73 +33,97 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Content {
 
-    private static final char[] CHOSUNG_LIST = {
-        'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ',
-        'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
-    };
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
+    @Column(length = 500)
     private String title;
 
-    @Column(length = 50)
-    private String category;
+    @Column(name = "notion_page_id", length = 100, unique = true)
+    private String notionPageId;
+
+    @Column(name = "notion_database_id", length = 100)
+    private String notionDatabaseId;
+
+    @Column(name = "thumbnail_url", length = 1000)
+    private String thumbnailUrl;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "content_categories", joinColumns = @JoinColumn(name = "content_id"))
+    @Column(name = "category", length = 50)
+    private List<String> categories = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "content_domains", joinColumns = @JoinColumn(name = "content_id"))
+    @Column(name = "domain", length = 50)
+    private List<String> domains = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private UserLevel difficulty;
+    private ContentDifficulty difficulty;
 
-    @Column(name = "estimated_minutes")
-    private int estimatedMinutes;
+    @Column(name = "is_published", nullable = false)
+    private boolean isPublished = false;
 
-    @Column(name = "view_count", nullable = false)
-    private long viewCount;
+    @Column(name = "notion_created_at")
+    private LocalDateTime notionCreatedAt;
 
-    @Column(name = "title_chosung", length = 255)
-    private String titleChosung;
+    @Column(name = "notion_last_edited_at")
+    private LocalDateTime notionLastEditedAt;
+
+    @Column(name = "synced_at")
+    private LocalDateTime syncedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Builder
-    public Content(String title, String category, UserLevel difficulty, int estimatedMinutes) {
-        this.title = title;
-        this.category = category;
-        this.difficulty = difficulty;
-        this.estimatedMinutes = estimatedMinutes;
-        this.viewCount = 0;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    /**
+     * Notion 페이지 ID 기반으로 빈 콘텐츠를 생성한다.
+     */
+    public static Content fromNotion(String notionPageId, String notionDatabaseId) {
+        Content content = new Content();
+        content.notionPageId = notionPageId;
+        content.notionDatabaseId = notionDatabaseId;
+        return content;
     }
 
-    public void incrementViewCount() {
-        this.viewCount++;
+    /**
+     * Notion 데이터로 콘텐츠 필드를 갱신한다.
+     */
+    public void syncFromNotion(String title, String thumbnailUrl, List<String> categories,
+                                List<String> domains, ContentDifficulty difficulty,
+                                boolean isPublished, LocalDateTime notionCreatedAt,
+                                LocalDateTime notionLastEditedAt) {
+        this.title = title;
+        this.thumbnailUrl = thumbnailUrl;
+        this.categories = new ArrayList<>(categories);
+        this.domains = new ArrayList<>(domains);
+        this.difficulty = difficulty;
+        this.isPublished = isPublished;
+        this.notionCreatedAt = notionCreatedAt;
+        this.notionLastEditedAt = notionLastEditedAt;
+        this.syncedAt = LocalDateTime.now();
+    }
+
+    /**
+     * categories 컬렉션의 첫 번째 값을 반환한다. 이전 코드와의 호환성을 위해 제공한다.
+     */
+    public String getFirstCategory() {
+        return categories.isEmpty() ? null : categories.get(0);
     }
 
     @PrePersist
     private void prePersist() {
         this.createdAt = LocalDateTime.now();
-        this.titleChosung = extractChosung(this.title);
+        this.updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     private void preUpdate() {
-        this.titleChosung = extractChosung(this.title);
-    }
-
-    private static String extractChosung(String text) {
-        if (text == null) {
-            return null;
-        }
-        StringBuilder result = new StringBuilder();
-        for (char c : text.toCharArray()) {
-            if (c >= 0xAC00 && c <= 0xD7A3) {
-                result.append(CHOSUNG_LIST[(c - 0xAC00) / 588]);
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
+        this.updatedAt = LocalDateTime.now();
     }
 }

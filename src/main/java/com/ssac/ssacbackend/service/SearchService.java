@@ -2,7 +2,6 @@ package com.ssac.ssacbackend.service;
 
 import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
-import com.ssac.ssacbackend.common.util.ChosungUtils;
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentCategory;
 import com.ssac.ssacbackend.domain.search.SearchKeyword;
@@ -62,22 +61,20 @@ public class SearchService {
     }
 
     private SearchSuggestionResponse getContentSuggestions(String query) {
-        List<Content> contents;
-        if (ChosungUtils.isAllChosung(query)) {
-            contents = contentRepository.findByChosungContainingOrdered(query);
-        } else {
-            contents = contentRepository.findByTitleContainingOrdered(query);
-        }
+        List<Content> contents = contentRepository.findByIsPublishedTrueAndTitleContaining(query);
 
         List<SuggestionItem> items = contents.stream()
             .limit(SUGGESTION_LIMIT)
-            .map(c -> new SuggestionItem(
-                String.valueOf(c.getId()),
-                c.getTitle(),
-                c.getCategory(),
-                getCategoryEmoji(c.getCategory()),
-                c.getViewCount()
-            ))
+            .map(c -> {
+                String category = c.getFirstCategory();
+                return new SuggestionItem(
+                    String.valueOf(c.getId()),
+                    c.getTitle(),
+                    category,
+                    getCategoryEmoji(category),
+                    0L
+                );
+            })
             .toList();
 
         return new SearchSuggestionResponse(query, items, items.size());
@@ -95,7 +92,7 @@ public class SearchService {
         String trimmed = query.trim();
         trackSearchKeyword(trimmed);
 
-        Page<Content> contentPage = contentRepository.findByTitleContainingOrderedPaged(
+        Page<Content> contentPage = contentRepository.findByIsPublishedTrueAndTitleContainingPaged(
             trimmed, PageRequest.of(page - 1, size));
 
         List<SearchItem> results = contentPage.getContent().stream()
@@ -122,15 +119,16 @@ public class SearchService {
     private SearchItem toSearchItem(Content c, String query) {
         String difficultyName = c.getDifficulty() != null ? c.getDifficulty().name() : null;
         String difficultyLabel = difficultyName != null ? DIFFICULTY_LABEL.get(difficultyName) : null;
+        String category = c.getFirstCategory();
         return new SearchItem(
             String.valueOf(c.getId()),
             c.getTitle(),
-            c.getCategory(),
-            getCategoryEmoji(c.getCategory()),
+            category,
+            getCategoryEmoji(category),
             difficultyName,
             difficultyLabel,
-            c.getEstimatedMinutes(),
-            buildHighlightedTitle(c.getTitle(), query)
+            0,
+            buildHighlightedTitle(c.getTitle() != null ? c.getTitle() : "", query)
         );
     }
 

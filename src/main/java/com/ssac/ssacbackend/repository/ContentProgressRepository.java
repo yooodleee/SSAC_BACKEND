@@ -1,7 +1,7 @@
 package com.ssac.ssacbackend.repository;
 
 import com.ssac.ssacbackend.domain.content.ContentProgress;
-import com.ssac.ssacbackend.domain.user.UserLevel;
+import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -79,7 +79,7 @@ public interface ContentProgressRepository extends JpaRepository<ContentProgress
           AND cp.contentId IN (SELECT c.id FROM Content c WHERE c.difficulty = :difficulty)
         """)
     long countCompletedByUserEmailAndDifficulty(
-        @Param("email") String email, @Param("difficulty") UserLevel difficulty);
+        @Param("email") String email, @Param("difficulty") ContentDifficulty difficulty);
 
     /**
      * 학습 활동 타임스탬프 목록 반환(연속 학습일 계산용).

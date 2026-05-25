@@ -59,7 +59,10 @@ public enum ErrorCode {
     QUIZ_QUESTION_MISMATCH("QUIZ-003", 400, "퀴즈에 속하지 않는 문항입니다."),
 
     // ── 콘텐츠 (CONTENT) ──────────────────────────────────────────────────────
-    CONTENT_NOT_FOUND("CONTENT-001", 404, "진행 중인 콘텐츠를 찾을 수 없습니다."),
+    CONTENT_NOT_FOUND("CONTENT-001", 404, "존재하지 않는 콘텐츠입니다."),
+    CONTENT_INVALID_FILE_TYPE("CONTENT-002", 400, "허용되지 않는 파일 형식입니다."),
+    CONTENT_DOMAIN_EMPTY("CONTENT-003", 400, "게시할 도메인을 하나 이상 선택해주세요."),
+    CONTENT_NOTION_SYNC_ERROR("CONTENT-004", 500, "Notion 동기화 중 오류가 발생했습니다."),
 
     // ── 이벤트 (EVENT) ────────────────────────────────────────────────────────
     INVALID_EVENT_DATA("EVENT-001", 400, "userId 또는 guestId 중 하나는 반드시 필요합니다."),

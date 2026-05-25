@@ -105,8 +105,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/onboarding/questions").permitAll()
                 // 온보딩 테스트: 로그인 회원만 허용 (GUEST 차단)
                 .requestMatchers("/api/v1/onboarding/**").hasAnyRole("USER", "ADMIN")
-                // 홈 화면 / 콘텐츠 목록 / 콘텐츠 완료: 로그인 회원만 허용
-                .requestMatchers("/api/v1/home", "/api/v1/contents").hasAnyRole("USER", "ADMIN")
+                // 홈 화면: 로그인 회원만 허용
+                .requestMatchers("/api/v1/home").hasAnyRole("USER", "ADMIN")
+                // 콘텐츠 목록 / 상세 조회: 비로그인 포함 전체 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/contents", "/api/v1/contents/**")
+                    .permitAll()
+                // 콘텐츠 완료 / 조회 이력: 로그인 회원만 허용
                 .requestMatchers(HttpMethod.POST, "/api/v1/contents/**").hasAnyRole("USER", "ADMIN")
                 // 마이페이지 / 관심 도메인 수정 / 사용자 유형 변경: 로그인 회원만 허용
                 .requestMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")

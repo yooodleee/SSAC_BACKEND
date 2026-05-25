@@ -46,6 +46,11 @@ dependencies {
     // flyway-core만 선언 시 FlywayAutoConfiguration이 로드되지 않아 마이그레이션 미실행
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.flywaydb:flyway-mysql'
+    // Cloudinary SDK (이미지 업로드)
+    implementation 'com.cloudinary:cloudinary-http44:1.38.0'
+    // Notion SDK (콘텐츠 동기화)
+    implementation 'com.github.seratch:notion-sdk-jvm-core:1.1.0'
+    implementation 'com.github.seratch:notion-sdk-jvm-okhttp4:1.1.0'
     // JWT 토큰 생성 및 검증 (SSACEBE-10)
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
@@ -68,6 +73,8 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
     // ArchUnit: 레이어 의존성 규칙 강제 (docs/architecture.md 참고)
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
+    // Objenesis: Kotlin final 클래스 인스턴스 생성 (테스트 헬퍼용)
+    testImplementation 'org.objenesis:objenesis:3.3'
 }
 
 tasks.named('test') {
@@ -88,6 +95,18 @@ tasks.named('bootRun') {
     // 운영/CI 환경에서는 SPRING_PROFILES_ACTIVE 환경 변수로 재정의할 것.
     systemProperty 'spring.profiles.active',
         System.getenv('SPRING_PROFILES_ACTIVE') ?: 'local'
+}
+
+// ── 테스트 JVM 설정 ──────────────────────────────────────────────────────────
+// byte-buddy-agent를 Java Agent로 로드해 Mockito InlineMockMaker가 Kotlin final 클래스를 목(Mock)할 수 있게 한다.
+tasks.named('test') {
+    doFirst {
+        def agentJar = configurations.testRuntimeClasspath.resolvedConfiguration.resolvedArtifacts
+            .find { it.name == 'byte-buddy-agent' }?.file
+        if (agentJar) {
+            jvmArgs "-javaagent:${agentJar}"
+        }
+    }
 }
 
 checkstyle {

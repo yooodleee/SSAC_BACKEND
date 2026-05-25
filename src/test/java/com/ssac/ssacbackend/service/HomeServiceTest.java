@@ -11,6 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
 import com.ssac.ssacbackend.domain.content.Content;
+import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.domain.user.UserRole;
@@ -101,7 +102,7 @@ class HomeServiceTest {
             Object result = homeService.getHome("test@test.com");
 
             assertThat(result).isSameAs(cached);
-            then(contentRepository).should(never()).findByDifficultyOrderByViewCountDesc(any());
+            then(contentRepository).should(never()).findByDifficultyPublished(any());
         }
 
         @Test
@@ -115,8 +116,8 @@ class HomeServiceTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail(anyString()))
                 .willReturn(List.of());
             given(valueOps.get("home:rec_history:1")).willReturn(null);
-            given(contentRepository.findByDifficultyOrderByViewCountDesc(any())).willReturn(List.of());
-            given(contentRepository.findAllByOrderByViewCountDesc()).willReturn(List.of());
+            given(contentRepository.findByDifficultyPublished(any())).willReturn(List.of());
+            given(contentRepository.findAllPublishedOrderByLastEdited()).willReturn(List.of());
             given(contentProgressRepository.findContinueLearning(anyString(), any()))
                 .willReturn(List.of());
             given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
@@ -146,13 +147,13 @@ class HomeServiceTest {
                 .willReturn(List.of());
             given(valueOps.get("home:rec_history:2")).willReturn(null);
 
-            Content content = mockContent(10L, "투자 기초", "finance", UserLevel.SPROUT);
-            given(contentRepository.findByCategoryInAndDifficultyOrderByViewCountDesc(
-                eq(List.of("finance")), eq(UserLevel.SPROUT)))
+            Content content = mockContent(10L, "투자 기초", "finance", ContentDifficulty.SPROUT);
+            given(contentRepository.findByCategoriesInAndDifficultyPublished(
+                eq(List.of("finance")), eq(ContentDifficulty.SPROUT)))
                 .willReturn(List.of(content));
-            given(contentRepository.findByDifficultyOrderByViewCountDesc(UserLevel.SPROUT))
+            given(contentRepository.findByDifficultyPublished(ContentDifficulty.SPROUT))
                 .willReturn(List.of());
-            given(contentRepository.findAllByOrderByViewCountDesc()).willReturn(List.of());
+            given(contentRepository.findAllPublishedOrderByLastEdited()).willReturn(List.of());
             given(contentProgressRepository.findContinueLearning(anyString(), any()))
                 .willReturn(List.of());
             given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
@@ -179,11 +180,11 @@ class HomeServiceTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test3@test.com"))
                 .willReturn(List.of(100L));
 
-            Content completedContent = mockContent(100L, "완료된 콘텐츠", "finance", UserLevel.SEED);
-            Content newContent = mockContent(200L, "새 콘텐츠", "finance", UserLevel.SEED);
-            given(contentRepository.findByDifficultyOrderByViewCountDesc(UserLevel.SEED))
+            Content completedContent = mockContent(100L, "완료된 콘텐츠", "finance", ContentDifficulty.SEED);
+            Content newContent = mockContent(200L, "새 콘텐츠", "finance", ContentDifficulty.SEED);
+            given(contentRepository.findByDifficultyPublished(ContentDifficulty.SEED))
                 .willReturn(List.of(completedContent, newContent));
-            given(contentRepository.findAllByOrderByViewCountDesc())
+            given(contentRepository.findAllPublishedOrderByLastEdited())
                 .willReturn(List.of(completedContent, newContent));
             given(contentProgressRepository.findContinueLearning(anyString(), any()))
                 .willReturn(List.of());
@@ -212,13 +213,13 @@ class HomeServiceTest {
                 .willReturn(List.of());
 
             // SEED 레벨 콘텐츠 없음
-            given(contentRepository.findByDifficultyOrderByViewCountDesc(UserLevel.SEED))
+            given(contentRepository.findByDifficultyPublished(ContentDifficulty.SEED))
                 .willReturn(List.of());
-            given(contentRepository.findAllByOrderByViewCountDesc()).willReturn(List.of());
+            given(contentRepository.findAllPublishedOrderByLastEdited()).willReturn(List.of());
 
             // SPROUT 레벨 미리보기 콘텐츠
-            Content previewContent = mockContent(500L, "SPROUT 미리보기", "finance", UserLevel.SPROUT);
-            given(contentRepository.findByDifficultyOrderByViewCountDesc(UserLevel.SPROUT))
+            Content previewContent = mockContent(500L, "SPROUT 미리보기", "finance", ContentDifficulty.SPROUT);
+            given(contentRepository.findByDifficultyPublished(ContentDifficulty.SPROUT))
                 .willReturn(List.of(previewContent));
             given(contentProgressRepository.findContinueLearning(anyString(), any()))
                 .willReturn(List.of());
@@ -243,8 +244,8 @@ class HomeServiceTest {
             given(valueOps.get("home:rec_history:5")).willReturn(null);
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test5@test.com"))
                 .willReturn(List.of());
-            given(contentRepository.findByDifficultyOrderByViewCountDesc(any())).willReturn(List.of());
-            given(contentRepository.findAllByOrderByViewCountDesc()).willReturn(List.of());
+            given(contentRepository.findByDifficultyPublished(any())).willReturn(List.of());
+            given(contentRepository.findAllPublishedOrderByLastEdited()).willReturn(List.of());
             given(contentProgressRepository.findContinueLearning(anyString(), any()))
                 .willReturn(List.of());
             given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
@@ -269,10 +270,10 @@ class HomeServiceTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test6@test.com"))
                 .willReturn(List.of());
 
-            Content treeContent = mockContent(700L, "TREE 콘텐츠", "finance", UserLevel.TREE);
-            given(contentRepository.findByDifficultyOrderByViewCountDesc(UserLevel.TREE))
+            Content treeContent = mockContent(700L, "TREE 콘텐츠", "finance", ContentDifficulty.TREE);
+            given(contentRepository.findByDifficultyPublished(ContentDifficulty.TREE))
                 .willReturn(List.of(treeContent));
-            given(contentRepository.findAllByOrderByViewCountDesc()).willReturn(List.of());
+            given(contentRepository.findAllPublishedOrderByLastEdited()).willReturn(List.of());
             given(contentProgressRepository.findContinueLearning(anyString(), any()))
                 .willReturn(List.of());
             given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
@@ -298,13 +299,13 @@ class HomeServiceTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test7@test.com"))
                 .willReturn(List.of());
 
-            Content resumeContent = mockContent(800L, "이력서 작성", "resume", UserLevel.SEED);
-            given(contentRepository.findByCategoryInAndDifficultyOrderByViewCountDesc(
-                eq(List.of("resume")), eq(UserLevel.SEED)))
+            Content resumeContent = mockContent(800L, "이력서 작성", "resume", ContentDifficulty.SEED);
+            given(contentRepository.findByCategoriesInAndDifficultyPublished(
+                eq(List.of("resume")), eq(ContentDifficulty.SEED)))
                 .willReturn(List.of(resumeContent));
-            given(contentRepository.findByDifficultyOrderByViewCountDesc(UserLevel.SEED))
+            given(contentRepository.findByDifficultyPublished(ContentDifficulty.SEED))
                 .willReturn(List.of());
-            given(contentRepository.findAllByOrderByViewCountDesc()).willReturn(List.of());
+            given(contentRepository.findAllPublishedOrderByLastEdited()).willReturn(List.of());
             given(contentProgressRepository.findContinueLearning(anyString(), any()))
                 .willReturn(List.of());
             given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
@@ -332,13 +333,12 @@ class HomeServiceTest {
         return user;
     }
 
-    private Content mockContent(Long id, String title, String category, UserLevel difficulty) {
+    private Content mockContent(Long id, String title, String category, ContentDifficulty difficulty) {
         Content content = mock(Content.class);
         given(content.getId()).willReturn(id);
         given(content.getTitle()).willReturn(title);
-        given(content.getCategory()).willReturn(category);
+        given(content.getFirstCategory()).willReturn(category);
         given(content.getDifficulty()).willReturn(difficulty);
-        given(content.getEstimatedMinutes()).willReturn(5);
         return content;
     }
 

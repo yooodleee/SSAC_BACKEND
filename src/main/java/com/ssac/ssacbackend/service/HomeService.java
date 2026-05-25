@@ -4,6 +4,7 @@ import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentCategory;
+import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.domain.onboarding.LevelInfo;
 import com.ssac.ssacbackend.domain.quiz.Quiz;
 import com.ssac.ssacbackend.domain.user.User;
@@ -158,8 +159,10 @@ public class HomeService {
         Set<Long> addedIds = new LinkedHashSet<>();
         List<RecommendedContentDto> result = new ArrayList<>();
 
+        ContentDifficulty contentDiff = toContentDifficulty(level);
+
         if (!interestDomains.isEmpty()) {
-            contentRepository.findByCategoryInAndDifficultyOrderByViewCountDesc(interestDomains, level)
+            contentRepository.findByCategoriesInAndDifficultyPublished(interestDomains, contentDiff)
                 .stream()
                 .filter(c -> !excludedIds.contains(c.getId()))
                 .limit(RECOMMENDED_MAX)
@@ -170,7 +173,7 @@ public class HomeService {
         }
 
         if (result.size() < RECOMMENDED_MAX) {
-            contentRepository.findByDifficultyOrderByViewCountDesc(level)
+            contentRepository.findByDifficultyPublished(contentDiff)
                 .stream()
                 .filter(c -> !excludedIds.contains(c.getId()) && !addedIds.contains(c.getId()))
                 .limit((long) RECOMMENDED_MAX - result.size())
@@ -181,7 +184,7 @@ public class HomeService {
         }
 
         if (result.size() < RECOMMENDED_MAX) {
-            contentRepository.findAllByOrderByViewCountDesc()
+            contentRepository.findAllPublishedOrderByLastEdited()
                 .stream()
                 .filter(c -> !excludedIds.contains(c.getId()) && !addedIds.contains(c.getId()))
                 .limit((long) RECOMMENDED_MAX - result.size())
@@ -195,7 +198,7 @@ public class HomeService {
         if (result.size() < RECOMMENDED_MAX) {
             UserLevel nextLevel = nextLevel(level);
             if (nextLevel != null) {
-                contentRepository.findByDifficultyOrderByViewCountDesc(nextLevel)
+                contentRepository.findByDifficultyPublished(toContentDifficulty(nextLevel))
                     .stream()
                     .filter(c -> !addedIds.contains(c.getId()))
                     .limit((long) RECOMMENDED_MAX - result.size())
@@ -208,15 +211,16 @@ public class HomeService {
 
     private RecommendedContentDto toRecommendedDto(
         Content content, boolean completed, boolean isPreview) {
-        String emoji = ContentCategory.findById(content.getCategory())
+        String category = content.getFirstCategory();
+        String emoji = ContentCategory.findById(category)
             .map(ContentCategory::getEmoji).orElse("");
         return new RecommendedContentDto(
             String.valueOf(content.getId()),
             content.getTitle(),
-            content.getCategory(),
+            category,
             emoji,
             difficultyLabel(content.getDifficulty()),
-            content.getEstimatedMinutes(),
+            0,
             completed,
             isPreview
         );
@@ -237,22 +241,24 @@ public class HomeService {
 
         List<Content> candidates = new ArrayList<>();
 
+        ContentDifficulty contentDiff = toContentDifficulty(level);
+
         if (!interestDomains.isEmpty()) {
-            contentRepository.findByCategoryInAndDifficultyOrderByViewCountDesc(interestDomains, level)
+            contentRepository.findByCategoriesInAndDifficultyPublished(interestDomains, contentDiff)
                 .stream()
                 .filter(c -> !completedIds.contains(c.getId()))
                 .forEach(candidates::add);
         }
 
         if (candidates.isEmpty()) {
-            contentRepository.findByDifficultyOrderByViewCountDesc(level)
+            contentRepository.findByDifficultyPublished(contentDiff)
                 .stream()
                 .filter(c -> !completedIds.contains(c.getId()))
                 .forEach(candidates::add);
         }
 
         if (candidates.isEmpty()) {
-            contentRepository.findAllByOrderByViewCountDesc()
+            contentRepository.findAllPublishedOrderByLastEdited()
                 .stream()
                 .filter(c -> !completedIds.contains(c.getId()))
                 .forEach(candidates::add);
@@ -264,15 +270,16 @@ public class HomeService {
 
         int index = deterministicIndex(userId, candidates.size());
         Content picked = candidates.get(index);
-        String emoji = ContentCategory.findById(picked.getCategory())
+        String category = picked.getFirstCategory();
+        String emoji = ContentCategory.findById(category)
             .map(ContentCategory::getEmoji).orElse("");
 
         return new TodayCardDto(
             String.valueOf(picked.getId()),
             picked.getTitle(),
-            picked.getCategory(),
+            category,
             emoji,
-            picked.getEstimatedMinutes()
+            0
         );
     }
 
@@ -325,7 +332,7 @@ public class HomeService {
                 cat.getId(),
                 cat.getName(),
                 cat.getEmoji(),
-                contentRepository.countByCategory(cat.getId()),
+                contentRepository.countByPublishedAndCategory(cat.getId()),
                 contentProgressRepository.countCompletedByUserEmailAndCategory(email, cat.getId())
             ))
             .toList();
@@ -405,15 +412,22 @@ public class HomeService {
         return (int) Math.abs(seed % size);
     }
 
-    private static String difficultyLabel(UserLevel level) {
-        if (level == null) {
+    private static String difficultyLabel(ContentDifficulty difficulty) {
+        if (difficulty == null) {
             return "";
         }
-        return switch (level) {
+        return switch (difficulty) {
             case SEED -> "왕초보";
             case SPROUT -> "초보";
             case TREE -> "중급";
         };
+    }
+
+    private static ContentDifficulty toContentDifficulty(UserLevel level) {
+        if (level == null) {
+            return ContentDifficulty.SEED;
+        }
+        return ContentDifficulty.valueOf(level.name());
     }
 
     private String resolveLevelImageKey(UserLevel level) {

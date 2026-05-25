@@ -261,13 +261,14 @@ public class UserService {
                 if (content == null) {
                     return null;
                 }
+                String category = content.getFirstCategory();
                 String emoji = ContentCategory
-                    .findById(content.getCategory())
+                    .findById(category)
                     .map(ContentCategory::getEmoji).orElse("");
                 return new ViewedContentsResponse.ViewedContentDto(
                     String.valueOf(content.getId()),
                     content.getTitle(),
-                    content.getCategory(),
+                    category,
                     emoji,
                     content.getDifficulty() != null ? content.getDifficulty().name() : null,
                     h.getViewedAt(),
