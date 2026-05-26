@@ -46,6 +46,11 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
         + " WHERE c.isPublished = true AND dom = :domain ORDER BY c.notionLastEditedAt DESC")
     List<Content> findAllPublishedByDomain(@Param("domain") String domain);
 
+    @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.categories LEFT JOIN FETCH c.domains"
+        + " JOIN c.categories cat"
+        + " WHERE c.isPublished = true AND cat IN :categories ORDER BY c.notionLastEditedAt DESC")
+    List<Content> findAllPublishedByCategoriesIn(@Param("categories") List<String> categories);
+
     // ── HomeService 호환 쿼리 ───────────────────────────────────────────────────
 
     @Query("SELECT DISTINCT c FROM Content c"

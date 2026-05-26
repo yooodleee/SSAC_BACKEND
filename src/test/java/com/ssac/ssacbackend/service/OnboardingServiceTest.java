@@ -305,7 +305,7 @@ class OnboardingServiceTest {
 
         assertThat(response.recommendedDomains()).hasSize(3);
         assertThat(response.recommendedDomains().get(0).id()).isEqualTo("scholarship");
-        assertThat(response.recommendedDomains().get(1).id()).isEqualTo("finance");
+        assertThat(response.recommendedDomains().get(1).id()).isEqualTo("investment");
         assertThat(response.recommendedDomains().get(2).id()).isEqualTo("realestate");
     }
 
@@ -319,7 +319,7 @@ class OnboardingServiceTest {
 
         assertThat(response.recommendedDomains()).hasSize(3);
         assertThat(response.recommendedDomains().get(0).id()).isEqualTo("realestate");
-        assertThat(response.recommendedDomains().get(1).id()).isEqualTo("finance");
+        assertThat(response.recommendedDomains().get(1).id()).isEqualTo("investment");
         assertThat(response.recommendedDomains().get(2).id()).isEqualTo("tax");
     }
 
@@ -333,7 +333,7 @@ class OnboardingServiceTest {
 
         assertThat(response.recommendedDomains()).hasSize(3);
         assertThat(response.recommendedDomains().get(0).id()).isEqualTo("tax");
-        assertThat(response.recommendedDomains().get(1).id()).isEqualTo("finance");
+        assertThat(response.recommendedDomains().get(1).id()).isEqualTo("investment");
         assertThat(response.recommendedDomains().get(2).id()).isEqualTo("realestate");
     }
 
@@ -348,7 +348,7 @@ class OnboardingServiceTest {
         assertThat(response.recommendedDomains()).hasSize(3);
         assertThat(response.recommendedDomains().get(0).id()).isEqualTo("tax");
         assertThat(response.recommendedDomains().get(1).id()).isEqualTo("realestate");
-        assertThat(response.recommendedDomains().get(2).id()).isEqualTo("finance");
+        assertThat(response.recommendedDomains().get(2).id()).isEqualTo("investment");
     }
 
     @Test
@@ -360,7 +360,7 @@ class OnboardingServiceTest {
         OnboardingResultResponse response = onboardingService.getResult("test@test.com");
 
         assertThat(response.recommendedDomains()).hasSize(3);
-        assertThat(response.recommendedDomains().get(0).id()).isEqualTo("finance");
+        assertThat(response.recommendedDomains().get(0).id()).isEqualTo("investment");
         assertThat(response.recommendedDomains().get(1).id()).isEqualTo("tax");
         assertThat(response.recommendedDomains().get(2).id()).isEqualTo("realestate");
     }
@@ -374,7 +374,7 @@ class OnboardingServiceTest {
         OnboardingResultResponse response = onboardingService.getResult("test@test.com");
 
         assertThat(response.recommendedDomains()).hasSize(3);
-        assertThat(response.recommendedDomains().get(0).id()).isEqualTo("finance");
+        assertThat(response.recommendedDomains().get(0).id()).isEqualTo("investment");
         assertThat(response.recommendedDomains().get(1).id()).isEqualTo("tax");
         assertThat(response.recommendedDomains().get(2).id()).isEqualTo("realestate");
     }
@@ -405,7 +405,7 @@ class OnboardingServiceTest {
         given(userRepository.findByEmail("test@test.com")).willReturn(Optional.of(user));
 
         onboardingService.saveInterests("test@test.com",
-            new OnboardingInterestsRequest(List.of("realestate", "tax", "finance")));
+            new OnboardingInterestsRequest(List.of("realestate", "tax", "investment")));
 
         ArgumentCaptor<List<UserInterest>> captor = ArgumentCaptor.forClass(List.class);
         verify(userInterestRepository).saveAll(captor.capture());
@@ -430,7 +430,7 @@ class OnboardingServiceTest {
     @DisplayName("관심 도메인 4개 이상 요청 시 400(ONBOARDING-007) 응답")
     void 관심_도메인_4개_이상_요청_시_400_응답() {
         assertThatThrownBy(() -> onboardingService.saveInterests("test@test.com",
-            new OnboardingInterestsRequest(List.of("realestate", "tax", "finance", "scholarship"))))
+            new OnboardingInterestsRequest(List.of("realestate", "tax", "investment", "scholarship"))))
             .isInstanceOf(BusinessException.class)
             .satisfies(ex -> {
                 BusinessException be = (BusinessException) ex;

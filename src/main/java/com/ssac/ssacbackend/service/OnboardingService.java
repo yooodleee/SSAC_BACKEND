@@ -44,7 +44,7 @@ public class OnboardingService {
         recKey(UserType.HIGH_SCHOOL, UserLevel.SEED), List.of(
             new RecommendedDomainDto("scholarship", "학자금/장학금", "🎓",
                 "학자금 대출과 장학금 혜택부터 알아보세요"),
-            new RecommendedDomainDto("finance", "재테크/신용", "💰",
+            new RecommendedDomainDto("investment", "재테크/신용", "💰",
                 "신용점수 관리, 지금 시작하면 나중에 달라져요"),
             new RecommendedDomainDto("realestate", "부동산/자취", "🏠",
                 "자취를 처음 시작하는 분들에게 꼭 필요한 내용이에요")
@@ -52,7 +52,7 @@ public class OnboardingService {
         recKey(UserType.HIGH_SCHOOL, UserLevel.SPROUT), List.of(
             new RecommendedDomainDto("realestate", "부동산/자취", "🏠",
                 "자취를 처음 시작하는 분들에게 꼭 필요한 내용이에요"),
-            new RecommendedDomainDto("finance", "재테크/신용", "💰",
+            new RecommendedDomainDto("investment", "재테크/신용", "💰",
                 "재테크의 기초부터 차근차근 쌓아보세요"),
             new RecommendedDomainDto("tax", "세금/연말정산", "📋",
                 "아르바이트 세금 환급도 놓치지 마세요")
@@ -60,7 +60,7 @@ public class OnboardingService {
         recKey(UserType.HIGH_SCHOOL, UserLevel.TREE), List.of(
             new RecommendedDomainDto("tax", "세금/연말정산", "📋",
                 "연말정산으로 세금을 돌려받아 보세요"),
-            new RecommendedDomainDto("finance", "재테크/신용", "💰",
+            new RecommendedDomainDto("investment", "재테크/신용", "💰",
                 "더 높은 수준의 재테크에 도전해보세요"),
             new RecommendedDomainDto("realestate", "부동산/자취", "🏠",
                 "부동산 계약의 핵심을 이미 알고 있을 거예요")
@@ -70,11 +70,11 @@ public class OnboardingService {
                 "사회초년생이라면 꼭 알아야 할 세금 이야기에요"),
             new RecommendedDomainDto("realestate", "부동산/자취", "🏠",
                 "첫 자취방 구할 때 필요한 모든 것이에요"),
-            new RecommendedDomainDto("finance", "재테크/신용", "💰",
+            new RecommendedDomainDto("investment", "재테크/신용", "💰",
                 "신용점수 관리부터 시작해보세요")
         ),
         recKey(UserType.EARLY_CAREER, UserLevel.SPROUT), List.of(
-            new RecommendedDomainDto("finance", "재테크/신용", "💰",
+            new RecommendedDomainDto("investment", "재테크/신용", "💰",
                 "재테크로 자산을 조금씩 늘려보세요"),
             new RecommendedDomainDto("tax", "세금/연말정산", "📋",
                 "연말정산 꼼꼼히 챙겨 세금 돌려받으세요"),
@@ -82,7 +82,7 @@ public class OnboardingService {
                 "내 집 마련을 위한 첫걸음을 시작해보세요")
         ),
         recKey(UserType.EARLY_CAREER, UserLevel.TREE), List.of(
-            new RecommendedDomainDto("finance", "재테크/신용", "💰",
+            new RecommendedDomainDto("investment", "재테크/신용", "💰",
                 "고급 재테크 전략으로 자산을 불려보세요"),
             new RecommendedDomainDto("tax", "세금/연말정산", "📋",
                 "세금 최적화로 더 많은 돈을 아껴보세요"),

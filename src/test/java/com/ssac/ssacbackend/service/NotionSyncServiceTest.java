@@ -173,6 +173,7 @@ class NotionSyncServiceTest {
         assertThat(items).hasSize(1);
         assertThat(items.get(0).title()).isEqualTo("테스트 콘텐츠");
         assertThat(items.get(0).completed()).isFalse();
+
     }
 
     @Test
@@ -181,7 +182,7 @@ class NotionSyncServiceTest {
         given(contentRepository.findAllPublishedByCategory("realestate")).willReturn(List.of());
 
         List<ContentItemDto> items =
-            notionSyncService.getPublishedContentItems("realestate", null, null);
+            notionSyncService.getPublishedContentItems(List.of("realestate"), null, null);
 
         assertThat(items).isEmpty();
         verify(contentRepository).findAllPublishedByCategory("realestate");
@@ -198,6 +199,7 @@ class NotionSyncServiceTest {
 
         assertThat(items).isEmpty();
         verify(contentRepository).findAllPublishedByDifficulty(ContentDifficulty.SEED);
+
     }
 
     // ── 모니터링 ────────────────────────────────────────────────────────────────
@@ -227,6 +229,128 @@ class NotionSyncServiceTest {
         assertThat(NotionSyncService.difficultyLabel(ContentDifficulty.SPROUT)).isEqualTo("초보");
         assertThat(NotionSyncService.difficultyLabel(ContentDifficulty.TREE)).isEqualTo("중급");
         assertThat(NotionSyncService.difficultyLabel(null)).isEmpty();
+    }
+
+    // ── 카테고리 파싱 ───────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("유효한 Notion 카테고리 단일 태그 파싱")
+    void 카테고리_단일_태그_파싱() {
+        given(notionProperties.getDatabaseId()).willReturn("db-id");
+        Page page = buildPageWithCategories(List.of("realestate"));
+        given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
+        given(contentRepository.findByNotionPageId(any())).willReturn(Optional.empty());
+        given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
+        given(cacheManager.getCache("contents")).willReturn(cache);
+
+        notionSyncService.syncAll();
+
+        verify(contentRepository).save(any(Content.class));
+    }
+
+    @Test
+    @DisplayName("유효한 Notion 카테고리 복수 태그 파싱")
+    void 카테고리_복수_태그_파싱() {
+        given(notionProperties.getDatabaseId()).willReturn("db-id");
+        Page page = buildPageWithCategories(List.of("realestate", "tax"));
+        given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
+        given(contentRepository.findByNotionPageId(any())).willReturn(Optional.empty());
+        given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
+        given(cacheManager.getCache("contents")).willReturn(cache);
+
+        notionSyncService.syncAll();
+
+        verify(contentRepository).save(any(Content.class));
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 Notion 태그는 무시되고 유효한 태그만 저장")
+    void 유효하지_않은_태그_무시() {
+        given(notionProperties.getDatabaseId()).willReturn("db-id");
+        Page page = buildPageWithCategories(List.of("realestate", "unknown_tag", "finance"));
+        given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
+
+        Content saved = buildContent("page-cat");
+        given(contentRepository.findByNotionPageId(any())).willReturn(Optional.empty());
+        given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
+        given(cacheManager.getCache("contents")).willReturn(cache);
+
+        notionSyncService.syncAll();
+
+        // 유효하지 않은 태그(unknown_tag, finance) 무시 후 realestate만 저장
+        verify(contentRepository).save(any(Content.class));
+    }
+
+    @Test
+    @DisplayName("category=realestate 필터 시 해당 쿼리 호출")
+    void 단일_카테고리_필터_쿼리_호출() {
+        given(contentRepository.findAllPublishedByCategory("realestate")).willReturn(List.of());
+
+        notionSyncService.getPublishedContentItems(List.of("realestate"), null, null);
+
+        verify(contentRepository).findAllPublishedByCategory("realestate");
+    }
+
+    @Test
+    @DisplayName("category=[realestate,tax] 복수 필터 시 IN 쿼리 호출")
+    void 복수_카테고리_필터_쿼리_호출() {
+        given(contentRepository.findAllPublishedByCategoriesIn(List.of("realestate", "tax")))
+            .willReturn(List.of());
+
+        notionSyncService.getPublishedContentItems(List.of("realestate", "tax"), null, null);
+
+        verify(contentRepository).findAllPublishedByCategoriesIn(List.of("realestate", "tax"));
+    }
+
+    @Test
+    @DisplayName("categories=[realestate,tax] 콘텐츠가 realestate 필터 목록에 포함")
+    void 복수_카테고리_콘텐츠_realestate_포함() {
+        Content content = buildContent("page-multi");
+        ReflectionTestUtils.setField(content, "categories", List.of("realestate", "tax"));
+        ReflectionTestUtils.setField(content, "isPublished", true);
+        given(contentRepository.findAllPublishedByCategory("realestate")).willReturn(List.of(content));
+
+        List<com.ssac.ssacbackend.dto.response.ContentItemDto> items =
+            notionSyncService.getPublishedContentItems(List.of("realestate"), null, null);
+
+        assertThat(items).hasSize(1);
+        assertThat(items.get(0).categories()).contains("realestate", "tax");
+    }
+
+    @Test
+    @DisplayName("categories=[realestate,tax] 콘텐츠가 tax 필터 목록에 포함")
+    void 복수_카테고리_콘텐츠_tax_포함() {
+        Content content = buildContent("page-multi2");
+        ReflectionTestUtils.setField(content, "categories", List.of("realestate", "tax"));
+        ReflectionTestUtils.setField(content, "isPublished", true);
+        given(contentRepository.findAllPublishedByCategory("tax")).willReturn(List.of(content));
+
+        List<com.ssac.ssacbackend.dto.response.ContentItemDto> items =
+            notionSyncService.getPublishedContentItems(List.of("tax"), null, null);
+
+        assertThat(items).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("categories=[realestate,tax] 콘텐츠가 investment 필터 목록에 미포함")
+    void 복수_카테고리_콘텐츠_investment_미포함() {
+        given(contentRepository.findAllPublishedByCategory("investment")).willReturn(List.of());
+
+        List<com.ssac.ssacbackend.dto.response.ContentItemDto> items =
+            notionSyncService.getPublishedContentItems(List.of("investment"), null, null);
+
+        assertThat(items).isEmpty();
+    }
+
+    @Test
+    @DisplayName("비게시 콘텐츠는 category 조회 시 미노출")
+    void 비게시_콘텐츠_미노출() {
+        given(contentRepository.findAllPublishedByCategory("realestate")).willReturn(List.of());
+
+        List<com.ssac.ssacbackend.dto.response.ContentItemDto> items =
+            notionSyncService.getPublishedContentItems(List.of("realestate"), null, null);
+
+        assertThat(items).isEmpty();
     }
 
     // ── 헬퍼 ────────────────────────────────────────────────────────────────────
@@ -262,6 +386,38 @@ class NotionSyncServiceTest {
         ReflectionTestUtils.setField(page, "lastEditedTime", "2026-05-25T00:00:00.000Z");
         ReflectionTestUtils.setField(page, "properties", props);
 
+        return page;
+    }
+
+    private Page buildPageWithCategories(List<String> categoryTags) {
+        ObjenesisStd objenesis = new ObjenesisStd();
+
+        notion.api.v1.model.pages.PageProperty categoriesProp =
+            objenesis.newInstance(notion.api.v1.model.pages.PageProperty.class);
+
+        List<notion.api.v1.model.databases.DatabaseProperty.MultiSelect.Option> options =
+            categoryTags.stream().map(tag -> {
+                notion.api.v1.model.databases.DatabaseProperty.MultiSelect.Option opt =
+                    objenesis.newInstance(
+                        notion.api.v1.model.databases.DatabaseProperty.MultiSelect.Option.class);
+                ReflectionTestUtils.setField(opt, "name", tag);
+                return opt;
+            }).toList();
+        ReflectionTestUtils.setField(categoriesProp, "multiSelect", options);
+
+        notion.api.v1.model.pages.PageProperty publishedProp =
+            objenesis.newInstance(notion.api.v1.model.pages.PageProperty.class);
+        ReflectionTestUtils.setField(publishedProp, "checkbox", false);
+
+        java.util.Map<String, notion.api.v1.model.pages.PageProperty> props = new java.util.HashMap<>();
+        props.put("categories", categoriesProp);
+        props.put("published", publishedProp);
+
+        Page page = objenesis.newInstance(Page.class);
+        ReflectionTestUtils.setField(page, "id", "page-cat-" + categoryTags.hashCode());
+        ReflectionTestUtils.setField(page, "createdTime", "2026-05-25T00:00:00.000Z");
+        ReflectionTestUtils.setField(page, "lastEditedTime", "2026-05-25T00:00:00.000Z");
+        ReflectionTestUtils.setField(page, "properties", props);
         return page;
     }
 

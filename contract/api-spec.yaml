@@ -1,0 +1,101 @@
+openapi: "3.0.3"
+info:
+  title: SSAC Backend API
+  version: "1.0.0"
+
+paths:
+  /api/v1/contents:
+    get:
+      summary: 콘텐츠 목록 조회
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - realestate
+              - tax
+              - work
+              - investment
+              - scholarship
+              - budget
+          description: |
+            도메인 카테고리 필터.
+            복수 선택 시 콤마로 구분.
+            예) category=realestate,tax
+        - name: difficulty
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - SEED
+              - SPROUT
+              - TREE
+          description: 난이도 필터
+        - name: domain
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 도메인 필터 (자유 입력)
+      responses:
+        "200":
+          description: 콘텐츠 목록 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentListResponse'
+
+components:
+  schemas:
+    ContentListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            totalCount:
+              type: integer
+            contents:
+              type: array
+              items:
+                $ref: '#/components/schemas/ContentItemDto'
+
+    ContentItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+            enum:
+              - realestate
+              - tax
+              - work
+              - investment
+              - scholarship
+              - budget
+        thumbnailUrl:
+          type: string
+        domains:
+          type: array
+          items:
+            type: string
+        difficulty:
+          type: string
+          enum: [SEED, SPROUT, TREE]
+        difficultyLabel:
+          type: string
+        completed:
+          type: boolean
+        publishedAt:
+          type: string
+          format: date-time

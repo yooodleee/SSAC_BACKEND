@@ -329,11 +329,11 @@ public class HomeService {
     private List<CategoryDto> buildCategories(String email) {
         return ContentCategory.all().stream()
             .map(cat -> new CategoryDto(
-                cat.getId(),
-                cat.getName(),
+                cat.getNotionTag(),
+                cat.getLabel(),
                 cat.getEmoji(),
-                contentRepository.countByPublishedAndCategory(cat.getId()),
-                contentProgressRepository.countCompletedByUserEmailAndCategory(email, cat.getId())
+                contentRepository.countByPublishedAndCategory(cat.getNotionTag()),
+                contentProgressRepository.countCompletedByUserEmailAndCategory(email, cat.getNotionTag())
             ))
             .toList();
     }

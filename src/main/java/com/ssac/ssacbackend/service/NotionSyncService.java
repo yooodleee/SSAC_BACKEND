@@ -5,6 +5,7 @@ import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.component.NotionImageMigrator;
 import com.ssac.ssacbackend.config.NotionProperties;
 import com.ssac.ssacbackend.domain.content.Content;
+import com.ssac.ssacbackend.domain.content.ContentCategory;
 import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.dto.response.ContentItemDto;
 import com.ssac.ssacbackend.dto.response.ContentMonitoringListResponse;
@@ -108,13 +109,13 @@ public class NotionSyncService {
      */
     @Cacheable(
         cacheNames = CACHE_CONTENTS,
-        key = "'list:' + (#category ?: 'null') + ':' + (#difficulty ?: 'null') + ':' + (#domain ?: 'null')"
+        key = "'list:' + (#categories != null ? #categories.toString() : 'null') + ':' + (#difficulty ?: 'null') + ':' + (#domain ?: 'null')"
     )
     @Transactional(readOnly = true)
     public List<ContentItemDto> getPublishedContentItems(
-        String category, String difficulty, String domain) {
+        List<String> categories, String difficulty, String domain) {
 
-        List<Content> contents = fetchPublished(category, difficulty, domain);
+        List<Content> contents = fetchPublished(categories, difficulty, domain);
         return contents.stream()
             .map(c -> new ContentItemDto(
                 String.valueOf(c.getId()),
@@ -215,7 +216,7 @@ public class NotionSyncService {
         String title = extractTitle(page);
         String rawThumbnail = extractUrl(page, "thumbnail");
         String thumbnailUrl = notionImageMigrator.migrateIfNeeded(rawThumbnail);
-        List<String> categories = extractMultiSelect(page, "categories");
+        List<String> categories = parseCategories(page);
         List<String> domains = extractMultiSelect(page, "domains");
         ContentDifficulty difficulty = extractDifficulty(page);
         boolean isPublished = extractCheckbox(page, "published");
@@ -248,6 +249,24 @@ public class NotionSyncService {
             return null;
         }
         return prop.getUrl();
+    }
+
+    private List<String> parseCategories(Page page) {
+        PageProperty prop = page.getProperties().get("categories");
+        if (prop == null || prop.getMultiSelect() == null) {
+            return List.of();
+        }
+        List<String> result = new ArrayList<>();
+        for (DatabaseProperty.MultiSelect.Option option : prop.getMultiSelect()) {
+            String tag = option.getName();
+            try {
+                ContentCategory.fromNotionTag(tag);
+                result.add(tag);
+            } catch (IllegalArgumentException e) {
+                log.warn("알 수 없는 Notion 카테고리 태그 무시: {}", tag);
+            }
+        }
+        return result;
     }
 
     private List<String> extractMultiSelect(Page page, String propertyName) {
@@ -299,14 +318,18 @@ public class NotionSyncService {
         }
     }
 
-    private List<Content> fetchPublished(String category, String difficulty, String domain) {
+    private List<Content> fetchPublished(List<String> categories, String difficulty, String domain) {
         ContentDifficulty diffEnum = parseDifficulty(difficulty);
+        boolean hasCategory = categories != null && !categories.isEmpty();
 
-        if (category != null && diffEnum != null) {
-            return contentRepository.findAllPublishedByCategoryAndDifficulty(category, diffEnum);
+        if (hasCategory && categories.size() == 1 && diffEnum != null) {
+            return contentRepository.findAllPublishedByCategoryAndDifficulty(categories.get(0), diffEnum);
         }
-        if (category != null) {
-            return contentRepository.findAllPublishedByCategory(category);
+        if (hasCategory && categories.size() == 1) {
+            return contentRepository.findAllPublishedByCategory(categories.get(0));
+        }
+        if (hasCategory) {
+            return contentRepository.findAllPublishedByCategoriesIn(categories);
         }
         if (diffEnum != null) {
             return contentRepository.findAllPublishedByDifficulty(diffEnum);

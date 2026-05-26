@@ -48,7 +48,7 @@ public class ContentController {
     @GetMapping
     public ResponseEntity<ApiResponse<ContentListResponse>> getContents(
         Authentication authentication,
-        @Parameter(description = "카테고리 필터 (realestate/tax/finance 등)")
+        @Parameter(description = "카테고리 필터. 복수 선택 시 콤마로 구분. 예) realestate,tax")
         @RequestParam(required = false) String category,
         @Parameter(description = "난이도 필터 (SEED/SPROUT/TREE)")
         @RequestParam(required = false) String difficulty,
