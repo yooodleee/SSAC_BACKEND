@@ -66,6 +66,9 @@ public class Content {
     @Column(name = "is_published", nullable = false)
     private boolean isPublished = false;
 
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
     @Column(name = "notion_created_at")
     private LocalDateTime notionCreatedAt;
 
@@ -97,7 +100,7 @@ public class Content {
     public void syncFromNotion(String title, String thumbnailUrl, List<String> categories,
                                 List<String> domains, ContentDifficulty difficulty,
                                 boolean isPublished, LocalDateTime notionCreatedAt,
-                                LocalDateTime notionLastEditedAt) {
+                                LocalDateTime notionLastEditedAt, LocalDateTime publishedAt) {
         this.title = title;
         this.thumbnailUrl = thumbnailUrl;
         this.categories = new ArrayList<>(categories);
@@ -106,6 +109,7 @@ public class Content {
         this.isPublished = isPublished;
         this.notionCreatedAt = notionCreatedAt;
         this.notionLastEditedAt = notionLastEditedAt;
+        this.publishedAt = publishedAt;
         this.syncedAt = LocalDateTime.now();
     }
 

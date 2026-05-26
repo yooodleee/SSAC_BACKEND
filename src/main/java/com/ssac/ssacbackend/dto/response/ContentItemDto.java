@@ -1,5 +1,6 @@
 package com.ssac.ssacbackend.dto.response;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -13,5 +14,6 @@ public record ContentItemDto(
     List<String> domains,
     String difficulty,
     String difficultyLabel,
-    boolean completed
+    boolean completed,
+    LocalDateTime publishedAt
 ) {}

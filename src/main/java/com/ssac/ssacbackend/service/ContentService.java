@@ -75,7 +75,7 @@ public class ContentService {
             .map(item -> completedIds.contains(Long.parseLong(item.id()))
                 ? new ContentItemDto(item.id(), item.title(), item.thumbnailUrl(),
                     item.categories(), item.domains(), item.difficulty(),
-                    item.difficultyLabel(), true)
+                    item.difficultyLabel(), true, item.publishedAt())
                 : item)
             .toList();
 

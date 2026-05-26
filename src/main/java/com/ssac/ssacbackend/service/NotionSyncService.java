@@ -124,7 +124,8 @@ public class NotionSyncService {
                 List.copyOf(c.getDomains()),
                 c.getDifficulty() != null ? c.getDifficulty().name() : null,
                 difficultyLabel(c.getDifficulty()),
-                false
+                false,
+                c.getPublishedAt()
             ))
             .toList();
     }
@@ -220,9 +221,10 @@ public class NotionSyncService {
         boolean isPublished = extractCheckbox(page, "published");
         LocalDateTime notionCreatedAt = parseDateTime(page.getCreatedTime());
         LocalDateTime notionLastEditedAt = parseDateTime(page.getLastEditedTime());
+        LocalDateTime publishedAt = extractDate(page, "publishedAt");
 
         content.syncFromNotion(title, thumbnailUrl, categories, domains, difficulty,
-            isPublished, notionCreatedAt, notionLastEditedAt);
+            isPublished, notionCreatedAt, notionLastEditedAt, publishedAt);
 
         if (isNew) {
             contentRepository.save(content);
@@ -268,6 +270,14 @@ public class NotionSyncService {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    private LocalDateTime extractDate(Page page, String propertyName) {
+        PageProperty prop = page.getProperties().get(propertyName);
+        if (prop == null || prop.getDate() == null || prop.getDate().getStart() == null) {
+            return null;
+        }
+        return parseDateTime(prop.getDate().getStart());
     }
 
     private boolean extractCheckbox(Page page, String propertyName) {
