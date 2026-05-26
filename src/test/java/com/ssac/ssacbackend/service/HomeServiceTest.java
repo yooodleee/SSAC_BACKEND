@@ -142,14 +142,14 @@ class HomeServiceTest {
             given(userRepository.findByEmail("user@test.com")).willReturn(Optional.of(user));
             given(valueOps.get("home:2")).willReturn(null);
 
-            given(userInterestRepository.findDomainIdsByUserId(2L)).willReturn(List.of("finance"));
+            given(userInterestRepository.findDomainIdsByUserId(2L)).willReturn(List.of("investment"));
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("user@test.com"))
                 .willReturn(List.of());
             given(valueOps.get("home:rec_history:2")).willReturn(null);
 
-            Content content = mockContent(10L, "투자 기초", "finance", ContentDifficulty.SPROUT);
+            Content content = mockContent(10L, "투자 기초", "investment", ContentDifficulty.SPROUT);
             given(contentRepository.findByCategoriesInAndDifficultyPublished(
-                eq(List.of("finance")), eq(ContentDifficulty.SPROUT)))
+                eq(List.of("investment")), eq(ContentDifficulty.SPROUT)))
                 .willReturn(List.of(content));
             given(contentRepository.findByDifficultyPublished(ContentDifficulty.SPROUT))
                 .willReturn(List.of());
@@ -180,8 +180,8 @@ class HomeServiceTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test3@test.com"))
                 .willReturn(List.of(100L));
 
-            Content completedContent = mockContent(100L, "완료된 콘텐츠", "finance", ContentDifficulty.SEED);
-            Content newContent = mockContent(200L, "새 콘텐츠", "finance", ContentDifficulty.SEED);
+            Content completedContent = mockContent(100L, "완료된 콘텐츠", "investment", ContentDifficulty.SEED);
+            Content newContent = mockContent(200L, "새 콘텐츠", "investment", ContentDifficulty.SEED);
             given(contentRepository.findByDifficultyPublished(ContentDifficulty.SEED))
                 .willReturn(List.of(completedContent, newContent));
             given(contentRepository.findAllPublishedOrderByLastEdited())
@@ -218,7 +218,7 @@ class HomeServiceTest {
             given(contentRepository.findAllPublishedOrderByLastEdited()).willReturn(List.of());
 
             // SPROUT 레벨 미리보기 콘텐츠
-            Content previewContent = mockContent(500L, "SPROUT 미리보기", "finance", ContentDifficulty.SPROUT);
+            Content previewContent = mockContent(500L, "SPROUT 미리보기", "investment", ContentDifficulty.SPROUT);
             given(contentRepository.findByDifficultyPublished(ContentDifficulty.SPROUT))
                 .willReturn(List.of(previewContent));
             given(contentProgressRepository.findContinueLearning(anyString(), any()))
@@ -270,7 +270,7 @@ class HomeServiceTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test6@test.com"))
                 .willReturn(List.of());
 
-            Content treeContent = mockContent(700L, "TREE 콘텐츠", "finance", ContentDifficulty.TREE);
+            Content treeContent = mockContent(700L, "TREE 콘텐츠", "investment", ContentDifficulty.TREE);
             given(contentRepository.findByDifficultyPublished(ContentDifficulty.TREE))
                 .willReturn(List.of(treeContent));
             given(contentRepository.findAllPublishedOrderByLastEdited()).willReturn(List.of());

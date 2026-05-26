@@ -16,6 +16,7 @@ import com.ssac.ssacbackend.repository.ContentProgressRepository;
 import com.ssac.ssacbackend.repository.ContentRepository;
 import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -61,8 +62,12 @@ public class ContentService {
     public ContentListResponse getContents(
         Authentication auth, String category, String difficulty, String domain) {
 
+        List<String> categories = (category != null && !category.isBlank())
+            ? Arrays.asList(category.split(","))
+            : null;
+
         List<ContentItemDto> cachedItems =
-            notionSyncService.getPublishedContentItems(category, difficulty, domain);
+            notionSyncService.getPublishedContentItems(categories, difficulty, domain);
 
         if (!isAuthenticated(auth)) {
             return new ContentListResponse(cachedItems.size(), cachedItems);
