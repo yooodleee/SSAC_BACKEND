@@ -16,7 +16,9 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -57,7 +59,7 @@ public class Content {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "content_domains", joinColumns = @JoinColumn(name = "content_id"))
     @Column(name = "domain", length = 50)
-    private List<String> domains = new ArrayList<>();
+    private Set<String> domains = new LinkedHashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
@@ -104,7 +106,7 @@ public class Content {
         this.title = title;
         this.thumbnailUrl = thumbnailUrl;
         this.categories = new ArrayList<>(categories);
-        this.domains = new ArrayList<>(domains);
+        this.domains = new LinkedHashSet<>(domains);
         this.difficulty = difficulty;
         this.isPublished = isPublished;
         this.notionCreatedAt = notionCreatedAt;
