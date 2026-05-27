@@ -180,7 +180,11 @@
       "Bash(publishedAt)",
       "Bash(V29__add_published_at_to_contents.sql)",
       "Bash(ContentItemDto)",
-      "Bash(NotionSyncService)"
+      "Bash(NotionSyncService)",
+      "Bash(OutOfMemoryError: Metaspace)",
+      "Bash(JAVA_TOOL_OPTIONS)",
+      "Bash(@Async)",
+      "Bash(AsyncConfig.java)"
     ]
   }
 }
