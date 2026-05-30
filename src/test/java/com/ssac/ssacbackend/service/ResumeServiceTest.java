@@ -3,8 +3,6 @@ package com.ssac.ssacbackend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.content.ContentProgress;
 import com.ssac.ssacbackend.dto.response.ResumeResponse;
