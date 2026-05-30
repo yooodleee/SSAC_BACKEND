@@ -18,9 +18,9 @@ import com.ssac.ssacbackend.dto.response.ContentMonitoringListResponse;
 import com.ssac.ssacbackend.dto.response.ContentSyncResponse;
 import com.ssac.ssacbackend.repository.ContentRepository;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import notion.api.v1.NotionClient;
 import notion.api.v1.model.databases.QueryResults;
 import notion.api.v1.model.pages.Page;
@@ -359,7 +359,7 @@ class NotionSyncServiceTest {
     private Content buildContent(String notionPageId) {
         Content content = Content.fromNotion(notionPageId, "db-id");
         ReflectionTestUtils.setField(content, "categories", List.of());
-        ReflectionTestUtils.setField(content, "domains", new java.util.LinkedHashSet<>());
+        ReflectionTestUtils.setField(content, "domains", new LinkedHashSet<>());
         ReflectionTestUtils.setField(content, "createdAt", LocalDateTime.now());
         return content;
     }

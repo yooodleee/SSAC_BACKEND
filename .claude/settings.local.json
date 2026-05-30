@@ -184,7 +184,8 @@
       "Bash(OutOfMemoryError: Metaspace)",
       "Bash(JAVA_TOOL_OPTIONS)",
       "Bash(@Async)",
-      "Bash(AsyncConfig.java)"
+      "Bash(AsyncConfig.java)",
+      "Bash(./gradlew checkstyleMain checkstyleTest compileJava)"
     ]
   }
 }

@@ -16,6 +16,7 @@ import com.ssac.ssacbackend.dto.response.SearchResultResponse;
 import com.ssac.ssacbackend.dto.response.SearchSuggestionResponse;
 import com.ssac.ssacbackend.repository.ContentRepository;
 import com.ssac.ssacbackend.repository.SearchKeywordRepository;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -167,7 +168,7 @@ class SearchServiceTest {
         ReflectionTestUtils.setField(c, "id", id);
         ReflectionTestUtils.setField(c, "title", title);
         ReflectionTestUtils.setField(c, "categories", List.of(category));
-        ReflectionTestUtils.setField(c, "domains", new java.util.LinkedHashSet<>());
+        ReflectionTestUtils.setField(c, "domains", new LinkedHashSet<>());
         return c;
     }
 
