@@ -1,13 +1,13 @@
 package com.ssac.ssacbackend.service;
 
-import com.ssac.ssacbackend.domain.auth.AuthCode;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.dto.AuthCodeResult;
-import java.time.Instant;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,16 +17,19 @@ import org.springframework.stereotype.Service;
  * 이 단기 코드(TTL {@value #TTL_SECONDS}초)를 사용한다.
  * FE는 이 코드로 {@code POST /api/v1/auth/token}을 호출해 실제 토큰을 교환한다.
  *
- * <p>코드는 단 한 번만 소비(consume)될 수 있다.
+ * <p>코드는 Redis에 저장되며 단 한 번만 소비(consume)될 수 있다.
  * 소비 즉시 저장소에서 삭제되어 재사용이 불가능하다.
+ * Railway 재배포 시에도 Redis에 저장되어 있어 인스턴스 재시작에 안전하다.
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AuthCodeService {
 
     static final long TTL_SECONDS = 30L;
+    static final String KEY_PREFIX = "auth:code:";
 
-    private final ConcurrentHashMap<String, AuthCode> store = new ConcurrentHashMap<>();
+    private final StringRedisTemplate redisTemplate;
 
     /**
      * 기존 회원용 인가 코드를 발급한다.
@@ -35,9 +38,9 @@ public class AuthCodeService {
      * @return 일회용 인가 코드 문자열
      */
     public String issueForExistingUser(Long userId) {
-        purgeExpired();
         String code = UUID.randomUUID().toString();
-        store.put(code, AuthCode.forExistingUser(code, userId));
+        redisTemplate.opsForValue().set(
+            KEY_PREFIX + code, "EXISTING:" + userId, Duration.ofSeconds(TTL_SECONDS));
         log.debug("AuthCode 발급(기존 회원): userId={}", userId);
         return code;
     }
@@ -50,9 +53,10 @@ public class AuthCodeService {
      * @return 일회용 인가 코드 문자열
      */
     public String issueForNewUser(String tempToken, OAuthProvider provider) {
-        purgeExpired();
         String code = UUID.randomUUID().toString();
-        store.put(code, AuthCode.forNewUser(code, tempToken, provider));
+        redisTemplate.opsForValue().set(
+            KEY_PREFIX + code, "NEW:" + tempToken + ":" + provider.name(),
+            Duration.ofSeconds(TTL_SECONDS));
         log.debug("AuthCode 발급(신규 회원): provider={}", provider);
         return code;
     }
@@ -69,8 +73,7 @@ public class AuthCodeService {
      * @throws IllegalArgumentException 알 수 없는 공급자 이름인 경우
      */
     public String issueForNewUser(String tempToken, String providerName) {
-        OAuthProvider provider = OAuthProvider.valueOf(providerName);
-        return issueForNewUser(tempToken, provider);
+        return issueForNewUser(tempToken, OAuthProvider.valueOf(providerName));
     }
 
     /**
@@ -83,34 +86,25 @@ public class AuthCodeService {
      * @return 유효한 코드이면 {@link AuthCodeResult}, 만료·미존재이면 empty
      */
     public Optional<AuthCodeResult> consume(String code) {
-        AuthCode authCode = store.remove(code);
-        if (authCode == null) {
+        String value = redisTemplate.opsForValue().getAndDelete(KEY_PREFIX + code);
+        if (value == null) {
             log.warn("AuthCode 조회 실패 (미존재 또는 이미 소비됨): code={}", code);
             return Optional.empty();
         }
-        if (isExpired(authCode)) {
-            log.warn("AuthCode 만료: code={}", code);
-            return Optional.empty();
+        log.debug("AuthCode 소비 완료: code={}", code);
+        return Optional.of(parseValue(value));
+    }
+
+    private AuthCodeResult parseValue(String value) {
+        if (value.startsWith("EXISTING:")) {
+            long userId = Long.parseLong(value.substring("EXISTING:".length()));
+            return AuthCodeResult.existingUser(userId);
         }
-        log.debug("AuthCode 소비 완료: isNewUser={}", authCode.isNewUser());
-        return Optional.of(toResult(authCode));
-    }
-
-    private AuthCodeResult toResult(AuthCode authCode) {
-        if (authCode.isNewUser()) {
-            return AuthCodeResult.newUser(
-                authCode.getTempToken(),
-                authCode.getProvider().name()
-            );
-        }
-        return AuthCodeResult.existingUser(authCode.getUserId());
-    }
-
-    private boolean isExpired(AuthCode authCode) {
-        return Instant.now().isAfter(authCode.getCreatedAt().plusSeconds(TTL_SECONDS));
-    }
-
-    private void purgeExpired() {
-        store.entrySet().removeIf(entry -> isExpired(entry.getValue()));
+        // "NEW:{tempToken}:{provider}"
+        String rest = value.substring("NEW:".length());
+        int lastColon = rest.lastIndexOf(':');
+        String tempToken = rest.substring(0, lastColon);
+        String provider = rest.substring(lastColon + 1);
+        return AuthCodeResult.newUser(tempToken, provider);
     }
 }

@@ -83,6 +83,7 @@ public class RegistrationService {
         LocalDateTime marketingAgreedAt = Boolean.TRUE.equals(agreements.marketingTerm()) ? now : null;
 
         pending.completeTerms(now, now, now, marketingAgreedAt);
+        pendingRegistrationService.update(request.tempToken(), pending);
         log.debug("약관 동의 저장 완료: tempToken={}", request.tempToken());
     }
 
