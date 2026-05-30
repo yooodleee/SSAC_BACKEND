@@ -3,7 +3,9 @@ package com.ssac.ssacbackend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -21,9 +23,11 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import notion.api.v1.NotionClient;
 import notion.api.v1.model.databases.QueryResults;
 import notion.api.v1.model.pages.Page;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,10 +35,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.objenesis.ObjenesisStd;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,12 +53,19 @@ class NotionSyncServiceTest {
     @Mock
     private ContentRepository contentRepository;
     @Mock
-    private CacheManager cacheManager;
+    private StringRedisTemplate stringRedisTemplate;
     @Mock
-    private Cache cache;
+    private ValueOperations<String, String> valueOps;
 
     @InjectMocks
     private NotionSyncService notionSyncService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
+        lenient().when(valueOps.get(anyString())).thenReturn(null); // 캐시 미스 기본값
+        lenient().when(stringRedisTemplate.keys(anyString())).thenReturn(Set.of());
+    }
 
     // ── 동기화 ──────────────────────────────────────────────────────────────────
 
@@ -65,7 +76,6 @@ class NotionSyncServiceTest {
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(buildPage("page-1")), false));
         given(contentRepository.findByNotionPageId("page-1")).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents:v3")).willReturn(cache);
 
         ContentSyncResponse result = notionSyncService.syncAll();
 
@@ -83,7 +93,6 @@ class NotionSyncServiceTest {
         Content existing = buildContent("page-2");
         given(contentRepository.findByNotionPageId("page-2")).willReturn(Optional.of(existing));
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents:v3")).willReturn(cache);
 
         ContentSyncResponse result = notionSyncService.syncAll();
 
@@ -97,11 +106,11 @@ class NotionSyncServiceTest {
     void 동기화_후_캐시_초기화() {
         given(notionProperties.getDatabaseId()).willReturn("db-id");
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(), false));
-        given(cacheManager.getCache("contents:v3")).willReturn(cache);
+        given(stringRedisTemplate.keys(anyString())).willReturn(Set.of("contents:v4:list:null:null:null"));
 
         notionSyncService.syncAll();
 
-        verify(cache).clear();
+        verify(stringRedisTemplate).delete(Set.of("contents:v4:list:null:null:null"));
     }
 
     @Test
@@ -136,7 +145,6 @@ class NotionSyncServiceTest {
         given(contentRepository.findByNotionPageId("page-3")).willReturn(Optional.empty());
         String cloudinaryUrl = "https://res.cloudinary.com/demo/image/upload/test.jpg";
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(cloudinaryUrl);
-        given(cacheManager.getCache("contents:v3")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -151,7 +159,6 @@ class NotionSyncServiceTest {
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
         given(contentRepository.findByNotionPageId("page-4")).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents:v3")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -242,7 +249,6 @@ class NotionSyncServiceTest {
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
         given(contentRepository.findByNotionPageId(any())).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents:v3")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -257,7 +263,6 @@ class NotionSyncServiceTest {
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
         given(contentRepository.findByNotionPageId(any())).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents:v3")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -274,7 +279,6 @@ class NotionSyncServiceTest {
         Content saved = buildContent("page-cat");
         given(contentRepository.findByNotionPageId(any())).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents:v3")).willReturn(cache);
 
         notionSyncService.syncAll();
 

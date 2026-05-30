@@ -1,5 +1,10 @@
 package com.ssac.ssacbackend.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.component.NotionImageMigrator;
@@ -12,11 +17,13 @@ import com.ssac.ssacbackend.dto.response.ContentMonitoringListResponse;
 import com.ssac.ssacbackend.dto.response.ContentMonitoringListResponse.ContentMonitoringSummary;
 import com.ssac.ssacbackend.dto.response.ContentSyncResponse;
 import com.ssac.ssacbackend.repository.ContentRepository;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import notion.api.v1.NotionClient;
@@ -25,10 +32,8 @@ import notion.api.v1.model.pages.Page;
 import notion.api.v1.model.databases.DatabaseProperty;
 import notion.api.v1.model.pages.PageProperty;
 import notion.api.v1.request.databases.QueryDatabaseRequest;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,13 +49,17 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotionSyncService {
 
-    private static final String CACHE_CONTENTS = "contents:v3";
+    private static final String CACHE_PREFIX = "contents:v4:";
+    private static final long CACHE_TTL_SECONDS = 3600L;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     private final NotionClient notionClient;
     private final NotionProperties notionProperties;
     private final NotionImageMigrator notionImageMigrator;
     private final ContentRepository contentRepository;
-    private final CacheManager cacheManager;
+    private final StringRedisTemplate stringRedisTemplate;
 
     // ── 자동 동기화 ────────────────────────────────────────────────────────────
 
@@ -102,21 +111,31 @@ public class NotionSyncService {
     /**
      * 게시된 콘텐츠 목록을 반환한다. 결과는 Redis에 1시간 캐싱된다.
      *
-     * @param category  카테고리 필터 (null 허용)
-     * @param difficulty 난이도 필터 (null 허용)
-     * @param domain    도메인 필터 (null 허용)
+     * <p>{@code GenericJackson2JsonRedisSerializer}의 기본 타입 래핑은 Java record·불변 컬렉션(final)을
+     * 올바르게 직렬화하지 못한다. 대신 {@code StringRedisTemplate}과 명시적 {@code TypeReference}로
+     * 직렬화·역직렬화하여 타입 정보 누락 문제를 원천 차단한다.
+     *
+     * @param categories 카테고리 필터 (null 허용)
+     * @param difficulty  난이도 필터 (null 허용)
+     * @param domain     도메인 필터 (null 허용)
      * @return 콘텐츠 항목 목록 (completed=false)
      */
-    @Cacheable(
-        cacheNames = CACHE_CONTENTS,
-        key = "'list:' + (#categories != null ? #categories.toString() : 'null') + ':' + (#difficulty ?: 'null') + ':' + (#domain ?: 'null')"
-    )
     @Transactional(readOnly = true)
     public List<ContentItemDto> getPublishedContentItems(
         List<String> categories, String difficulty, String domain) {
 
+        String cacheKey = buildCacheKey(categories, difficulty, domain);
+        String cached = stringRedisTemplate.opsForValue().get(cacheKey);
+        if (cached != null) {
+            try {
+                return OBJECT_MAPPER.readValue(cached, new TypeReference<List<ContentItemDto>>() {});
+            } catch (JsonProcessingException e) {
+                log.warn("콘텐츠 캐시 역직렬화 실패, DB 재조회: key={}", cacheKey, e);
+            }
+        }
+
         List<Content> contents = fetchPublished(categories, difficulty, domain);
-        return contents.stream()
+        List<ContentItemDto> result = contents.stream()
             .map(c -> new ContentItemDto(
                 String.valueOf(c.getId()),
                 c.getTitle(),
@@ -129,6 +148,23 @@ public class NotionSyncService {
                 c.getPublishedAt()
             ))
             .toList();
+
+        try {
+            String json = OBJECT_MAPPER.writeValueAsString(result);
+            stringRedisTemplate.opsForValue()
+                .set(cacheKey, json, Duration.ofSeconds(CACHE_TTL_SECONDS));
+        } catch (JsonProcessingException e) {
+            log.warn("콘텐츠 캐시 직렬화 실패: key={}", cacheKey, e);
+        }
+
+        return result;
+    }
+
+    private String buildCacheKey(List<String> categories, String difficulty, String domain) {
+        return CACHE_PREFIX + "list:" +
+            (categories != null ? categories.toString() : "null") + ":" +
+            (difficulty != null ? difficulty : "null") + ":" +
+            (domain != null ? domain : "null");
     }
 
     // ── 관리자 모니터링 ────────────────────────────────────────────────────────
@@ -352,10 +388,10 @@ public class NotionSyncService {
     }
 
     private void evictContentsCache() {
-        Cache cache = cacheManager.getCache(CACHE_CONTENTS);
-        if (cache != null) {
-            cache.clear();
-            log.debug("콘텐츠 캐시 초기화 완료");
+        Set<String> keys = stringRedisTemplate.keys(CACHE_PREFIX + "*");
+        if (keys != null && !keys.isEmpty()) {
+            stringRedisTemplate.delete(keys);
+            log.debug("콘텐츠 캐시 초기화 완료: {}개 키 삭제", keys.size());
         }
     }
 
