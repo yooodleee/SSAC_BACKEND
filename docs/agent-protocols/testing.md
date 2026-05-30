@@ -162,19 +162,29 @@ STEP 6. 결과 기록
 ./gradlew jacocoTestReport jacocoTestCoverageVerification
 ```
 
-### 커버리지 기준 (이중 검증)
+### 커버리지 기준 (4-Rule 검증)
 
 **Rule 1. 서비스 레이어 전체 집계**
 → 측정 대상: com/ssac/*/service 패키지
 → 기준: Line Coverage 70% 이상
 
-**Rule 2. 개별 클래스 최소 커버리지**
+**Rule 2. 개별 서비스 클래스 최소 커버리지**
 → 측정 대상: com/ssac/*/service/* 클래스 (인터페이스·제외 등록 클래스 제외)
 → 기준: Line Coverage 50% 이상
 → 목적: 0% 클래스가 집계에 은폐되는 것을 방지
 
+**Rule 3. Controller 레이어 전체 집계**
+→ 측정 대상: com/ssac/*/controller 패키지
+→ 기준: Line Coverage 60% 이상
+→ 단계적 상향 계획: 1단계 60% → 2단계 70%
+
+**Rule 4. 개별 Controller 클래스 최소 커버리지**
+→ 측정 대상: com/ssac/*/controller/* 클래스 (제외 등록 클래스 제외)
+→ 기준: Line Coverage 40% 이상
+→ 제외: DevAuthController (@Profile("!prod")), KakaoOAuthController (Swagger 더미)
+
 ### 성공 시
-→ Rule 1, Rule 2 모두 "BUILD SUCCESSFUL" 확인
+→ Rule 1~4 모두 "BUILD SUCCESSFUL" 확인
 → STEP 6으로 진행
 
 ### Rule 1 실패 시 (전체 70% 미달)
@@ -207,7 +217,16 @@ STEP 6. 결과 기록
 4. 제외 근거가 중요한 경우 ADR 작성
 
 → 테스트 추가 또는 excludes 등록 완료 후 STEP 5 재실행
-→ Rule 1, Rule 2 모두 통과 후 STEP 6으로 진행
+→ Rule 1~4 모두 통과 후 STEP 6으로 진행
+
+### Rule 3 실패 시 (Controller 전체 60% 미달)
+→ 미테스트 Controller 목록 확인 (docs/debug-log.md P1~P3 항목)
+→ 우선순위 순으로 Controller 테스트 추가
+
+### Rule 4 실패 시 (Controller 클래스 40% 미달)
+→ 해당 Controller를 단위 테스트로 추가 작성
+→ new-feature.md STEP 8 Controller 테스트 패턴 참고
+→ 단순 위임 Controller이면 DevAuthController / KakaoOAuthController 패턴으로 excludes 등록
 
 ---
 
@@ -256,10 +275,15 @@ STEP 6. 결과 기록
 
 ### 커버리지 결과
 - Rule 1 (서비스 레이어 전체): N%  → ✅ / ❌
-- Rule 2 (개별 클래스 50% 이상):
+- Rule 2 (개별 서비스 클래스 50% 이상):
   - OnboardingService : N%
   - UserService       : N%
   - (50% 미달 클래스 있으면 명시)
+- Rule 3 (Controller 레이어 전체): N%  → ✅ / ❌
+- Rule 4 (개별 Controller 클래스 40% 이상):
+  - AuthController    : N%
+  - UserController    : N%
+  - (40% 미달 클래스 있으면 명시)
 
 → 구현 완료 확인. self-diagnose.md를 실행합니다.
 

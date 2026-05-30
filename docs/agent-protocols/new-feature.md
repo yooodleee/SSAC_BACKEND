@@ -430,30 +430,77 @@ class XxxServiceTest {
 }
 ```
 
-### Controller 단위 테스트
-MockMvc 대신 Controller를 직접 생성하여 호출한다.
+### Controller 단위 테스트 의무 규칙
+
+신규 Controller 작성 시 아래 규칙을 반드시 준수한다:
+
+```
+□ 신규 Controller마다 테스트 파일을 함께 작성한다
+□ 테스트에 반드시 포함해야 할 케이스:
+    1. 정상 케이스 (200/201/204 상태 코드 검증)
+    2. 서비스 메서드 호출 검증 (verify)
+□ JaCoCo Rule 4: Controller 클래스별 Line Coverage 40% 이상
+□ Controller 추가 없이 테스트 없으면 → sc-structure-check.md ❌
+```
+
+### Controller 단위 테스트 레퍼런스 패턴
+
+**기본 패턴** — Service를 직접 목킹하여 Controller 인스턴스를 생성한다.
 
 ```java
+@ExtendWith(MockitoExtension.class)
 class XxxControllerTest {
 
-    private XxxService xxxService;
-    private XxxController controller;
+    @Mock private XxxService xxxService;
+    @InjectMocks private XxxController controller;
+
+    @Test
+    @DisplayName("정상 케이스 — 200 반환")
+    void 정상_케이스() {
+        Authentication auth = mockAuth("user@test.com");
+        given(xxxService.getXxx("user@test.com")).willReturn(null);
+
+        ResponseEntity<?> result = controller.getXxx(auth);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(xxxService).getXxx("user@test.com");
+    }
+
+    private Authentication mockAuth(String name) {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(name);
+        when(auth.isAuthenticated()).thenReturn(true);
+        return auth;
+    }
+}
+```
+
+**CookieProperties 의존 Controller** — `@InjectMocks` 대신 직접 생성한다.
+
+```java
+@ExtendWith(MockitoExtension.class)
+class UserControllerTest {
+
+    @Mock private UserService userService;
+    private UserController controller;
 
     @BeforeEach
     void setUp() {
-        xxxService = mock(XxxService.class);
-        controller = new XxxController(xxxService);
-    }
-
-    @Test
-    void 정상_케이스() {
-        given(xxxService.getXxx(1L)).willReturn(new XxxResponse(1L, "name"));
-
-        ResponseEntity<ApiResponse<XxxResponse>> result = controller.getXxx(1L);
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        controller = new UserController(userService, new CookieProperties());
     }
 }
+```
+
+**Admin + 인증 검증 패턴** — Authentication 파라미터 목킹
+
+```java
+Authentication auth = mock(Authentication.class);
+given(auth.getName()).willReturn("admin@test.com");
+
+ResponseEntity<?> result = controller.getHome(auth);
+
+assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+verify(adminService).getAdminHome("admin@test.com");
 ```
 
 ### 통합 테스트
@@ -474,8 +521,10 @@ class XxxIntegrationTest {
 ```
 
 ### 테스트 커버리지 기준
-- 서비스 레이어 Line Coverage: **70% 이상**
-- 측정 대상: `com.ssac.*.service.*`
+- Rule 1: 서비스 레이어 Line Coverage **70% 이상** (com.ssac.*.service)
+- Rule 2: 개별 서비스 클래스 Line Coverage **50% 이상**
+- Rule 3: Controller 레이어 Line Coverage **60% 이상** (com.ssac.*.controller)
+- Rule 4: 개별 Controller 클래스 Line Coverage **40% 이상**
 
 ### 테스트 완료 후 실행
 ```
