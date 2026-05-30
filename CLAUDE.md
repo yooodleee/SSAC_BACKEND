@@ -13,7 +13,7 @@
 | 자가 진단 | docs/agent-protocols/self-diagnose.md | 구현 완료 후 | 자동 (구현 후) |
 | 테스트 작성 | docs/agent-protocols/testing.md | 구현 완료 후 | 자동 (구현 후) |
 | 토큰 최적화 | docs/agent-protocols/token-optimize.md | 스프린트 종료 시 | 수동 |
-| ADR 생성 | docs/agent-protocols/adr-create.md | 기술 의사결정 시 | 수동 |
+| ADR 생성 | docs/agent-protocols/adr-create.md | 반복 오류 3회 이상 / 기술 의사결정 시 | 수동 |
 | 하네스 감사 | docs/agent-protocols/harness-audit.md | 스프린트 종료 / 중간 점검 시 | 수동 |
 
 ---
@@ -39,7 +39,7 @@
 
 ### [수동 실행]
 -     `harness-audit.md`        → 스프린트 종료 / 중간 점검 시 전체 하네스 감사
--     `adr-create.md`           → 반복 오류 3회 이상 시 기술 의사결정 기록
+-     `adr-create.md`           → 반복 오류 3회 이상 / 기술 의사결정 시 기록
 -     `token-optimize.md`       → 스프린트 종료 시 최적화 (harness-audit 직후 연쇄)
 
 ---
