@@ -190,7 +190,12 @@
       "Bash(domains)",
       "Bash(contents:v2)",
       "Bash(AuthCodeService)",
-      "Bash(NaverOAuthService.stateStore)"
+      "Bash(NaverOAuthService.stateStore)",
+      "Bash(redis-cli:*)",
+      "Bash(pip install:*)",
+      "Bash(sed:*)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(./gradlew jacocoTestReport)"
     ]
   }
 }
