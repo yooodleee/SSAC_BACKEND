@@ -130,25 +130,72 @@ jacocoTestReport {
         html.required = true
         csv.required = false
     }
-    // 서비스 레이어만 리포트 대상으로 제한
-    classDirectories.setFrom(
-        files(classDirectories.files.collect {
-            fileTree(dir: it, include: ['**/service/**'])
-        })
-    )
+    // 설정·공통구조·엔티티·DTO 등 로직 없는 클래스를 제외하고 전체 측정.
+    // 제외 목록 변경 시 docs/agent-protocols/testing.md 제외 테이블 함께 갱신.
+    afterEvaluate {
+        classDirectories.setFrom(
+            files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                    // 설정 클래스 (Bean 등록만 수행)
+                    '**/config/**',
+                    // 공통 응답 / 예외 구조 (단순 래퍼)
+                    '**/common/response/**',
+                    '**/common/exception/**',
+                    // JPA 엔티티 / Enum (Getter·Setter 자동 생성)
+                    '**/domain/**',
+                    // DTO (데이터 운반 객체, 로직 없음)
+                    '**/dto/**',
+                    // 컴포넌트 유틸 (단순 위임)
+                    '**/component/**',
+                    // Spring Boot 진입점
+                    '**/*Application*',
+                    // 서비스 레이어 인터페이스 / 레코드 (측정 불가)
+                    '**/service/ViewCountStore*',
+                    '**/service/TokenStore*',
+                    '**/service/ReissueResult*',
+                ])
+            })
+        )
+    }
 }
 
 jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
     violationRules {
+
+        // Rule 1: 서비스 레이어 전체 집계 70%
+        // 기준 하향 시 팀 합의 및 PR 리뷰 필수 (docs/quality.md 참고)
         rule {
-            // 서비스 패키지 전체에 대해 라인 커버리지 70% 이상 강제.
-            // 기준 하향 시 팀 합의 및 PR 리뷰 필수 (docs/quality.md 참고)
-            includes = ['com.ssac.ssacbackend.service.*']
+            enabled = true
+            element = 'PACKAGE'
+            includes = ['com/ssac/*/service']
             limit {
                 counter = 'LINE'
-                value = 'COVEREDRATIO'
+                value   = 'COVEREDRATIO'
                 minimum = 0.70
+            }
+        }
+
+        // Rule 2: 서비스 클래스 개별 최소 50% (0% 클래스 집계 은폐 방지)
+        // 실패 시 → "개별 클래스 커버리지 50% 미달: XxxService" → BUILD FAILED
+        rule {
+            enabled = true
+            element = 'CLASS'
+            includes = ['com/ssac/*/service/*']
+            excludes = [
+                // 인터페이스 (측정 불가)
+                'com/ssac/ssacbackend/service/ViewCountStore',
+                'com/ssac/ssacbackend/service/TokenStore',
+                // 레코드 (데이터 운반 객체, 로직 없음)
+                'com/ssac/ssacbackend/service/ReissueResult',
+                // 스케줄러 배치 (추후 고도화 대상, C등급)
+                'com/ssac/ssacbackend/service/GuestDataCleanupService',
+                'com/ssac/ssacbackend/service/ErrorLogBatchService',
+            ]
+            limit {
+                counter = 'LINE'
+                value   = 'COVEREDRATIO'
+                minimum = 0.50
             }
         }
     }
