@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotionSyncService {
 
-    private static final String CACHE_CONTENTS = "contents:v2";
+    private static final String CACHE_CONTENTS = "contents:v3";
 
     private final NotionClient notionClient;
     private final NotionProperties notionProperties;
