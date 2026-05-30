@@ -1,8 +1,12 @@
 package com.ssac.ssacbackend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
-import com.ssac.ssacbackend.domain.auth.AuthCode;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.dto.AuthCodeResult;
 import java.util.Optional;
@@ -10,16 +14,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 @DisplayName("AuthCodeService")
+@ExtendWith(MockitoExtension.class)
 class AuthCodeServiceTest {
+
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
+    @Mock
+    private ValueOperations<String, String> valueOps;
 
     private AuthCodeService authCodeService;
 
     @BeforeEach
     void setUp() {
-        authCodeService = new AuthCodeService();
+        given(redisTemplate.opsForValue()).willReturn(valueOps);
+        authCodeService = new AuthCodeService(redisTemplate);
     }
 
     // ── 기존 회원 발급 ────────────────────────────────────────────────────────
@@ -42,6 +58,13 @@ class AuthCodeServiceTest {
             String code2 = authCodeService.issueForExistingUser(1L);
             assertThat(code1).isNotEqualTo(code2);
         }
+
+        @Test
+        @DisplayName("Redis에 올바른 값으로 저장된다")
+        void storesInRedis() {
+            authCodeService.issueForExistingUser(42L);
+            verify(valueOps).set(anyString(), eq("EXISTING:42"), any());
+        }
     }
 
     // ── 신규 회원 발급 ────────────────────────────────────────────────────────
@@ -56,6 +79,13 @@ class AuthCodeServiceTest {
             String code = authCodeService.issueForNewUser("temp-token", OAuthProvider.NAVER);
             assertThat(code).isNotBlank();
         }
+
+        @Test
+        @DisplayName("Redis에 올바른 값으로 저장된다")
+        void storesInRedis() {
+            authCodeService.issueForNewUser("my-token", OAuthProvider.KAKAO);
+            verify(valueOps).set(anyString(), eq("NEW:my-token:KAKAO"), any());
+        }
     }
 
     // ── consume ───────────────────────────────────────────────────────────────
@@ -67,9 +97,9 @@ class AuthCodeServiceTest {
         @Test
         @DisplayName("기존 회원 코드 소비 시 isNewUser=false, userId를 반환한다")
         void existingUserCode() {
-            String code = authCodeService.issueForExistingUser(42L);
+            given(valueOps.getAndDelete(anyString())).willReturn("EXISTING:42");
 
-            Optional<AuthCodeResult> result = authCodeService.consume(code);
+            Optional<AuthCodeResult> result = authCodeService.consume("some-code");
 
             assertThat(result).isPresent();
             assertThat(result.get().newUser()).isFalse();
@@ -79,9 +109,9 @@ class AuthCodeServiceTest {
         @Test
         @DisplayName("신규 회원 코드 소비 시 isNewUser=true, tempToken, provider를 반환한다")
         void newUserCode() {
-            String code = authCodeService.issueForNewUser("my-temp-token", OAuthProvider.KAKAO);
+            given(valueOps.getAndDelete(anyString())).willReturn("NEW:my-temp-token:KAKAO");
 
-            Optional<AuthCodeResult> result = authCodeService.consume(code);
+            Optional<AuthCodeResult> result = authCodeService.consume("some-code");
 
             assertThat(result).isPresent();
             assertThat(result.get().newUser()).isTrue();
@@ -90,36 +120,22 @@ class AuthCodeServiceTest {
         }
 
         @Test
-        @DisplayName("코드를 두 번 소비하면 두 번째는 empty를 반환한다 (1회용)")
-        void consumeOnce() {
-            String code = authCodeService.issueForExistingUser(1L);
-
-            authCodeService.consume(code);
-            Optional<AuthCodeResult> second = authCodeService.consume(code);
-
-            assertThat(second).isEmpty();
-        }
-
-        @Test
         @DisplayName("존재하지 않는 코드를 소비하면 empty를 반환한다")
         void unknownCode() {
+            given(valueOps.getAndDelete(anyString())).willReturn(null);
+
             Optional<AuthCodeResult> result = authCodeService.consume("non-existent-code");
+
             assertThat(result).isEmpty();
         }
 
         @Test
-        @DisplayName("TTL 만료된 코드를 소비하면 empty를 반환한다")
+        @DisplayName("Redis TTL 만료 후(getAndDelete가 null 반환) empty를 반환한다")
         void expiredCode() {
-            String code = authCodeService.issueForExistingUser(1L);
+            given(valueOps.getAndDelete(anyString())).willReturn(null);
 
-            // createdAt을 TTL보다 이전으로 조작한다
-            var store = (java.util.concurrent.ConcurrentHashMap<?, ?>) ReflectionTestUtils
-                .getField(authCodeService, "store");
-            AuthCode authCode = (AuthCode) store.get(code);
-            ReflectionTestUtils.setField(authCode, "createdAt",
-                java.time.Instant.now().minusSeconds(AuthCodeService.TTL_SECONDS + 1));
+            Optional<AuthCodeResult> result = authCodeService.consume("expired-code");
 
-            Optional<AuthCodeResult> result = authCodeService.consume(code);
             assertThat(result).isEmpty();
         }
     }

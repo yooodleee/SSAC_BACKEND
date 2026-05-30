@@ -9,11 +9,11 @@ import com.ssac.ssacbackend.dto.NaverLoginResult;
 import com.ssac.ssacbackend.dto.response.NaverProfileResponse;
 import com.ssac.ssacbackend.dto.response.NaverTokenResponse;
 import com.ssac.ssacbackend.repository.SocialAccountRepository;
-import java.time.Instant;
+import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -38,14 +38,14 @@ public class NaverOAuthService {
     private static final String NAVER_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
     private static final String NAVER_PROFILE_URL = "https://openapi.naver.com/v1/nid/me";
     private static final long STATE_TTL_SECONDS = 600L;
+    private static final String STATE_KEY_PREFIX = "naver:oauth:state:";
 
     private final NaverOAuthProperties naverOAuthProperties;
     private final SocialAccountRepository socialAccountRepository;
     private final GuestMigrationService guestMigrationService;
     private final PendingRegistrationService pendingRegistrationService;
     private final RestTemplate restTemplate;
-
-    private final ConcurrentHashMap<String, Instant> stateStore = new ConcurrentHashMap<>();
+    private final StringRedisTemplate redisTemplate;
 
     /**
      * 네이버 OAuth 인증 URL을 생성하고 state를 저장한다.
@@ -56,8 +56,8 @@ public class NaverOAuthService {
      */
     public String generateAuthorizationUrl() {
         String state = UUID.randomUUID().toString();
-        stateStore.put(state, Instant.now());
-        purgeExpiredStates();
+        redisTemplate.opsForValue().set(
+            STATE_KEY_PREFIX + state, "1", Duration.ofSeconds(STATE_TTL_SECONDS));
 
         return UriComponentsBuilder.fromUriString(NAVER_AUTH_URL)
             .queryParam("response_type", "code")
@@ -116,12 +116,9 @@ public class NaverOAuthService {
     }
 
     private void validateState(String state) {
-        Instant created = stateStore.remove(state);
-        if (created == null) {
+        String value = redisTemplate.opsForValue().getAndDelete(STATE_KEY_PREFIX + state);
+        if (value == null) {
             throw new BadRequestException(ErrorCode.OAUTH_STATE_INVALID);
-        }
-        if (Instant.now().isAfter(created.plusSeconds(STATE_TTL_SECONDS))) {
-            throw new BadRequestException(ErrorCode.OAUTH_STATE_EXPIRED);
         }
     }
 
@@ -169,8 +166,4 @@ public class NaverOAuthService {
         return "naver_" + profile.getId() + "@social.local";
     }
 
-    private void purgeExpiredStates() {
-        Instant cutoff = Instant.now().minusSeconds(STATE_TTL_SECONDS);
-        stateStore.entrySet().removeIf(entry -> entry.getValue().isBefore(cutoff));
-    }
 }
