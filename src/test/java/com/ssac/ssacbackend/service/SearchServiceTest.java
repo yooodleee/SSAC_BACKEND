@@ -167,7 +167,7 @@ class SearchServiceTest {
         ReflectionTestUtils.setField(c, "id", id);
         ReflectionTestUtils.setField(c, "title", title);
         ReflectionTestUtils.setField(c, "categories", List.of(category));
-        ReflectionTestUtils.setField(c, "domains", List.of());
+        ReflectionTestUtils.setField(c, "domains", new java.util.LinkedHashSet<>());
         return c;
     }
 

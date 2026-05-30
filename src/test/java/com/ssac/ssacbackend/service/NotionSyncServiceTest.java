@@ -20,6 +20,7 @@ import com.ssac.ssacbackend.repository.ContentRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import notion.api.v1.NotionClient;
 import notion.api.v1.model.databases.QueryResults;
 import notion.api.v1.model.pages.Page;
@@ -64,7 +65,7 @@ class NotionSyncServiceTest {
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(buildPage("page-1")), false));
         given(contentRepository.findByNotionPageId("page-1")).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents")).willReturn(cache);
+        given(cacheManager.getCache("contents:v2")).willReturn(cache);
 
         ContentSyncResponse result = notionSyncService.syncAll();
 
@@ -82,7 +83,7 @@ class NotionSyncServiceTest {
         Content existing = buildContent("page-2");
         given(contentRepository.findByNotionPageId("page-2")).willReturn(Optional.of(existing));
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents")).willReturn(cache);
+        given(cacheManager.getCache("contents:v2")).willReturn(cache);
 
         ContentSyncResponse result = notionSyncService.syncAll();
 
@@ -96,7 +97,7 @@ class NotionSyncServiceTest {
     void 동기화_후_캐시_초기화() {
         given(notionProperties.getDatabaseId()).willReturn("db-id");
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(), false));
-        given(cacheManager.getCache("contents")).willReturn(cache);
+        given(cacheManager.getCache("contents:v2")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -135,7 +136,7 @@ class NotionSyncServiceTest {
         given(contentRepository.findByNotionPageId("page-3")).willReturn(Optional.empty());
         String cloudinaryUrl = "https://res.cloudinary.com/demo/image/upload/test.jpg";
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(cloudinaryUrl);
-        given(cacheManager.getCache("contents")).willReturn(cache);
+        given(cacheManager.getCache("contents:v2")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -150,7 +151,7 @@ class NotionSyncServiceTest {
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
         given(contentRepository.findByNotionPageId("page-4")).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents")).willReturn(cache);
+        given(cacheManager.getCache("contents:v2")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -241,7 +242,7 @@ class NotionSyncServiceTest {
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
         given(contentRepository.findByNotionPageId(any())).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents")).willReturn(cache);
+        given(cacheManager.getCache("contents:v2")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -256,7 +257,7 @@ class NotionSyncServiceTest {
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
         given(contentRepository.findByNotionPageId(any())).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents")).willReturn(cache);
+        given(cacheManager.getCache("contents:v2")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -273,7 +274,7 @@ class NotionSyncServiceTest {
         Content saved = buildContent("page-cat");
         given(contentRepository.findByNotionPageId(any())).willReturn(Optional.empty());
         given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
-        given(cacheManager.getCache("contents")).willReturn(cache);
+        given(cacheManager.getCache("contents:v2")).willReturn(cache);
 
         notionSyncService.syncAll();
 
@@ -358,7 +359,7 @@ class NotionSyncServiceTest {
     private Content buildContent(String notionPageId) {
         Content content = Content.fromNotion(notionPageId, "db-id");
         ReflectionTestUtils.setField(content, "categories", List.of());
-        ReflectionTestUtils.setField(content, "domains", List.of());
+        ReflectionTestUtils.setField(content, "domains", new java.util.LinkedHashSet<>());
         ReflectionTestUtils.setField(content, "createdAt", LocalDateTime.now());
         return content;
     }
