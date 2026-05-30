@@ -1,4 +1,1 @@
-[2026-05-26 15:41:43]
-Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew compileJava compileTestJava 2>&1 | tail -15
----
-{'stdout': '* What went wrong:\r\nExecution failed for task \':compileTestJava\'.\r\n> Compilation failed; see the compiler output below.\r\n  C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\test\\java\\com\\ssac\\ssacbackend\\service\\NotionSyncServiceTest.java:184: error: incompatible types: String cannot be converted to List<String>\n              notionSyncService.getPublishedContentItems("realestate", null, null);\n                                                         ^\r\n  1 error\r\n\r\n* Try:\r\n> Check your code and dependencies to fix the compilation error(s)\r\n> Run with --scan to get full insights from a Build Scan (powered by Develocity).\r\n\r\nBUILD FAILED in 6s\r\n3 actionable tasks: 3 executed', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+[2026-05-30 15:01:54]

@@ -37,8 +37,8 @@ EXPOSE 8080
 ENTRYPOINT ["sh", "-c", \
     "java \
     -XX:+UseContainerSupport \
-    -XX:MaxRAMPercentage=40.0 \
-    -XX:MaxMetaspaceSize=128m \
+    -XX:MaxRAMPercentage=50.0 \
+    -XX:MaxMetaspaceSize=320m \
     -XX:+UseG1GC \
     -XX:MaxGCPauseMillis=200 \
     -Dfile.encoding=UTF-8 \
