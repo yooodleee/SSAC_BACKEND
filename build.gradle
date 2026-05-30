@@ -198,6 +198,40 @@ jacocoTestCoverageVerification {
                 minimum = 0.50
             }
         }
+
+        // Rule 3: Controller 레이어 전체 집계 60%
+        // 이유: Controller는 Service보다 얇은 레이어 (위임 구조).
+        // 현재 22개 미테스트 상태에서 즉시 70% 강제 시 빌드 전면 차단 위험.
+        // 단계적 상향 계획: 1단계 40%/60% → 2단계 50%/70% (docs/debug-log.md 참고)
+        rule {
+            enabled = true
+            element = 'PACKAGE'
+            includes = ['com/ssac/*/controller']
+            limit {
+                counter = 'LINE'
+                value   = 'COVEREDRATIO'
+                minimum = 0.60
+            }
+        }
+
+        // Rule 4: Controller 클래스 개별 최소 40%
+        // 실패 시 → "개별 Controller 커버리지 40% 미달: XxxController" → BUILD FAILED
+        rule {
+            enabled = true
+            element = 'CLASS'
+            includes = ['com/ssac/*/controller/*']
+            excludes = [
+                // 개발 전용 컨트롤러 (@Profile("!prod"))
+                'com/ssac/ssacbackend/controller/DevAuthController',
+                // Swagger 문서용 더미 엔드포인트 (Spring Security가 직접 처리)
+                'com/ssac/ssacbackend/controller/KakaoOAuthController',
+            ]
+            limit {
+                counter = 'LINE'
+                value   = 'COVEREDRATIO'
+                minimum = 0.40
+            }
+        }
     }
 }
 
