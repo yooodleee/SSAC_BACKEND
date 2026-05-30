@@ -162,17 +162,25 @@ STEP 6. 결과 기록
 ./gradlew jacocoTestReport jacocoTestCoverageVerification
 ```
 
-### 커버리지 기준
-- 서비스 레이어 Line Coverage: 70% 이상
-- 측정 대상 패키지: com.ssac.*.service.*
+### 커버리지 기준 (이중 검증)
+
+**Rule 1. 서비스 레이어 전체 집계**
+→ 측정 대상: com/ssac/*/service 패키지
+→ 기준: Line Coverage 70% 이상
+
+**Rule 2. 개별 클래스 최소 커버리지**
+→ 측정 대상: com/ssac/*/service/* 클래스 (인터페이스·제외 등록 클래스 제외)
+→ 기준: Line Coverage 50% 이상
+→ 목적: 0% 클래스가 집계에 은폐되는 것을 방지
 
 ### 성공 시
-→ "BUILD SUCCESSFUL" 확인
+→ Rule 1, Rule 2 모두 "BUILD SUCCESSFUL" 확인
 → STEP 6으로 진행
 
-### 실패 시 (70% 미달)
-→ 커버리지 부족 클래스 / 메서드를 확인한다
-  build/reports/jacoco/test/html/index.html 참고
+### Rule 1 실패 시 (전체 70% 미달)
+→ build/reports/jacoco/test/html/index.html 확인
+→ 전체 커버리지가 낮은 패키지 탐색
+→ 해당 서비스 테스트 추가
 
 → 아래 형식으로 부족한 항목을 분석한다:
 ```
@@ -185,8 +193,46 @@ STEP 6. 결과 기록
   □ skipOnboarding() 기본값 SEED 설정 테스트
 ```
 
-→ 테스트 추가 완료 후 STEP 5 재실행
-→ 70% 이상 확인 후 STEP 6으로 진행
+### Rule 2 실패 시 (개별 클래스 50% 미달)
+→ 해당 클래스가 비즈니스 로직을 포함하는가?
+    포함 → 테스트 작성 필요 (분류 A)
+    미포함 → excludes 목록에 근거와 함께 등록 (분류 B)
+
+→ 배치·스케줄러 클래스는 분류 C로 jacocoTestCoverageVerification excludes에 등록
+
+### 의도적 제외 클래스 등록 절차
+1. build.gradle `jacocoTestCoverageVerification` Rule 2 `excludes`에 추가
+2. build.gradle `jacocoTestReport` `exclude` 패턴에 추가 (필요 시)
+3. 아래 제외 클래스 목록 테이블 갱신
+4. 제외 근거가 중요한 경우 ADR 작성
+
+→ 테스트 추가 또는 excludes 등록 완료 후 STEP 5 재실행
+→ Rule 1, Rule 2 모두 통과 후 STEP 6으로 진행
+
+---
+
+### JaCoCo 측정 제외 클래스 목록
+
+아래 클래스는 테스트 커버리지 측정에서
+제외된다:
+
+| 패턴 | 제외 이유 |
+|-----|---------|
+| `**/config/**` | Bean 등록만 수행 / 로직 없음 |
+| `**/common/response/**` | 공통 응답 구조 / 단순 래퍼 |
+| `**/common/exception/**` | 예외 정의 / 로직 없음 |
+| `**/domain/**` | JPA 엔티티·Enum / Getter·Setter 자동 생성 |
+| `**/dto/**` | 데이터 운반 객체 / 로직 없음 |
+| `**/component/**` | 단순 위임 컴포넌트 |
+| `**/*Application*` | Spring Boot 진입점 |
+| `**/service/ViewCountStore*` | 인터페이스 / 측정 불가 |
+| `**/service/TokenStore*` | 인터페이스 / 측정 불가 |
+| `**/service/ReissueResult*` | 레코드 (데이터 운반 객체) |
+| `GuestDataCleanupService` | 스케줄러 배치 / 추후 고도화 (분류 C) |
+| `ErrorLogBatchService` | 스케줄러 배치 / 추후 고도화 (분류 C) |
+
+→ 위 목록 외 클래스를 제외하려면
+  ADR을 작성하여 근거를 기록해야 한다.
 
 ---
 
@@ -209,9 +255,11 @@ STEP 6. 결과 기록
 - 건너뜀         : N개
 
 ### 커버리지 결과
-- 서비스 레이어 전체: N%
-- OnboardingService : N%
-- UserService       : N%
+- Rule 1 (서비스 레이어 전체): N%  → ✅ / ❌
+- Rule 2 (개별 클래스 50% 이상):
+  - OnboardingService : N%
+  - UserService       : N%
+  - (50% 미달 클래스 있으면 명시)
 
 → 구현 완료 확인. self-diagnose.md를 실행합니다.
 

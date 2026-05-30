@@ -39,9 +39,16 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      # CI 체크 4: 커버리지 기준 검증 (서비스 레이어 70% 미달 시 빌드 실패)
+      # CI 체크 4: 커버리지 기준 검증 (이중 Rule)
+      # Rule 1: 서비스 레이어 전체 70% 미달 → BUILD FAILED
+      # Rule 2: 개별 클래스 50% 미달 → BUILD FAILED (0% 클래스 은폐 방지)
+      # 실패 시 출력: 위반 클래스명 + Line Coverage 수치
       - name: 커버리지 기준 검증
-        run: ./gradlew jacocoTestCoverageVerification --no-daemon
+        run: |
+          echo "📊 커버리지 검증 중 (이중 Rule)..."
+          ./gradlew jacocoTestCoverageVerification --no-daemon
+          echo "✅ Rule 1: 서비스 레이어 전체 Line Coverage 70% 이상"
+          echo "✅ Rule 2: 개별 서비스 클래스 Line Coverage 50% 이상"
 
       # CI 체크 5: 커버리지 리포트 아티팩트 업로드
       - name: 커버리지 리포트 업로드
