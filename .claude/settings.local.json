@@ -195,7 +195,8 @@
       "Bash(pip install:*)",
       "Bash(sed:*)",
       "Bash(xargs -I{} basename {})",
-      "Bash(./gradlew jacocoTestReport)"
+      "Bash(./gradlew jacocoTestReport)",
+      "Bash(./gradlew compileTestJava --no-daemon)"
     ]
   }
 }
