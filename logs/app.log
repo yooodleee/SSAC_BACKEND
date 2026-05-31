@@ -83,3 +83,40 @@ com.ssac.ssacbackend.common.exception.BadRequestException: Notion 동기화 중 
 2026-05-31 22:06:03.174 WARN  [traceId=daddb001-f364-42e7-ace8-45f653bcbf82] [userId=accia25@naver.com] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=daddb001-f364-42e7-ace8-45f653bcbf82 | userId=accia25@naver.com
 -> userId 또는 guestId 중 하나는 반드시 필요합니다.
 2026-05-31 22:06:03.176 WARN  [traceId=daddb001-f364-42e7-ace8-45f653bcbf82] [userId=accia25@naver.com] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-31 22:51:06.669 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
+2026-05-31 22:51:06.795 WARN  [traceId=] [userId=] [ ] o.f.c.i.database.base.Database - Using MySQL 9.1 which is newer than the version Flyway has been verified with. The latest verified version of MySQL is 8.1.
+2026-05-31 22:51:13.166 WARN  [traceId=] [userId=] [ ] o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-31 22:51:14.925 ERROR [traceId=] [userId=] [ ] c.s.s.service.NotionSyncService - Notion 자동 동기화 실패
+com.ssac.ssacbackend.common.exception.BadRequestException: Notion 동기화 중 오류가 발생했습니다.
+	at com.ssac.ssacbackend.service.NotionSyncService.syncAll(NotionSyncService.java:88)
+	at com.ssac.ssacbackend.service.NotionSyncService.scheduledSync(NotionSyncService.java:70)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:715)
+	at com.ssac.ssacbackend.service.NotionSyncService$$SpringCGLIB$$0.scheduledSync(<generated>)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.runInternal(ScheduledMethodRunnable.java:128)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.lambda$run$1(ScheduledMethodRunnable.java:122)
+	at io.micrometer.observation.Observation.observe(Observation.java:569)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.run(ScheduledMethodRunnable.java:122)
+	at org.springframework.scheduling.config.Task$OutcomeTrackingRunnable.run(Task.java:88)
+	at org.springframework.scheduling.support.DelegatingErrorHandlingRunnable.run(DelegatingErrorHandlingRunnable.java:54)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.runAndReset(FutureTask.java:305)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:305)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+2026-05-31 22:51:17.705 WARN  [traceId=e1cd0e05-d8dc-4a2e-80ae-46037d807d6b] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=e1cd0e05-d8dc-4a2e-80ae-46037d807d6b | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-31 22:51:17.743 WARN  [traceId=e1cd0e05-d8dc-4a2e-80ae-46037d807d6b] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-31 22:51:17.795 WARN  [traceId=8ac276d7-8a15-4ac2-b0b3-7b52c180eb75] [userId=anonymous] [GET /api/ab-test/menu] c.s.s.c.e.GlobalExceptionHandler - [EVENT-001] GET /api/ab-test/menu | traceId=8ac276d7-8a15-4ac2-b0b3-7b52c180eb75 | userId=anonymous
+-> userId 또는 guestId 중 하나는 반드시 필요합니다.
+2026-05-31 22:51:17.800 WARN  [traceId=8ac276d7-8a15-4ac2-b0b3-7b52c180eb75] [userId=anonymous] [GET /api/ab-test/menu] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.ssac.ssacbackend.common.exception.BadRequestException: userId 또는 guestId 중 하나는 반드시 필요합니다.]
+2026-05-31 22:51:37.838 WARN  [traceId=] [userId=] [ ] o.a.c.util.SessionIdGeneratorBase - Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [123] milliseconds.

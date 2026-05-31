@@ -186,8 +186,15 @@ STEP C. 판단
 - ADR 작성    : N (단순 구현 누락)
 - 관련 SC     : 신규 SC 등록 필요 (authCode 교환 시 refreshToken 쿠키 설정)
 
+#### E2E 추가 진단 (2026-05-31 21:30)
+- BE 완전 정상: Naver 콜백 → authCode → 토큰 교환 전 구간 성공 (Railway 로그 13:16 확인)
+- refreshToken 쿠키 설정 확인: COOKIE_SECURE=true, COOKIE_SAME_SITE=None (Railway 환경변수)
+- FE 홈 초기화 패턴: `GET /api/v1/contents` 만 호출, `/api/v1/auth/reissue` 미호출
+- 잔여 문제: FE 앱 초기화 시 reissue 호출 없음 → 새로고침 시 로그인 상태 초기화
+- 조치 주체: FE 팀 — 앱 초기화 시 Zustand.accessToken === null 이면 POST /api/v1/auth/reissue 호출 필요
+
 #### 해결 시각
-2026-05-31 21:49
+2026-05-31 21:49 (BE 수정 완료) / FE 수정 대기 중
 
 ---
 
