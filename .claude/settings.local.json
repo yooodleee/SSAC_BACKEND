@@ -199,7 +199,9 @@
       "Bash(./gradlew compileTestJava --no-daemon)",
       "Bash(sc-structure-check.md)",
       "Bash(CLAUDE.md)",
-      "Bash(docs/debug-log.md)"
+      "Bash(docs/debug-log.md)",
+      "Bash(del \"C:\\\\Users\\\\dhals_zn0ga5j\\\\python_seed\\\\SSAC_BACKEND\\\\ssac-backend\\\\notify_slack.py\")",
+      "Bash(del \"C:\\\\Users\\\\dhals_zn0ga5j\\\\python_seed\\\\SSAC_BACKEND\\\\ssac-backend\\\\notify_slack2.py\")"
     ]
   }
 }

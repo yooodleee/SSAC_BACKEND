@@ -1,4 +1,1 @@
-[2026-05-31 00:03:54]
-Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && find build -name "TEST-*.xml" 2>/dev/null | head -3 && find build -name "TEST-*.xml" 2>/dev/null | xargs grep -h "tests=" | awk -F'"' '{sum += $2} END {print "Total: " sum}'
----
-{'stdout': 'build/test-results/test/TEST-com.ssac.ssacbackend.ArchitectureTest.xml\nbuild/test-results/test/TEST-com.ssac.ssacbackend.common.exception.GlobalExceptionHandlerTest$BadRequestTests.xml\nbuild/test-results/test/TEST-com.ssac.ssacbackend.common.exception.GlobalExceptionHandlerTest$ConflictTests.xml\nTotal: 2517', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+[2026-05-31 21:39:15]
