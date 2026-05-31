@@ -150,6 +150,25 @@ grep -rn "CREATE TABLE " src/main/resources/db/migration/ | \
 
 ---
 
+## 🚫 Redis 캐싱 금지 규칙
+
+아래 행동은 금지된다:
+
+□ @Cacheable + GenericJackson2JsonRedisSerializer 조합 사용 금지
+  → 타입 정보 포함으로 역직렬화 오류 발생
+  → 반드시 StringRedisTemplate 수동 캐싱 사용
+  → 참고: ADR-003
+
+□ TTL 미설정 캐시 저장 금지
+  → 메모리 누수 발생 가능
+  → 모든 캐시 항목에 TTL 명시 필수
+
+□ 캐시 키 임의 작성 금지
+  → 기존 키 형식(domain:type:{id}) 준수
+  → sc-structure-check.md 캐시 키 일관성 점검 필수
+
+---
+
 ## 🔨 빌드 / 테스트 자동 실행 규칙
 
 아래 상황에서 반드시 `testing.md`를 자동 실행한다:

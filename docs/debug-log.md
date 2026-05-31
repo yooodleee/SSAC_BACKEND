@@ -81,3 +81,54 @@
 | 일자 | 이슈 | 원인 | 조치 |
 |-----|------|------|------|
 | 2025-05-30 | Controller 전체 커버리지 21% | 22개 Controller 미테스트 | Rule 3/4 추가 + P1/P2 테스트 작성 |
+| 2026-05-31 | HomeService GenericJackson2JsonRedisSerializer 사용 | RedisConfig에서 RedisTemplate\<String, Object\>에 타입 정보 포함 직렬화 설정 | self-diagnose.md CACHE-1 점검 항목 추가 / CLAUDE.md 금지 규칙 추가 |
+| 2026-05-31 | NotionSyncService Redis 조회 try-catch 미적용 | stringRedisTemplate.opsForValue().get() 호출 시 Redis 연결 오류 예외 전파 가능 | self-diagnose.md CACHE-2 fallback 점검 항목 추가 |
+
+---
+
+## Redis 캐싱 서비스 전수 점검 (2026-05-31)
+
+### 점검 기준: self-diagnose.md CACHE-1 ~ CACHE-5
+
+### NotionSyncService
+
+| 항목 | 결과 | 비고 |
+|-----|------|------|
+| CACHE-1 직렬화 방식 | ✅ | StringRedisTemplate 수동 캐싱 (OBJECT_MAPPER + TypeReference) |
+| CACHE-2 캐시 키 형식 | ✅ | `contents:v4:list:{categories}:{difficulty}:{domain}` |
+| CACHE-2 직렬화 대칭 | ✅ | writeValueAsString / readValue 대칭 구현 |
+| CACHE-2 fallback 처리 | ⚠️ | 역직렬화 실패 시 DB 재조회 있음. 단, Redis 연결 오류 시 (get/set 호출) try-catch 없어 예외 전파 가능 |
+| CACHE-3 TTL 명시 | ✅ | CACHE_TTL_SECONDS = 3600L, Duration.ofSeconds 사용 |
+| CACHE-4 캐시 무효화 | ✅ | syncAll() 완료 후 evictContentsCache() 호출, contents:v4:* 전체 삭제 |
+
+### ContentService
+
+| 항목 | 결과 | 비고 |
+|-----|------|------|
+| Redis 직접 사용 | ✅ | NotionSyncService에 위임 |
+| 상세 조회 캐싱 | N/A | Notion 블록 실시간 조회 (의도적 설계) |
+
+### HomeService
+
+| 항목 | 결과 | 비고 |
+|-----|------|------|
+| CACHE-1 직렬화 방식 | ❌ | `RedisTemplate<String, Object>` + `GenericJackson2JsonRedisSerializer` 사용. activateDefaultTyping으로 타입 정보 포함 → 클래스 구조 변경 시 역직렬화 오류 위험 |
+| CACHE-2 fallback 처리 | ✅ | try-catch로 Redis 불가용 시 DB 직접 조회 및 저장 실패 무시 |
+| CACHE-3 TTL 명시 | ✅ | computeTtlUntilMidnight() (당일 자정), REC_HISTORY 7일 TTL |
+| CACHE-4 캐시 무효화 | ✅ | HomeCacheEvictService.evict() — 콘텐츠 완료/온보딩/관심 도메인 변경 시 호출 |
+
+### OnboardingService
+
+| 항목 | 결과 | 비고 |
+|-----|------|------|
+| Redis 직접 사용 | ✅ | HomeCacheEvictService 위임 |
+| CACHE-4 캐시 무효화 | ✅ | submit/skip/saveInterests/resetOnboarding 모두 evict() 호출 |
+
+---
+
+### 발견된 문제 요약
+
+| 우선순위 | 서비스 | 문제 | 위험도 |
+|---------|--------|------|--------|
+| P1 | HomeService | GenericJackson2JsonRedisSerializer 사용 (CACHE-1 ❌) | 높음 — 클래스 리팩토링 시 역직렬화 오류 발생 가능 |
+| P2 | NotionSyncService | Redis 조회/저장 시 연결 오류 catch 없음 (CACHE-2 ⚠️) | 중간 — Redis 일시 불가용 시 콘텐츠 목록 API 전체 실패 가능 |
