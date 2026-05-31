@@ -32,10 +32,13 @@
 6순위 `self-diagnose.md`        → 자가 점검
 
 ### [오류 발생 시 — 즉시 실행]
-즉시   `log-diagnose.md`        → 로그 기반 원인 진단
+즉시   `log-diagnose.md`        → 로그 기반 원인 진단 (STEP 1~6)
+           ↓
+       STEP 7                   → docs/debug-log.md 결과 기록
+           ↓
 1순위 `self-diagnose.md`        → 자가 점검
 2순위 `testing.md`              → 재발 방지 테스트 추가
-3순위 `adr-create.md`           → 반복 오류 3회 이상 시 의사결정 기록
+3회 이상 `adr-create.md`        → 반복 오류 의사결정 기록
 
 ### [수동 실행]
 -     `harness-audit.md`        → 스프린트 종료 / 중간 점검 시 전체 하네스 감사
