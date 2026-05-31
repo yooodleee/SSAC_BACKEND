@@ -15,6 +15,7 @@
 | 토큰 최적화 | docs/agent-protocols/token-optimize.md | 스프린트 종료 시 | 수동 |
 | ADR 생성 | docs/agent-protocols/adr-create.md | 반복 오류 3회 이상 / 기술 의사결정 시 | 수동 |
 | 하네스 감사 | docs/agent-protocols/harness-audit.md | 스프린트 종료 / 중간 점검 시 | 수동 |
+| E2E 브라우저 진단 | docs/agent-protocols/e2e-diagnose.md | 인증/쿠키/CORS 오류 시 | 수동 |
 
 ---
 
@@ -32,7 +33,8 @@
 6순위 `self-diagnose.md`        → 자가 점검
 
 ### [오류 발생 시 — 즉시 실행]
-즉시   `log-diagnose.md`        → 로그 기반 원인 진단 (STEP 1~6)
+즉시   `log-diagnose.md`        → 서버 로그 기반 원인 진단 (STEP 1~6)
+추가   `e2e-diagnose.md`        → 브라우저 환경 진단 (인증/쿠키/CORS 의심 시)
            ↓
        STEP 7                   → docs/debug-log.md 결과 기록
            ↓
