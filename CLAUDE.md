@@ -172,6 +172,25 @@ grep -rn "CREATE TABLE " src/main/resources/db/migration/ | \
 
 ---
 
+## 🚫 debug-log.md 관련 금지 규칙
+
+아래 행동은 금지된다:
+
+□ log-diagnose.md STEP 7 완료 후 debug-log.md 미기록 금지
+  → 진단 결과는 반드시 [DIAGNOSE] 양식으로 기록 후 종료
+
+□ adr-create.md 완료 후 debug-log.md 미기록 금지
+  → 의사결정 결과는 반드시 [ADR] 양식으로 기록 후 종료
+
+□ harness-audit.md 완료 후 debug-log.md 미기록 금지
+  → 감사 결과는 반드시 [AUDIT] 양식으로 기록 후 종료
+
+□ debug-log.md 기존 기록 삭제 금지
+  → 이력 보존이 목적이므로 삭제 불가
+  → 수정이 필요한 경우 기존 항목에 취소선 + 수정 내용 추가 방식으로 처리
+
+---
+
 ## 🔨 빌드 / 테스트 자동 실행 규칙
 
 아래 상황에서 반드시 `testing.md`를 자동 실행한다:
