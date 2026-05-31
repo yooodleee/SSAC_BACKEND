@@ -10,6 +10,9 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.domain.user.User;
@@ -36,7 +39,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,16 +59,20 @@ class HomeServiceTest {
     @Mock
     private QuizAttemptRepository quizAttemptRepository;
     @Mock
-    private RedisTemplate<String, Object> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
     @Mock
-    private ValueOperations<String, Object> valueOps;
+    private ValueOperations<String, String> valueOps;
 
     @InjectMocks
     private HomeService homeService;
 
+    private static final ObjectMapper TEST_MAPPER = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
     @BeforeEach
     void setUp() {
-        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOps);
+        lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
     }
 
     @Nested
@@ -93,15 +100,16 @@ class HomeServiceTest {
 
         @Test
         @DisplayName("캐시 히트 시 DB 조회 없이 캐시 데이터 반환")
-        void 캐시_히트_시_DB_조회_없음() {
+        void 캐시_히트_시_DB_조회_없음() throws Exception {
             User user = mockUser(1L, true, UserLevel.SPROUT, null);
             given(userRepository.findByEmail("test@test.com")).willReturn(Optional.of(user));
             HomeResponse cached = mockHomeResponse();
-            given(valueOps.get("home:1")).willReturn(cached);
+            given(valueOps.get("home:1")).willReturn(TEST_MAPPER.writeValueAsString(cached));
 
             Object result = homeService.getHome("test@test.com");
 
-            assertThat(result).isSameAs(cached);
+            assertThat(result).isInstanceOf(HomeResponse.class);
+            assertThat(((HomeResponse) result).user().nickname()).isEqualTo("닉네임");
             then(contentRepository).should(never()).findByDifficultyPublished(any());
         }
 

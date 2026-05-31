@@ -1,5 +1,9 @@
 package com.ssac.ssacbackend.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.content.Content;
@@ -39,7 +43,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +65,9 @@ public class HomeService {
     private static final String REC_HISTORY_PREFIX = "home:rec_history:";
     private static final int LONG_ABSENCE_DAYS = 7;
     private static final long REC_HISTORY_TTL_DAYS = 7L;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     private final UserRepository userRepository;
     private final UserInterestRepository userInterestRepository;
@@ -68,7 +75,7 @@ public class HomeService {
     private final ContentProgressRepository contentProgressRepository;
     private final QuizRepository quizRepository;
     private final QuizAttemptRepository quizAttemptRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     /**
      * 홈 화면 데이터를 반환한다.
@@ -86,10 +93,10 @@ public class HomeService {
 
         String cacheKey = HOME_CACHE_PREFIX + user.getId();
         try {
-            Object cached = redisTemplate.opsForValue().get(cacheKey);
-            if (cached != null) {
+            String cachedJson = stringRedisTemplate.opsForValue().get(cacheKey);
+            if (cachedJson != null) {
                 log.debug("홈 캐시 히트: userId={}", user.getId());
-                return cached;
+                return OBJECT_MAPPER.readValue(cachedJson, HomeResponse.class);
             }
         } catch (Exception e) {
             log.warn("홈 캐시 읽기 실패 (Redis 불가용), DB에서 조회합니다: userId={}", user.getId());
@@ -101,7 +108,8 @@ public class HomeService {
 
         try {
             Duration ttl = computeTtlUntilMidnight();
-            redisTemplate.opsForValue().set(cacheKey, response, ttl);
+            String json = OBJECT_MAPPER.writeValueAsString(response);
+            stringRedisTemplate.opsForValue().set(cacheKey, json, ttl);
             log.debug("홈 캐시 저장: userId={}, ttl={}s", user.getId(), ttl.getSeconds());
         } catch (Exception e) {
             log.warn("홈 캐시 저장 실패 (Redis 불가용): userId={}", user.getId());
@@ -364,15 +372,9 @@ public class HomeService {
     private Set<Long> getRecentlyRecommendedIds(Long userId) {
         try {
             String key = REC_HISTORY_PREFIX + userId;
-            Object raw = redisTemplate.opsForValue().get(key);
-            if (raw == null) {
-                return new HashSet<>();
-            }
-            if (raw instanceof Set<?> set) {
-                return set.stream()
-                    .filter(o -> o instanceof Number)
-                    .map(o -> ((Number) o).longValue())
-                    .collect(Collectors.toSet());
+            String raw = stringRedisTemplate.opsForValue().get(key);
+            if (raw != null) {
+                return OBJECT_MAPPER.readValue(raw, new TypeReference<Set<Long>>() {});
             }
         } catch (Exception e) {
             log.warn("추천 이력 읽기 실패 (Redis 불가용): userId={}", userId);
@@ -393,7 +395,8 @@ public class HomeService {
 
             Set<Long> existing = getRecentlyRecommendedIds(userId);
             existing.addAll(ids);
-            redisTemplate.opsForValue().set(key, existing, Duration.ofDays(REC_HISTORY_TTL_DAYS));
+            String json = OBJECT_MAPPER.writeValueAsString(existing);
+            stringRedisTemplate.opsForValue().set(key, json, Duration.ofDays(REC_HISTORY_TTL_DAYS));
         } catch (Exception e) {
             log.warn("추천 이력 저장 실패 (Redis 불가용): userId={}", userId);
         }
