@@ -1,6 +1,249 @@
 # Debug Log
 
-## Controller 테스트 커버리지 분류 (2025-05-30)
+## 개요
+이 파일은 운영 오류 진단 / ADR 생성 / 하네스 감사 결과를 누적 기록하는 이력 문서입니다.
+
+## 기록 규칙
+```
+□ 최신 기록을 파일 상단에 추가한다 (역순)
+□ 기록 유형은 아래 3가지로 구분한다:
+    [DIAGNOSE]  : log-diagnose.md 실행 결과
+    [ADR]       : adr-create.md 실행 결과
+    [AUDIT]     : harness-audit.md 실행 결과
+□ 해결 완료된 항목은 ✅로 표시한다
+□ 미해결 항목은 🔴로 표시한다
+□ 이 파일을 직접 편집하여 내용을 삭제하지 않는다
+```
+
+## 반복 오류 판단 기준
+동일한 오류 메시지 / 원인이 3회 이상 기록된 경우 adr-create.md를 즉시 실행한다.
+
+---
+
+## 기록 양식
+
+### [DIAGNOSE] 운영 오류 진단 기록
+
+```
+**[DIAGNOSE] YYYY-MM-DD HH:mm**
+상태: 🔴 미해결 / ✅ 해결 완료
+
+#### 오류 개요
+- 발생 환경  : Railway 운영 / 로컬
+- 서비스     : ssac-backend / Redis / FE
+- 오류 유형  : Redis 연결 / 직렬화 / Flyway / 기타
+- 오류 메시지:
+{핵심 오류 메시지 또는 스택 트레이스 요약}
+
+#### 진단 과정
+- STEP 2 서비스 상태: 정상 / 비정상
+- STEP 3 로그 분석  : {핵심 발견 내용}
+- STEP 4 Redis URL : 확인 / 미확인 / 해당 없음
+- STEP 5 Redis 조회: {조회 결과 요약 / 해당 없음}
+
+#### 근본 원인
+{Why 분석 결과 요약}
+
+#### 조치 내용
+{수행한 조치 내용}
+
+#### 재발 방지
+- 프로토콜 갱신: Y → {갱신 대상 파일} / N
+- ADR 작성    : Y → {ADR 번호 및 제목} / N
+- 관련 SC     : {백로그 SC 번호}
+
+#### 해결 시각
+{YYYY-MM-DD HH:mm}
+```
+
+---
+
+### [ADR] 기술 의사결정 기록
+
+```
+**[ADR] YYYY-MM-DD HH:mm**
+상태: ✅ 완료
+
+#### ADR 정보
+- 파일명   : docs/adr/ADR-{번호}-{제목}.md
+- 트리거   : 반복 오류 N회 / 기술 의사결정
+- 핵심 결정:
+    {한 줄 요약}
+
+#### 프로토콜 갱신 항목
+- {프로토콜 파일명} → {갱신 내용}
+
+#### 등록된 백로그 SC
+- {SC 번호}: {SC 제목}
+
+#### 완료 시각
+{YYYY-MM-DD HH:mm}
+```
+
+---
+
+### [AUDIT] 하네스 감사 기록
+
+```
+**[AUDIT] YYYY-MM-DD HH:mm**
+상태: ✅ 완료
+
+#### 감사 요약
+| 구분     | 건수 |
+|---------|-----|
+| Critical | N개 |
+| High     | N개 |
+| Medium   | N개 |
+| Low      | N개 |
+| 정상     | N개 |
+
+#### 주요 발견 항목
+- ❌ {Critical / High 항목}
+- ⚠️ {Medium 항목}
+
+#### 등록된 보완 백로그 SC
+- HARNESS-N: {SC 제목}
+
+#### 다음 감사 예정
+{YYYY-MM-DD} (스프린트 종료 시)
+
+#### 완료 시각
+{YYYY-MM-DD HH:mm}
+```
+
+---
+
+## 반복 오류 자동 감지 규칙
+
+에이전트는 log-diagnose.md 실행 후 debug-log.md에 [DIAGNOSE] 기록을 추가하기 전
+아래 절차를 수행한다:
+
+```
+STEP A. 동일 오류 이력 검색
+→ debug-log.md에서 동일한 오류 메시지 / 근본 원인 키워드를 검색한다
+
+STEP B. 반복 횟수 집계
+→ 동일 항목이 몇 회 기록되어 있는가?
+
+STEP C. 판단
+→ 2회 이하: 일반 기록 후 종료
+→ 3회 이상: 기록 후 즉시 adr-create.md 실행
+            "동일 오류 3회 감지 → adr-create.md를 실행합니다."
+
+판단 출력 형식:
+[반복 오류 감지]
+오류 유형  : {오류 유형}
+발생 횟수  : N회 ({날짜} / {날짜} / 오늘)
+판단       : adr-create.md 즉시 실행
+```
+
+---
+
+<!-- 아래에 기록을 추가한다 (최신순) -->
+
+---
+
+**[DIAGNOSE] 2026-05-31**
+상태: ✅ 해결 완료
+
+#### 오류 개요
+- 발생 환경  : 로컬 (캐싱 전수 점검)
+- 서비스     : HomeService / NotionSyncService
+- 오류 유형  : Redis 직렬화 / Redis fallback 미적용
+- 오류 메시지:
+```
+P1: HomeService — RedisTemplate<String, Object> + GenericJackson2JsonRedisSerializer 사용
+    activateDefaultTyping으로 타입 정보 포함 → 클래스 구조 변경 시 역직렬화 오류 발생 가능
+P2: NotionSyncService — stringRedisTemplate.opsForValue().get() 호출 시 try-catch 없음
+    Redis 연결 오류 시 예외 전파 → 콘텐츠 목록 API 전체 실패 가능
+```
+
+#### 진단 과정
+- STEP 2 서비스 상태: 정상
+- STEP 3 로그 분석  : self-diagnose.md CACHE-1 기준 캐싱 서비스 4개 전수 점검
+- STEP 4 Redis URL : 해당 없음 (로컬 점검)
+- STEP 5 Redis 조회: 해당 없음
+
+#### 근본 원인
+HomeService가 RedisTemplate\<String, Object\>에 GenericJackson2JsonRedisSerializer + activateDefaultTyping(NON_FINAL)을 사용하여 타입 정보를 JSON에 포함. 클래스 리팩토링 시 역직렬화 실패 위험. (ADR-003 패턴 위반)
+
+#### 조치 내용
+- HomeService: StringRedisTemplate + ObjectMapper(JavaTimeModule) 수동 직렬화로 전환
+- HomeCacheEvictService: StringRedisTemplate으로 교체
+- RedisConfig: GenericJackson2JsonRedisSerializer Bean 제거 (StringRedisTemplate 자동 구성)
+- HomeServiceTest / HomeCacheEvictServiceTest: 목 타입 수정
+
+#### 재발 방지
+- 프로토콜 갱신: Y → self-diagnose.md (CACHE-1~5 추가), sc-structure-check.md (Redis 캐싱 구조 점검), CLAUDE.md (Redis 캐싱 금지 규칙)
+- ADR 작성    : Y → ADR-003-redis-serialization-strategy.md
+- 관련 SC     : HARNESS-5 (self-diagnose 캐싱 점검 추가)
+
+#### 해결 시각
+2026-05-31
+
+---
+
+**[ADR] 2026-05-31**
+상태: ✅ 완료
+
+#### ADR 정보
+- 파일명   : docs/adr/ADR-003-redis-serialization-strategy.md
+- 트리거   : 기술 의사결정 (GenericJackson2JsonRedisSerializer 역직렬화 오류 위험)
+- 핵심 결정:
+    @Cacheable + GenericJackson2JsonRedisSerializer → StringRedisTemplate 수동 캐싱으로 전환 (HomeService, NotionSyncService 모두 적용)
+
+#### 프로토콜 갱신 항목
+- self-diagnose.md → CACHE-1~5 캐싱 직렬화 점검 섹션 추가 (STEP 5로 신규 등록)
+- sc-structure-check.md → Redis 캐싱 구조 점검 항목 추가
+- CLAUDE.md → Redis 캐싱 금지 규칙 추가 (GenericJackson2JsonRedisSerializer / TTL 미설정 / 키 임의 작성 금지)
+
+#### 등록된 백로그 SC
+- HARNESS-5: self-diagnose.md 캐싱 직렬화 점검 추가
+
+#### 완료 시각
+2026-05-31
+
+---
+
+**[AUDIT] 2026-05-31**
+상태: ✅ 완료
+
+#### 감사 요약
+| 구분     | 건수 |
+|---------|-----|
+| Critical | 2개 |
+| High     | 1개 |
+| Medium   | 3개 |
+| Low      | 1개 |
+| 정상     | —  |
+
+#### 주요 발견 항목
+- ❌ harness-audit.md 누락 (Critical) → 신규 생성 완료
+- ❌ adr-create.md 누락 (Critical) → 신규 생성 완료
+- 🟠 JaCoCo 커버리지 임계값 집계 기준 문제 (High) → Rule 3/4 추가 완료
+- ⚠️ Controller 테스트 21% (6/28) (Medium) → P1/P2 완료, P3 다음 스프린트 예정
+- ⚠️ self-diagnose.md 캐싱 점검 항목 없음 (Medium) → CACHE-1~5 추가 완료
+- ⚠️ log-diagnose.md Railway Redis 진단 절차 미흡 (Medium) → STEP 1~7 추가 완료
+- ℹ️ debug-log.md 미존재 (Low) → 신규 생성 완료
+
+#### 등록된 보완 백로그 SC
+- HARNESS-1: harness-audit.md 신규 생성
+- HARNESS-2: adr-create.md 신규 생성
+- HARNESS-3: JaCoCo 커버리지 임계값 개선
+- HARNESS-4: Controller 테스트 커버리지 강제화
+- HARNESS-5: self-diagnose.md 캐싱 직렬화 점검 추가
+- HARNESS-6: log-diagnose.md Railway Redis 진단 절차 보완
+- HARNESS-7: debug-log.md 신규 생성
+
+#### 다음 감사 예정
+2026-06-30 (다음 스프린트 종료 시)
+
+#### 완료 시각
+2026-05-31
+
+---
+
+## 참고 — Controller 테스트 커버리지 분류 (2025-05-30)
 
 ### 개요
 - 총 Controller 수: 28개
@@ -73,62 +316,3 @@
 |-----|------------|----------------|-----|
 | 현재 (1단계) | 60% | 40% | 2025-05-30 |
 | 2단계 | 70% | 50% | P3 완료 후 |
-
----
-
-### 진단 기록
-
-| 일자 | 이슈 | 원인 | 조치 |
-|-----|------|------|------|
-| 2025-05-30 | Controller 전체 커버리지 21% | 22개 Controller 미테스트 | Rule 3/4 추가 + P1/P2 테스트 작성 |
-| 2026-05-31 | HomeService GenericJackson2JsonRedisSerializer 사용 | RedisConfig에서 RedisTemplate\<String, Object\>에 타입 정보 포함 직렬화 설정 | self-diagnose.md CACHE-1 점검 항목 추가 / CLAUDE.md 금지 규칙 추가 |
-| 2026-05-31 | NotionSyncService Redis 조회 try-catch 미적용 | stringRedisTemplate.opsForValue().get() 호출 시 Redis 연결 오류 예외 전파 가능 | self-diagnose.md CACHE-2 fallback 점검 항목 추가 |
-
----
-
-## Redis 캐싱 서비스 전수 점검 (2026-05-31)
-
-### 점검 기준: self-diagnose.md CACHE-1 ~ CACHE-5
-
-### NotionSyncService
-
-| 항목 | 결과 | 비고 |
-|-----|------|------|
-| CACHE-1 직렬화 방식 | ✅ | StringRedisTemplate 수동 캐싱 (OBJECT_MAPPER + TypeReference) |
-| CACHE-2 캐시 키 형식 | ✅ | `contents:v4:list:{categories}:{difficulty}:{domain}` |
-| CACHE-2 직렬화 대칭 | ✅ | writeValueAsString / readValue 대칭 구현 |
-| CACHE-2 fallback 처리 | ⚠️ | 역직렬화 실패 시 DB 재조회 있음. 단, Redis 연결 오류 시 (get/set 호출) try-catch 없어 예외 전파 가능 |
-| CACHE-3 TTL 명시 | ✅ | CACHE_TTL_SECONDS = 3600L, Duration.ofSeconds 사용 |
-| CACHE-4 캐시 무효화 | ✅ | syncAll() 완료 후 evictContentsCache() 호출, contents:v4:* 전체 삭제 |
-
-### ContentService
-
-| 항목 | 결과 | 비고 |
-|-----|------|------|
-| Redis 직접 사용 | ✅ | NotionSyncService에 위임 |
-| 상세 조회 캐싱 | N/A | Notion 블록 실시간 조회 (의도적 설계) |
-
-### HomeService
-
-| 항목 | 결과 | 비고 |
-|-----|------|------|
-| CACHE-1 직렬화 방식 | ❌ | `RedisTemplate<String, Object>` + `GenericJackson2JsonRedisSerializer` 사용. activateDefaultTyping으로 타입 정보 포함 → 클래스 구조 변경 시 역직렬화 오류 위험 |
-| CACHE-2 fallback 처리 | ✅ | try-catch로 Redis 불가용 시 DB 직접 조회 및 저장 실패 무시 |
-| CACHE-3 TTL 명시 | ✅ | computeTtlUntilMidnight() (당일 자정), REC_HISTORY 7일 TTL |
-| CACHE-4 캐시 무효화 | ✅ | HomeCacheEvictService.evict() — 콘텐츠 완료/온보딩/관심 도메인 변경 시 호출 |
-
-### OnboardingService
-
-| 항목 | 결과 | 비고 |
-|-----|------|------|
-| Redis 직접 사용 | ✅ | HomeCacheEvictService 위임 |
-| CACHE-4 캐시 무효화 | ✅ | submit/skip/saveInterests/resetOnboarding 모두 evict() 호출 |
-
----
-
-### 발견된 문제 요약
-
-| 우선순위 | 서비스 | 문제 | 위험도 |
-|---------|--------|------|--------|
-| P1 | HomeService | GenericJackson2JsonRedisSerializer 사용 (CACHE-1 ❌) | 높음 — 클래스 리팩토링 시 역직렬화 오류 발생 가능 |
-| P2 | NotionSyncService | Redis 조회/저장 시 연결 오류 catch 없음 (CACHE-2 ⚠️) | 중간 — Redis 일시 불가용 시 콘텐츠 목록 API 전체 실패 가능 |

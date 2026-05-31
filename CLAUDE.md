@@ -32,10 +32,13 @@
 6순위 `self-diagnose.md`        → 자가 점검
 
 ### [오류 발생 시 — 즉시 실행]
-즉시   `log-diagnose.md`        → 로그 기반 원인 진단
+즉시   `log-diagnose.md`        → 로그 기반 원인 진단 (STEP 1~6)
+           ↓
+       STEP 7                   → docs/debug-log.md 결과 기록
+           ↓
 1순위 `self-diagnose.md`        → 자가 점검
 2순위 `testing.md`              → 재발 방지 테스트 추가
-3순위 `adr-create.md`           → 반복 오류 3회 이상 시 의사결정 기록
+3회 이상 `adr-create.md`        → 반복 오류 의사결정 기록
 
 ### [수동 실행]
 -     `harness-audit.md`        → 스프린트 종료 / 중간 점검 시 전체 하네스 감사
@@ -166,6 +169,25 @@ grep -rn "CREATE TABLE " src/main/resources/db/migration/ | \
 □ 캐시 키 임의 작성 금지
   → 기존 키 형식(domain:type:{id}) 준수
   → sc-structure-check.md 캐시 키 일관성 점검 필수
+
+---
+
+## 🚫 debug-log.md 관련 금지 규칙
+
+아래 행동은 금지된다:
+
+□ log-diagnose.md STEP 7 완료 후 debug-log.md 미기록 금지
+  → 진단 결과는 반드시 [DIAGNOSE] 양식으로 기록 후 종료
+
+□ adr-create.md 완료 후 debug-log.md 미기록 금지
+  → 의사결정 결과는 반드시 [ADR] 양식으로 기록 후 종료
+
+□ harness-audit.md 완료 후 debug-log.md 미기록 금지
+  → 감사 결과는 반드시 [AUDIT] 양식으로 기록 후 종료
+
+□ debug-log.md 기존 기록 삭제 금지
+  → 이력 보존이 목적이므로 삭제 불가
+  → 수정이 필요한 경우 기존 항목에 취소선 + 수정 내용 추가 방식으로 처리
 
 ---
 
