@@ -13,7 +13,8 @@ STEP 1. 레이어 책임 점검
 STEP 2. 인증 / 보안 점검
 STEP 3. 응답 구조 점검
 STEP 4. Contract 갱신 점검
-STEP 5. 결과 출력 및 완료 판단
+STEP 5. Redis 캐싱 점검
+STEP 6. 결과 출력 및 완료 판단
 
 ---
 
@@ -122,7 +123,208 @@ STEP 5. 결과 출력 및 완료 판단
 
 ---
 
-## STEP 5. 결과 출력 및 완료 판단
+## STEP 5. Redis 캐싱 점검
+
+### 배경
+@Cacheable + GenericJackson2JsonRedisSerializer 조합은
+타입 정보를 JSON에 포함하여 역직렬화 오류를
+유발할 수 있다. (ADR-003 참고)
+캐싱 구현 완료 후 반드시 아래 항목을 점검한다.
+
+---
+
+### CACHE-1. 직렬화 방식 점검
+
+□ @Cacheable 어노테이션을 사용하고 있는가?
+  → 사용 중: 아래 직렬화 설정을 반드시 확인
+  → 미사용: CACHE-2로 건너뜀
+
+□ RedisTemplate 직렬화 설정이 아래 중 하나인가?
+  ✅ 권장: StringRedisTemplate 수동 캐싱
+           (ObjectMapper로 직접 직렬화)
+  ✅ 권장: RedisTemplate<String, String>
+           (값을 String으로 직렬화)
+  ❌ 주의: GenericJackson2JsonRedisSerializer
+           → 타입 정보 포함으로 역직렬화 오류 위험
+           → 반드시 StringRedisTemplate으로 전환
+
+□ 직렬화 설정이 RedisConfig Bean에 명시되어 있는가?
+```java
+    // ✅ 권장 설정
+    @Bean
+    public RedisTemplate<String, String> redisTemplate(
+        RedisConnectionFactory factory
+    ) {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
+        template.setConnectionFactory(factory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new StringRedisSerializer());
+        return template;
+    }
+```
+
+---
+
+### CACHE-2. 수동 캐싱 구현 점검
+
+StringRedisTemplate 수동 캐싱 사용 시
+아래 항목을 점검한다:
+
+□ 캐시 키 형식이 일관성 있게 정의되어 있는가?
+```java
+    // ✅ 권장 키 형식
+    "contents:list:{category}:{page}"
+    "content:detail:{id}"
+    "user:profile:{userId}"
+
+    // ❌ 비권장
+    "list"  // 너무 짧아 충돌 위험
+    "1"     // ID만 사용 시 도메인 구분 불가
+```
+
+□ 직렬화 / 역직렬화 로직이 대칭적인가?
+```java
+    // 저장 (직렬화)
+    String json = objectMapper.writeValueAsString(data);
+    redisTemplate.opsForValue()
+        .set(key, json, ttl, TimeUnit.SECONDS);
+
+    // 조회 (역직렬화)
+    String json = redisTemplate.opsForValue().get(key);
+    if (json == null) return null;
+    return objectMapper.readValue(json, TargetClass.class);
+```
+
+□ Redis 장애 시 fallback 처리가 있는가?
+```java
+    // ✅ 권장
+    try {
+        String cached = redisTemplate.opsForValue().get(key);
+        if (cached != null) return deserialize(cached);
+    } catch (Exception e) {
+        log.warn("Redis 조회 실패, DB 직접 조회: {}", e.getMessage());
+    }
+    // Redis 실패 시 DB 직접 조회
+    return repository.findById(id);
+```
+
+---
+
+### CACHE-3. TTL 설정 점검
+
+□ 모든 캐시 항목에 TTL이 명시적으로 설정되어 있는가?
+```java
+    // ✅ TTL 명시
+    redisTemplate.opsForValue()
+        .set(key, value, 3600, TimeUnit.SECONDS);
+
+    // ❌ TTL 미설정 (영구 저장 → 메모리 누수)
+    redisTemplate.opsForValue().set(key, value);
+```
+
+□ TTL이 비즈니스 요구사항과 일치하는가?
+```
+콘텐츠 목록   : 1시간 (Notion 동기화 주기와 일치)
+콘텐츠 상세   : 1시간
+사용자 프로필 : 30분
+온보딩 결과   : 24시간
+```
+
+□ 캐시 TTL 상수가 중앙 관리되고 있는가?
+```java
+    // ✅ 권장
+    public class CacheTtl {
+        public static final long CONTENTS = 3600L;
+        public static final long USER     = 1800L;
+    }
+```
+
+---
+
+### CACHE-4. 캐시 무효화 정책 점검
+
+□ 데이터 변경 시 관련 캐시가 무효화되는가?
+```
+예) Notion 동기화 완료
+→ contents:list:* 전체 무효화
+→ content:detail:{id} 개별 무효화
+```
+
+□ 캐시 무효화 로직이 Service 레이어에서 처리되고 있는가?
+```java
+    // ✅ 동기화 완료 후 캐시 무효화
+    public SyncResult sync() {
+        syncPublishedContents();
+        Set<String> keys = redisTemplate.keys("contents:*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
+    }
+```
+
+□ 캐시 무효화 범위가 최소한으로 설정되어 있는가?
+```
+✅ 변경된 항목만 무효화
+⚠️ 전체 무효화는 부하 주의
+```
+
+---
+
+### CACHE-5. 로컬 / 운영 환경 분리 점검
+
+□ 로컬 개발 환경에서 Redis 연결이 없을 때 오류 없이 동작하는가?
+```yaml
+    # application-local.yml
+    spring:
+      cache:
+        type: none
+```
+
+□ 운영 환경 Redis URL이 환경 변수로 관리되고 있는가?
+```bash
+    # Railway 환경 변수
+    SPRING_REDIS_HOST=${Redis.REDISHOST}
+    SPRING_REDIS_PORT=${Redis.REDISPORT}
+    SPRING_REDIS_PASSWORD=${Redis.REDISPASSWORD}
+```
+
+□ Redis 공개 Proxy URL 확인 방법을 알고 있는가?
+```bash
+    # Railway CLI로 확인
+    railway variables --service Redis
+    → REDIS_PUBLIC_URL 값 확인
+```
+
+---
+
+### CACHE 점검 완료 출력 형식
+
+아래 형식으로 캐싱 점검 결과를 출력한다:
+
+```
+## Redis 캐싱 자가 진단 결과
+
+### CACHE-1. 직렬화 방식
+✅/❌ {직렬화 방식 및 설정 확인 결과}
+
+### CACHE-2. 수동 캐싱 구현
+✅/❌/⚠️ {캐시 키 형식 / 대칭성 / fallback 확인 결과}
+
+### CACHE-3. TTL 설정
+✅/❌ {TTL 명시 및 비즈니스 요구사항 일치 여부}
+
+### CACHE-4. 캐시 무효화
+✅/⚠️ {무효화 로직 및 범위 확인 결과}
+
+### CACHE-5. 환경 분리
+✅/⚠️ {로컬 / 운영 환경 분리 확인 결과}
+
+→ 캐싱 점검 완료.
+```
+
+---
+
+## STEP 6. 결과 출력 및 완료 판단
 
 아래 형식으로 점검 결과를 출력한다:
 
@@ -137,6 +339,9 @@ STEP 3 응답 구조   : ✅ 이상 없음
                    / ❌ {위반 항목 설명}
 STEP 4 Contract    : ✅ 이상 없음 (또는 해당 없음)
                    / ❌ @Operation 누락 또는 error-contract.yml 미갱신
+STEP 5 Redis 캐싱  : ✅ 이상 없음 (또는 해당 없음)
+                   / ❌ {CACHE-1~5 위반 항목 설명}
+                   / ⚠️ {주의 항목 설명}
 ```
 
 ### 완료 판단 규칙

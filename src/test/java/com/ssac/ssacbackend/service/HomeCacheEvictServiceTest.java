@@ -10,13 +10,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class HomeCacheEvictServiceTest {
 
     @Mock
-    private RedisTemplate<String, Object> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @InjectMocks
     private HomeCacheEvictService homeCacheEvictService;
@@ -26,14 +26,14 @@ class HomeCacheEvictServiceTest {
     void evict_정상() {
         homeCacheEvictService.evict(1L);
 
-        verify(redisTemplate).delete(HomeCacheEvictService.HOME_CACHE_PREFIX + 1L);
+        verify(stringRedisTemplate).delete(HomeCacheEvictService.HOME_CACHE_PREFIX + 1L);
     }
 
     @Test
     @DisplayName("evict - Redis 연결 실패 시 예외 없이 처리를 계속한다")
     void evict_Redis연결실패_예외무시() {
         doThrow(new RedisConnectionFailureException("연결 실패"))
-            .when(redisTemplate).delete(HomeCacheEvictService.HOME_CACHE_PREFIX + 99L);
+            .when(stringRedisTemplate).delete(HomeCacheEvictService.HOME_CACHE_PREFIX + 99L);
 
         homeCacheEvictService.evict(99L);
         // 예외가 전파되지 않으면 성공
