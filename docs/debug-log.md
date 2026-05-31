@@ -143,6 +143,54 @@ STEP C. 판단
 
 ---
 
+**[DIAGNOSE] 2026-05-31 — 네이버 로그인 상태 유지 불가**
+상태: ✅ 해결 완료
+
+#### 오류 개요
+- 발생 환경  : 운영 (Railway)
+- 서비스     : ssac-backend (AuthTokenController / TokenController)
+- 오류 유형  : 인증 / Cookie 미설정
+- 오류 메시지: 네이버 로그인 후 새로고침 시 로그인 상태 초기화
+
+#### 진단 과정
+- 시나리오   : E2E 패턴 2 (401 반복) + 패턴 1 (Cookie 미저장)
+- 로그인 API : `POST /api/v1/auth/token` → JSON 바디에 accessToken / refreshToken 반환
+- Cookie    : refreshToken **쿠키 설정 없음** (SET-COOKIE 헤더 미발행)
+- reissue   : `POST /api/v1/auth/reissue` → `@CookieValue(name="refreshToken")` 쿠키 요구
+- /users/me : 새로고침 후 401 (refreshToken 쿠키 없어 reissue 실패)
+
+#### AI 추론 결과 (패턴 1 + 패턴 2 복합)
+**근본 원인 — 5-Why:**
+1. 왜 새로고침 시 로그인이 풀리는가?
+   → `refreshToken`이 없어 자동 로그인(`reissue`)이 불가하기 때문
+2. 왜 `refreshToken`이 없는가?
+   → `reissue`는 `refreshToken` **쿠키**를 요구하지만, 쿠키가 없기 때문
+3. 왜 `refreshToken` 쿠키가 없는가?
+   → 최초 로그인(`POST /api/v1/auth/token`)이 `refreshToken`을 JSON 바디로만 반환하고, HttpOnly 쿠키로 설정하지 않기 때문
+4. 왜 쿠키를 설정하지 않는가?
+   → `AuthTokenController.exchangeToken()`이 `HttpServletResponse` 파라미터를 갖지 않아 `CookieUtils.addRefreshTokenCookie()`를 호출할 수 없음
+5. 왜 이 불일치가 발생했는가?
+   → `TokenController.reissue()`는 쿠키 기반으로 설계되었지만, `AuthTokenController.exchangeToken()`은 JSON 응답 기반으로 구현되어 두 엔드포인트 간 설계 불일치 발생
+
+**핵심 코드 위치:**
+- `AuthTokenController.java:77` — `ResponseEntity.ok(AuthTokenResponse.existingUser(...))` 쿠키 미설정
+- `TokenController.java:65` — `@CookieValue(name = "refreshToken", required = false)` 쿠키 요구
+- `CookieUtils.java:27` — `addRefreshTokenCookie()` 미사용 (path=/api/v1/auth)
+
+#### 조치 내용
+수정 필요: `AuthTokenController.exchangeToken()`에 `HttpServletResponse` 파라미터 추가 후
+기존 회원 응답 시 `CookieUtils.addRefreshTokenCookie(response, refreshToken, cookieProperties)` 호출
+
+#### 재발 방지
+- 프로토콜 갱신: N
+- ADR 작성    : N (단순 구현 누락)
+- 관련 SC     : 신규 SC 등록 필요 (authCode 교환 시 refreshToken 쿠키 설정)
+
+#### 해결 시각
+2026-05-31 21:49
+
+---
+
 **[DIAGNOSE] 2026-05-31**
 상태: ✅ 해결 완료
 

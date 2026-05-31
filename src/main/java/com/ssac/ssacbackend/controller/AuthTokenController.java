@@ -2,6 +2,8 @@ package com.ssac.ssacbackend.controller;
 
 import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.util.CookieUtils;
+import com.ssac.ssacbackend.config.CookieProperties;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.AuthCodeResult;
 import com.ssac.ssacbackend.dto.request.AuthCodeExchangeRequest;
@@ -11,6 +13,7 @@ import com.ssac.ssacbackend.service.ReissueResult;
 import com.ssac.ssacbackend.service.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +46,7 @@ public class AuthTokenController {
 
     private final AuthCodeService authCodeService;
     private final TokenService tokenService;
+    private final CookieProperties cookieProperties;
 
     /**
      * 일회용 인가 코드를 소비하고 JWT 토큰 또는 신규 회원 임시 토큰을 반환한다.
@@ -62,7 +66,8 @@ public class AuthTokenController {
             + "authCode는 30초 TTL이며 1회만 사용 가능하다."
     )
     public ResponseEntity<AuthTokenResponse> exchangeToken(
-        @RequestBody @Valid AuthCodeExchangeRequest request
+        @RequestBody @Valid AuthCodeExchangeRequest request,
+        HttpServletResponse response
     ) {
         AuthCodeResult result = authCodeService.consume(request.authCode())
             .orElseThrow(() -> new BadRequestException(ErrorCode.AUTH_CODE_INVALID));
@@ -85,6 +90,7 @@ public class AuthTokenController {
             user.isOnboardingCompleted(),
             user.getUserType() != null ? user.getUserType().name() : null
         );
+        CookieUtils.addRefreshTokenCookie(response, reissueResult.tokens().refreshToken(), cookieProperties);
         log.info("인가 코드 교환(기존 회원): userId={}", result.userId());
         return ResponseEntity.ok(
             AuthTokenResponse.existingUser(
