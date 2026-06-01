@@ -73,7 +73,11 @@ public class TokenController {
         CookieUtils.addRefreshTokenCookie(response, result.tokens().refreshToken(), cookieProperties);
 
         return ResponseEntity.ok(
-            ApiResponse.success(ReissueResponse.of(result.tokens().accessToken(), result.user()))
+            ApiResponse.success(ReissueResponse.of(
+                result.tokens().accessToken(),
+                result.tokens().refreshToken(),
+                result.user()
+            ))
         );
     }
 
