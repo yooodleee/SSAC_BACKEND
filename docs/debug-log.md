@@ -143,6 +143,87 @@ STEP C. 판단
 
 ---
 
+**[DIAGNOSE] 2026-06-01 18:00 — 로그아웃 후 네이버 재로그인 상태 유지 불가 (E2E 브라우저 진단 + FE BFF Set-Cookie 스트리핑) [SSACBE-3]**
+상태: ✅ 해결 완료
+
+#### 오류 개요
+- 발생 환경  : 운영 (Railway BE + Vercel FE)
+- 서비스     : ssac-backend (TokenController) + FE BFF (Next.js Route Handler)
+- 오류 유형  : JWT 정밀도 불일치 + Next.js/Vercel Set-Cookie 스트리핑 + 온보딩 재제출 플로우 오류
+- 오류 메시지:
+```
+Railway 로그: "토큰 로테이션 경쟁 조건 감지" 20초간 30회 이상 반복
+FE 콘솔    : [ERROR] Failed to load resource: 401 ()
+```
+
+#### 진단 과정
+
+**STEP 1 — E2E 브라우저 진단 (`naver-relogin-diagnose.js` 실행)**
+- BE 헬스: UP, CORS: `https://ssac.io` 정상
+- `GET /api/v1/auth/naver/login` → 302 Naver OAuth (state, client_id 포함) ✅
+- `POST /api/v1/auth/reissue` (BFF 경유) → 400 응답 + **Set-Cookie 헤더 없음** ← 핵심 발견
+- Playwright 홈 방문: 쿠키 없음, 401 × 2 (reissue 실패)
+
+**STEP 2 — Railway 로그 분석**
+- `POST /api/v1/auth/reissue` 약 0.7초 간격으로 30회 이상 반복 (무한 루프)
+- BE는 매번 새 refreshToken 발급 + "토큰 로테이션 경쟁 조건 감지" 반복
+- 브라우저가 계속 같은(revoked) refreshToken을 전송 → BE가 새 토큰 발급해도 FE가 갱신 못함
+
+**STEP 3 — FE BFF 코드 분석 (추론)**
+- FE BFF `reissue/route.ts` → BE 응답의 `Set-Cookie`를 브라우저로 포워딩하지 않음
+- Next.js `NextResponse.json()` 후 `headers.append('Set-Cookie')` 방식은 Vercel Edge에서 스트리핑됨
+- 브라우저의 refreshToken 쿠키가 갱신되지 않아 revoked 토큰으로 무한 재시도
+
+**STEP 4 — DB 상태 확인**
+- `accia25@naver.com`: `user_type=NULL`, `onboarding_completed=0`, `level=NULL`
+- 완전 초기 상태 — DB 초기화 불필요
+- 온보딩 미완료 계정이므로 재로그인 후 `/onboarding/submit`으로 이동하는 FE 동작이 "로그인 유지 안 됨"처럼 보인 것
+
+#### 근본 원인 (복합)
+
+**원인 1 — JWT iat 정밀도 불일치 (BE)**
+- `User.invalidateTokens()`: `LocalDateTime.now()` → MySQL DATETIME(0) 저장 시 소수 초 반올림
+- 로그아웃 직후 발급된 새 JWT의 `iat`가 반올림된 `invalidatedBefore`와 같은 초 → `isAfter` 조건 미충족 → 토큰 거부
+
+**원인 2 — Next.js/Vercel Set-Cookie 스트리핑 (FE BFF)**
+- Vercel Edge 환경에서 Route Handler가 BE로부터 받은 `Set-Cookie` 헤더를 스트리핑
+- `new NextResponse(body, { headers })` 방식도 동일하게 차단됨
+- 브라우저가 새 refreshToken을 받지 못해 무한 reissue 루프 발생
+
+**원인 3 — 온보딩 재제출 플로우 오류 (FE)**
+- `OnboardingSubmit.tsx:82`: `onboardingService.getQuestions()` 호출 시 `userType` 미전달
+- `user_type=NULL` 상태에서 `GET /api/v1/onboarding/questions` → ONBOARDING-001 오류
+- FE가 오류를 로그인 실패로 오인하여 사용자를 로그인 화면으로 이동
+
+#### 조치 내용
+
+**BE Fix 1 — JWT 정밀도 수정** (커밋 `ffddaa7`)
+- `User.invalidateTokens()`, `User.withdraw()`: `.truncatedTo(ChronoUnit.SECONDS)` 적용
+- `JwtAuthenticationFilter.isTokenStillValid()`: `isAfter` → `!isBefore` (≥ 조건으로 변경)
+
+**BE Fix 2 — reissue 응답 바디에 refreshToken 포함** (커밋 `6f1e023`, PR #137)
+- `ReissueResponse`에 `refreshToken` 필드 추가
+- `TokenController.reissue()`에서 새 refreshToken을 응답 body에 포함
+- FE BFF가 Set-Cookie 포워딩 없이 `cookies().set()`으로 직접 쿠키 설정 가능하도록 지원
+
+**FE Fix 1 — BFF Set-Cookie 포워딩 방식 교체** (Vercel 배포)
+- `reissue/route.ts`: `headers.append('Set-Cookie')` → `cookies().set(refreshToken, json.data.refreshToken, { path: '/api/v1/auth', httpOnly, secure, sameSite: 'none', maxAge: 604800 })`
+- `logout/route.ts`: BE `/api/v1/auth/logout` 호출 추가 + refreshToken 삭제 쿠키 `Path=/api/v1/auth` 명시
+
+**FE Fix 2 — 온보딩 재제출 플로우 수정** (Vercel 배포 예정)
+- `OnboardingSubmit.tsx:82`: `getQuestions()` → `getQuestions(stored.userType)` (sessionStorage 복원)
+
+#### 재발 방지
+- 프로토콜 갱신: N
+- ADR 작성    : N (1회 발생)
+- 관련 SC     : SSACBE-3
+- 참고        : `scripts/e2e-diagnose/naver-relogin-diagnose.js` 재활용 가능 (재발 시 즉시 실행)
+
+#### 해결 시각
+2026-06-01 18:30
+
+---
+
 **[DIAGNOSE] 2026-06-01 (SSACBE-3)**
 상태: ✅ 해결 완료
 
