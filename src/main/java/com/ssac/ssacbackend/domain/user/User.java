@@ -12,6 +12,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -185,7 +186,7 @@ public class User {
         this.gender = null;
         this.password = null;
         this.providerId = null;
-        this.invalidatedBefore = LocalDateTime.now();
+        this.invalidatedBefore = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 
     /**
@@ -234,7 +235,9 @@ public class User {
      * 로그아웃 시 호출한다.
      */
     public void invalidateTokens() {
-        this.invalidatedBefore = LocalDateTime.now();
+        // MySQL DATETIME(0) 반올림 방지: 소수 초를 내림하여 저장
+        // (예: .750 → DB에서 다음 초로 반올림되면 새 JWT iat와 충돌)
+        this.invalidatedBefore = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 
     /**

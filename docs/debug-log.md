@@ -143,6 +143,48 @@ STEP C. 판단
 
 ---
 
+**[DIAGNOSE] 2026-06-01 (SSACBE-3)**
+상태: ✅ 해결 완료
+
+#### 오류 개요
+- 발생 환경  : Railway 운영
+- 서비스     : ssac-backend / FE (Vercel)
+- 오류 유형  : JWT 타임스탬프 정밀도 불일치 (로그아웃 후 재로그인 시 새 토큰 거부)
+- 오류 메시지: 로그아웃 후 두 번째 네이버 로그인 시 로그인 상태 유지 불가
+
+#### 진단 과정
+- STEP 2 서비스 상태: 정상 (Railway 기동 중)
+- STEP 3 로그 분석  : 코드 정적 분석으로 원인 특정
+  - `JwtAuthenticationFilter.isTokenStillValid()`: `issuedAt.isAfter(invalidatedBefore)` 조건
+  - `User.invalidateTokens()`: `LocalDateTime.now()` → DB DATETIME(0) 저장 시 소수 초 반올림
+  - JWT `iat`는 초 단위 정밀도 (UNIX 타임스탬프 초 단위 저장)
+- STEP 4 Redis URL : 해당 없음
+- STEP 5 Redis 조회: 해당 없음
+
+#### 근본 원인
+MySQL `DATETIME(0)`(기본 정밀도)은 소수 초를 반올림하여 저장한다.
+로그아웃 시각이 `X.5초` 이상이면 `invalidatedBefore = X+1초`로 DB 저장된다.
+재로그인 후 발급된 JWT의 `iat`가 `X+1초`에 해당하면:
+  - issuedAt    = X+1.000 (초 단위)
+  - invalidatedBefore = X+1.000 (DB 반올림 결과)
+  - `issuedAt.isAfter(invalidatedBefore)` = FALSE → 새 토큰 거부
+첫 번째 로그인은 `invalidatedBefore = null`이어서 항상 통과, 두 번째부터 발생.
+
+#### 조치 내용
+1. `User.java:invalidateTokens()` — `truncatedTo(ChronoUnit.SECONDS)` 추가하여 DB 반올림 방지
+2. `User.java:withdraw()` — 동일 패턴 수정
+3. `JwtAuthenticationFilter.java:isTokenStillValid()` — `isAfter` → `!isBefore` 변경 (≥ 조건)
+
+#### 재발 방지
+- 프로토콜 갱신: N
+- ADR 작성    : N (1회 발생)
+- 관련 SC     : SSACBE-3
+
+#### 해결 시각
+2026-06-01
+
+---
+
 **[DIAGNOSE] 2026-06-01 — 로그아웃 후 네이버 재로그인 시 상태 유지 불가 (TOKEN_INVALID 반복)**
 상태: ✅ 해결 완료
 
