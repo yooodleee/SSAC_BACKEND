@@ -206,7 +206,9 @@
       "Bash(npx ts-node:*)",
       "Bash(npm list:*)",
       "Bash(node scripts/e2e-diagnose/naver-diagnose.mjs)",
-      "Bash(node scripts/e2e-diagnose/naver-callback-diagnose.mjs)"
+      "Bash(node scripts/e2e-diagnose/naver-callback-diagnose.mjs)",
+      "Bash(ls *.json)",
+      "Bash(node scripts/e2e-diagnose/naver-relogin-diagnose.js)"
     ]
   }
 }
