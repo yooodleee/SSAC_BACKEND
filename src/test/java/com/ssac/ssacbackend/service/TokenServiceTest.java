@@ -122,6 +122,7 @@ class TokenServiceTest {
         @DisplayName("유효하지 않거나 만료된 Refresh Token이면 400 예외가 발생한다")
         void 유효하지_않은_토큰_재발급_실패() {
             given(tokenStore.findUserIdByHash(anyString())).willReturn(Optional.empty());
+            given(tokenStore.findUserIdByHashIncludingRevoked(anyString())).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> tokenService.reissue("invalid-token"))
                 .isInstanceOf(BusinessException.class)
@@ -172,12 +173,32 @@ class TokenServiceTest {
         @DisplayName("유효하지 않은 Refresh Token이면 400 예외가 발생한다")
         void 유효하지_않은_토큰_재발급_실패() {
             given(tokenStore.findUserIdByHash(anyString())).willReturn(Optional.empty());
+            given(tokenStore.findUserIdByHashIncludingRevoked(anyString())).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> tokenService.reissueWithUser("invalid-token"))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex ->
                     assertThat(((BusinessException) ex).getStatus())
                         .isEqualTo(HttpStatus.BAD_REQUEST));
+        }
+
+        @Test
+        @DisplayName("이미 로테이션된 토큰이지만 만료 전이면 재발급에 성공한다(경쟁 조건 처리)")
+        void 로테이션된_토큰_재발급_성공() {
+            User user = mockUser(2L, "user@test.com", UserRole.USER);
+            given(tokenStore.findUserIdByHash(anyString())).willReturn(Optional.empty());
+            given(tokenStore.findUserIdByHashIncludingRevoked(anyString())).willReturn(Optional.of(2L));
+            given(userRepository.findById(2L)).willReturn(Optional.of(user));
+            given(jwtService.generateAccessToken(2L, "user@test.com", "USER"))
+                .willReturn("new-access");
+            given(jwtService.generateRefreshToken()).willReturn("new-refresh");
+            given(jwtProperties.getRefreshExpirationMs()).willReturn(604800000L);
+
+            ReissueResult result = tokenService.reissueWithUser("rotated-token");
+
+            assertThat(result.tokens().accessToken()).isEqualTo("new-access");
+            // 이미 revoke된 토큰이므로 revoke를 다시 호출하지 않는다
+            then(tokenStore).should(never()).revoke(anyString());
         }
 
         @Test
@@ -201,7 +222,7 @@ class TokenServiceTest {
     class Logout {
 
         @Test
-        @DisplayName("유효한 Refresh Token으로 로그아웃 시 토큰이 무효화된다")
+        @DisplayName("유효한 Refresh Token으로 로그아웃 시 토큰 레코드가 삭제된다")
         void 유효한_토큰_로그아웃() {
             User user = mock(User.class);
             given(tokenStore.findUserIdByHash(anyString())).willReturn(Optional.of(3L));
@@ -209,7 +230,7 @@ class TokenServiceTest {
 
             tokenService.logout("raw-refresh");
 
-            then(tokenStore).should().revoke(anyString());
+            then(tokenStore).should().deleteToken(anyString());
             then(user).should().invalidateTokens();
         }
 
@@ -220,7 +241,7 @@ class TokenServiceTest {
 
             tokenService.logout("expired-token");
 
-            then(tokenStore).should(never()).revoke(anyString());
+            then(tokenStore).should(never()).deleteToken(anyString());
         }
     }
 
@@ -231,7 +252,7 @@ class TokenServiceTest {
     class LogoutAll {
 
         @Test
-        @DisplayName("사용자의 모든 Refresh Token이 무효화된다")
+        @DisplayName("사용자의 모든 Refresh Token 레코드가 삭제된다")
         void 전체_토큰_무효화() {
             User user = mock(User.class);
             given(user.getId()).willReturn(4L);
@@ -239,7 +260,7 @@ class TokenServiceTest {
 
             tokenService.logoutAll("all@test.com");
 
-            then(tokenStore).should().revokeAll(4L);
+            then(tokenStore).should().deleteAll(4L);
             then(user).should().invalidateTokens();
         }
 

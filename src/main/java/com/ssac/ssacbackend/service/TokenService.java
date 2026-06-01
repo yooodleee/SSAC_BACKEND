@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -101,11 +102,26 @@ public class TokenService {
      */
     public ReissueResult reissueWithUser(String rawRefreshToken) {
         String tokenHash = hashToken(rawRefreshToken);
-        Long userId = tokenStore.findUserIdByHash(tokenHash)
-            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-        tokenStore.revoke(tokenHash);
+        Optional<Long> userIdOpt = tokenStore.findUserIdByHash(tokenHash);
+        boolean alreadyRevoked = false;
 
+        if (userIdOpt.isEmpty()) {
+            // Token Rotation 경쟁 조건: 동시 reissue 요청으로 이미 교체된 토큰
+            // 만료 전이면 userId를 조회하여 새 토큰 발급을 허용한다
+            userIdOpt = tokenStore.findUserIdByHashIncludingRevoked(tokenHash);
+            if (userIdOpt.isEmpty()) {
+                throw new BadRequestException(ErrorCode.TOKEN_INVALID);
+            }
+            alreadyRevoked = true;
+            log.info("토큰 로테이션 경쟁 조건 감지 — 재발급 진행: userId={}", userIdOpt.get());
+        }
+
+        if (!alreadyRevoked) {
+            tokenStore.revoke(tokenHash);
+        }
+
+        Long userId = userIdOpt.get();
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
@@ -113,7 +129,7 @@ public class TokenService {
             user.getId(), user.getEmail(), user.getRole().name()
         );
         String newRefreshToken = createAndStoreRefreshToken(user.getId());
-        log.info("토큰 재발급 완료: userId={}", user.getId());
+        log.info("토큰 재발급 완료: userId={}", userId);
         return new ReissueResult(new TokenPair(newAccessToken, newRefreshToken), user);
     }
 
@@ -126,7 +142,7 @@ public class TokenService {
     public void logout(String rawRefreshToken) {
         String tokenHash = hashToken(rawRefreshToken);
         tokenStore.findUserIdByHash(tokenHash).ifPresent(userId -> {
-            tokenStore.revoke(tokenHash);
+            tokenStore.deleteToken(tokenHash);
             userRepository.findById(userId).ifPresent(user -> {
                 user.invalidateTokens();
                 log.info("Access Token 무효화 완료: userId={}", userId);
@@ -145,7 +161,7 @@ public class TokenService {
     public void logoutAll(String email) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
-        tokenStore.revokeAll(user.getId());
+        tokenStore.deleteAll(user.getId());
         user.invalidateTokens();
         log.info("전체 디바이스 로그아웃 완료: userId={}", user.getId());
     }

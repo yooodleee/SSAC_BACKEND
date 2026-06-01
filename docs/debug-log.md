@@ -143,6 +143,72 @@ STEP C. 판단
 
 ---
 
+**[DIAGNOSE] 2026-06-01 — 로그아웃 후 네이버 재로그인 시 상태 유지 불가 (TOKEN_INVALID 반복)**
+상태: ✅ 해결 완료
+
+#### 오류 개요
+- 발생 환경  : 운영 (Railway)
+- 서비스     : ssac-backend (TokenService / ErrorLogService)
+- 오류 유형  : Token Rotation 경쟁 조건 + @Async HttpServletRequest 접근 오류
+- 오류 메시지:
+```
+AUTH-003 TOKEN_INVALID — POST /api/v1/auth/reissue (50회/초 반복)
+java.lang.IllegalStateException: request object has been recycled (ErrorLogService @Async)
+```
+
+#### 진단 과정
+- STEP 2 서비스 상태: 정상 (Railway ssac_backend 서비스 running)
+- STEP 3 로그 분석  : `railway logs --service SSAC_BACKEND --tail 50` 실행
+  - 50회 연속 AUTH-003 TOKEN_INVALID, userId(email)은 정상 존재 → accessToken은 유효
+  - 원인: refreshToken이 이미 rotate된 상태에서 FE가 old token으로 반복 재시도
+- STEP 4 Redis URL : 해당 없음
+- STEP 5 Redis 조회: 해당 없음
+
+#### 근본 원인 — 5-Why
+
+**원인 1: Token Rotation 경쟁 조건**
+1. FE가 동시에 복수의 /reissue 요청 발송
+2. 첫 요청이 Token A revoke → Token B 발급
+3. 이후 요청들이 Token A(revoked)로 재시도 → AUTH-003
+4. FE retry loop가 멈추지 않고 ~1/초 반복
+
+**원인 2: ErrorLogService @Async HttpServletRequest 접근**
+1. `saveWarn/saveError`가 `HttpServletRequest` 객체를 @Async 스레드에 전달
+2. Tomcat이 요청 처리 후 request 객체 재활용
+3. @Async 스레드가 재활용된 request에 접근 → `IllegalStateException`
+
+#### 조치 내용
+
+**Fix 1 — ErrorLogService @Async 안전화**
+- `saveWarn(String method, String path, ...)`, `saveError(String method, String path, ...)` 시그니처 변경
+- `GlobalExceptionHandler` 8개 호출부: `request.getMethod()`, `request.getRequestURI()` 동기 추출 후 전달
+- 수정 파일: `ErrorLogService.java`, `GlobalExceptionHandler.java`
+
+**Fix 2 — Token Rotation 경쟁 조건 grace period**
+- `findUserIdByHashIncludingRevoked(hash)` 추가: revoked=true이지만 미만료 토큰도 조회
+- `reissueWithUser()`: `findUserIdByHash` 빈 경우 → grace period 조회 → 이미 revoked면 revoke 스킵
+- 수정 파일: `RefreshTokenRepository.java`, `TokenStore.java`, `JpaTokenStore.java`, `TokenService.java`
+
+**Fix 3 — 로그아웃 토큰 완전 삭제 (grace period 오동작 방지)**
+- grace period가 로그아웃-revoked와 rotation-revoked를 구분하지 못하는 문제 발견 (RbacIntegrationTest 실패)
+- 로그아웃 경로에서 revoke 대신 레코드 DELETE 적용
+- `TokenStore.deleteToken(hash)`, `deleteAll(userId)` 추가
+- `JpaTokenStore`: `deleteByTokenHash`, `deleteByUserId` 위임
+- `TokenService.logout()`: `revoke` → `deleteToken` 변경
+- `TokenService.logoutAll()`: `revokeAll` → `deleteAll` 변경
+- 수정 파일: `RefreshTokenRepository.java`, `TokenStore.java`, `JpaTokenStore.java`, `TokenService.java`
+
+#### 재발 방지
+- 프로토콜 갱신: N
+- ADR 작성    : N (초회 발생)
+- 관련 SC     : [SSACBE-3]
+- FE 조치 필요: reissue 뮤텍스 구현 (동시 reissue 요청 방지)
+
+#### 해결 시각
+2026-06-01 11:33
+
+---
+
 **[DIAGNOSE] 2026-05-31 — 네이버 로그인 상태 유지 불가**
 상태: ✅ 해결 완료
 
