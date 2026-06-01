@@ -3,17 +3,13 @@ package com.ssac.ssacbackend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.ssac.ssacbackend.domain.log.ErrorLog;
 import com.ssac.ssacbackend.dto.ErrorLogEntry;
 import com.ssac.ssacbackend.repository.ErrorLogRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,19 +27,10 @@ class ErrorLogServiceTest {
     @InjectMocks
     private ErrorLogService errorLogService;
 
-    private HttpServletRequest request;
-
-    @BeforeEach
-    void setUp() {
-        request = mock(HttpServletRequest.class);
-        lenient().when(request.getMethod()).thenReturn("POST");
-        lenient().when(request.getRequestURI()).thenReturn("/api/test");
-    }
-
     @Test
     @DisplayName("saveWarn - WARN 레벨 에러 로그를 저장한다")
     void saveWarn_정상() {
-        errorLogService.saveWarn("trace-001", "USER-001", request, "잘못된 요청", "user-1");
+        errorLogService.saveWarn("trace-001", "USER-001", "POST", "/api/test", "잘못된 요청", "user-1");
 
         verify(errorLogRepository).save(any(ErrorLog.class));
     }
@@ -51,7 +38,7 @@ class ErrorLogServiceTest {
     @Test
     @DisplayName("saveWarn - traceId가 null이면 'unknown'으로 저장한다")
     void saveWarn_traceId_null() {
-        errorLogService.saveWarn(null, "USER-001", request, "잘못된 요청", null);
+        errorLogService.saveWarn(null, "USER-001", "POST", "/api/test", "잘못된 요청", null);
 
         verify(errorLogRepository).save(any(ErrorLog.class));
     }
@@ -61,7 +48,7 @@ class ErrorLogServiceTest {
     void saveError_정상() {
         RuntimeException throwable = new RuntimeException("테스트 예외");
 
-        errorLogService.saveError("trace-002", "SERVER-001", request,
+        errorLogService.saveError("trace-002", "SERVER-001", "POST", "/api/test",
             "서버 오류", throwable, "user-1");
 
         verify(errorLogRepository).save(any(ErrorLog.class));
@@ -70,7 +57,7 @@ class ErrorLogServiceTest {
     @Test
     @DisplayName("saveError - throwable이 null이어도 저장에 실패하지 않는다")
     void saveError_throwable_null() {
-        errorLogService.saveError("trace-003", "SERVER-001", request,
+        errorLogService.saveError("trace-003", "SERVER-001", "POST", "/api/test",
             "서버 오류", null, null);
 
         verify(errorLogRepository).save(any(ErrorLog.class));

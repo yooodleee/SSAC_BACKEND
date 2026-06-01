@@ -42,7 +42,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadRequest(
         BadRequestException e, HttpServletRequest request) {
         String traceId = warnLog(e, request);
-        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(), request, e.getMessage(), MDC.get("userId"));
+        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(),
+            request.getMethod(), request.getRequestURI(), e.getMessage(), MDC.get("userId"));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
@@ -58,7 +59,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnauthorized(
         UnauthorizedException e, HttpServletRequest request) {
         String traceId = warnLog(e, request);
-        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(), request, e.getMessage(), MDC.get("userId"));
+        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(),
+            request.getMethod(), request.getRequestURI(), e.getMessage(), MDC.get("userId"));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .body(ErrorResponse.of(
                 HttpStatus.UNAUTHORIZED.value(),
@@ -74,7 +76,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleForbidden(
         ForbiddenException e, HttpServletRequest request) {
         String traceId = warnLog(e, request);
-        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(), request, e.getMessage(), MDC.get("userId"));
+        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(),
+            request.getMethod(), request.getRequestURI(), e.getMessage(), MDC.get("userId"));
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ErrorResponse.of(
                 HttpStatus.FORBIDDEN.value(),
@@ -90,7 +93,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotFound(
         NotFoundException e, HttpServletRequest request) {
         String traceId = warnLog(e, request);
-        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(), request, e.getMessage(), MDC.get("userId"));
+        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(),
+            request.getMethod(), request.getRequestURI(), e.getMessage(), MDC.get("userId"));
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(ErrorResponse.of(
                 HttpStatus.NOT_FOUND.value(),
@@ -106,7 +110,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConflict(
         ConflictException e, HttpServletRequest request) {
         String traceId = warnLog(e, request);
-        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(), request, e.getMessage(), MDC.get("userId"));
+        errorLogService.saveWarn(traceId, e.getErrorCode().getCode(),
+            request.getMethod(), request.getRequestURI(), e.getMessage(), MDC.get("userId"));
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body(ErrorResponse.of(
                 HttpStatus.CONFLICT.value(),
@@ -132,7 +137,7 @@ public class GlobalExceptionHandler {
                 request.getMethod(), request.getRequestURI(),
                 traceId, userId, e.getMessage());
             errorLogService.saveWarn(traceId, ErrorCode.USER_TYPE_INVALID.getCode(),
-                request, e.getMessage(), userId);
+                request.getMethod(), request.getRequestURI(), e.getMessage(), userId);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.of(
                     HttpStatus.BAD_REQUEST.value(),
@@ -148,7 +153,7 @@ public class GlobalExceptionHandler {
                 request.getMethod(), request.getRequestURI(),
                 traceId, userId, e.getMessage());
             errorLogService.saveWarn(traceId, ErrorCode.GENDER_INVALID.getCode(),
-                request, e.getMessage(), userId);
+                request.getMethod(), request.getRequestURI(), e.getMessage(), userId);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.of(
                     HttpStatus.BAD_REQUEST.value(),
@@ -163,7 +168,7 @@ public class GlobalExceptionHandler {
             request.getMethod(), request.getRequestURI(),
             traceId, userId, e.getMessage());
         errorLogService.saveWarn(traceId, ErrorCode.INVALID_INPUT.getCode(),
-            request, e.getMessage(), userId);
+            request.getMethod(), request.getRequestURI(), e.getMessage(), userId);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
@@ -193,7 +198,8 @@ public class GlobalExceptionHandler {
             userId,
             fieldErrors);
 
-        errorLogService.saveWarn(traceId, ErrorCode.INVALID_INPUT.getCode(), request,
+        errorLogService.saveWarn(traceId, ErrorCode.INVALID_INPUT.getCode(),
+            request.getMethod(), request.getRequestURI(),
             "유효성 검사 실패: " + fieldErrors, userId);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -224,7 +230,7 @@ public class GlobalExceptionHandler {
             e);
 
         errorLogService.saveError(traceId, ErrorCode.INTERNAL_SERVER_ERROR.getCode(),
-            request, e.getMessage(), e, userId);
+            request.getMethod(), request.getRequestURI(), e.getMessage(), e, userId);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(ErrorResponse.of(

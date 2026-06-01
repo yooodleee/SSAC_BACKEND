@@ -3,7 +3,6 @@ package com.ssac.ssacbackend.service;
 import com.ssac.ssacbackend.domain.log.ErrorLog;
 import com.ssac.ssacbackend.dto.ErrorLogEntry;
 import com.ssac.ssacbackend.repository.ErrorLogRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
@@ -27,19 +26,20 @@ public class ErrorLogService {
     /**
      * WARN 레벨 에러 로그를 저장한다 (4xx 비즈니스 예외).
      *
-     * <p>userId는 호출 스레드에서 MDC가 살아있을 때 미리 읽어 전달한다
-     * (@Async 스레드에서는 MDC가 전파되지 않음).
+     * <p>method, path는 호출 스레드에서 {@code HttpServletRequest}로부터 미리 추출하여 전달한다.
+     * {@code @Async} 스레드에서 요청 객체에 직접 접근하면 Tomcat이 이미 재활용한 후일 수 있어
+     * {@code IllegalStateException}이 발생한다.
      */
     @Async
     public void saveWarn(String traceId, String errorCode,
-                         HttpServletRequest request, String message, String userId) {
+                         String method, String path, String message, String userId) {
         try {
             ErrorLog errorLog = ErrorLog.builder()
                 .traceId(traceId != null ? traceId : "unknown")
                 .level("WARN")
                 .errorCode(errorCode)
-                .method(request.getMethod())
-                .path(request.getRequestURI())
+                .method(method)
+                .path(path)
                 .userId(userId)
                 .message(message)
                 .build();
@@ -52,19 +52,19 @@ public class ErrorLogService {
     /**
      * ERROR 레벨 에러 로그를 스택 트레이스와 함께 저장한다 (500 서버 오류).
      *
-     * <p>userId는 호출 스레드에서 MDC가 살아있을 때 미리 읽어 전달한다.
+     * <p>method, path는 호출 스레드에서 {@code HttpServletRequest}로부터 미리 추출하여 전달한다.
      */
     @Async
     public void saveError(String traceId, String errorCode,
-                          HttpServletRequest request, String message,
+                          String method, String path, String message,
                           Throwable throwable, String userId) {
         try {
             ErrorLog errorLog = ErrorLog.builder()
                 .traceId(traceId != null ? traceId : "unknown")
                 .level("ERROR")
                 .errorCode(errorCode)
-                .method(request.getMethod())
-                .path(request.getRequestURI())
+                .method(method)
+                .path(path)
                 .userId(userId)
                 .message(message)
                 .stackTrace(toStackTrace(throwable))

@@ -42,8 +42,8 @@ class GlobalExceptionHandlerTest {
     @BeforeEach
     void setUp() {
         ErrorLogService errorLogService = mock(ErrorLogService.class);
-        doNothing().when(errorLogService).saveWarn(anyString(), anyString(), any(), anyString(), anyString());
-        doNothing().when(errorLogService).saveError(anyString(), anyString(), any(), anyString(), any(), anyString());
+        doNothing().when(errorLogService).saveWarn(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        doNothing().when(errorLogService).saveError(anyString(), anyString(), anyString(), anyString(), anyString(), any(Throwable.class), anyString());
         mockMvc = MockMvcBuilders
             .standaloneSetup(new TestController())
             .setControllerAdvice(new GlobalExceptionHandler(errorLogService))
