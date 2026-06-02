@@ -1,4 +1,4 @@
-[2026-06-02 15:56:39]
-Command: python -c "import pymysql; conn = pymysql.connect(host='nozomi.proxy.rlwy.net', port=27729, user='root', password='fYDDacGLijyjFjDAGOKqySOSkTLYYEEJ', database='railway'); cursor = conn.cursor(); cursor.execute('SELECT DATE(created_at) as date, level, COUNT(*) as cnt FROM error_logs GROUP BY DATE(created_at), level ORDER BY date DESC LIMIT 20'); rows = cursor.fetchall(); [print(r) for r in rows]; conn.close()" 2>&1
+[2026-06-02 22:32:16]
+Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew test 2>&1 | grep "FAILED" | head -10
 ---
-{'stdout': "(datetime.date(2026, 6, 2), 'WARN', 7)\r\n(datetime.date(2026, 6, 1), 'WARN', 181)\r\n(datetime.date(2026, 5, 31), 'WARN', 64)\r\n(datetime.date(2026, 5, 30), 'ERROR', 9)\r\n(datetime.date(2026, 5, 30), 'WARN', 13)\r\n(datetime.date(2026, 5, 27), 'ERROR', 1)\r\n(datetime.date(2026, 5, 22), 'ERROR', 1)\r\n(datetime.date(2026, 5, 21), 'ERROR', 4)", 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+{'stdout': 'RbacIntegrationTest > \udcec쟾泥\udcb4 \udceb뵒諛붿씠\udcec뒪 濡쒓렇\udcec븘\udcec썐 \udced썑 紐⑤뱺 \udcec꽭\udcec뀡\udcec쓽 Access Token\udcec씠 李⑤떒\udceb맂\udceb떎 FAILED\nRbacIntegrationTest > 濡쒓렇\udcec븘\udcec썐 \udced썑 湲곗〈 Access Token\udcec쑝濡\udc9c API \udced샇異\udc9c \udcec떆 401\udcec쓣 \udcec쓳\udceb떟諛쏅뒗\udceb떎 FAILED\n> Task :test FAILED\nBUILD FAILED in 28s', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}

@@ -213,8 +213,11 @@ public class RegistrationService {
             throw new ConflictException(ErrorCode.EMAIL_DUPLICATED);
         }
 
-        // 5. 전화번호 하이픈 제거 (1인 1계정 정책은 DB UNIQUE 제약으로 보장)
+        // 5. 전화번호 중복 확인
         String phoneRaw = request.phone().replace("-", "");
+        if (userRepository.existsByPhone(phoneRaw)) {
+            throw new ConflictException(ErrorCode.PHONE_DUPLICATED);
+        }
 
         // 6. User + SocialAccount 생성
         String nickname = generateUniqueNickname(request.name());
@@ -329,6 +332,9 @@ public class RegistrationService {
 
         // 5. 회원 가입 정보 저장
         String phoneRaw = request.phone().replace("-", "");
+        if (userRepository.existsByPhone(phoneRaw)) {
+            throw new ConflictException(ErrorCode.PHONE_DUPLICATED);
+        }
         LocalDate birthDate = LocalDate.parse(request.birthDate());
         user.completeSignup(request.name(), birthDate, phoneRaw, gender);
 
