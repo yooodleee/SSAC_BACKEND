@@ -208,7 +208,13 @@
       "Bash(node scripts/e2e-diagnose/naver-diagnose.mjs)",
       "Bash(node scripts/e2e-diagnose/naver-callback-diagnose.mjs)",
       "Bash(ls *.json)",
-      "Bash(node scripts/e2e-diagnose/naver-relogin-diagnose.js)"
+      "Bash(node scripts/e2e-diagnose/naver-relogin-diagnose.js)",
+      "Bash(del:*)",
+      "Bash(node scripts/e2e-diagnose/full-service-diagnose.js)",
+      "Bash(node:*)",
+      "Bash(mysql:*)",
+      "Bash(local/dev)",
+      "Bash(logs/app.log)"
     ]
   }
 }

@@ -58,6 +58,43 @@
 
 ---
 
+**[DIAGNOSE] 2026-06-02 16:00**
+상태: ✅ 해결 완료
+
+#### 오류 개요
+- 발생 환경  : Railway 운영
+- 서비스     : ssac-backend
+- 오류 유형  : 프로토콜 오류 (log-diagnose.md 1-B 절차 환경 불일치)
+- 오류 메시지: `logs/app.log` 파일이 Railway 컨테이너에 존재하지 않음
+
+#### 진단 과정
+- STEP 2 서비스 상태: 정상 (SSAC_BACKEND Online, DB/Redis Online)
+- STEP 3 로그 분석  : Railway 로그에 "에러 로그 저장 실패" 메시지 없음. DB `error_logs` 직접 조회 결과 280건 정상 저장 확인
+- STEP 4 Redis URL : 해당 없음
+- STEP 5 Redis 조회: 해당 없음
+
+#### 근본 원인
+`logback-spring.xml`의 FILE Appender(`logs/app.log`)가 `local,dev` 프로파일에만 정의되어 있음.
+Railway는 `prod` 프로파일로 실행되므로 `JSON_CONSOLE`(stdout)만 활성화되고 FILE Appender가 없음.
+`log-diagnose.md` 1-B 절차가 이를 반영하지 않아 Railway 환경에서 `logs/app.log`를 읽으려 하면 파일이 존재하지 않음.
+
+#### 조치 내용
+`docs/agent-protocols/log-diagnose.md` 1-B 절차 수정:
+- 상황별 수집 방법 표에 환경 컬럼 추가
+- Railway(prod): `railway logs --service SSAC_BACKEND` 사용 명시
+- local/dev: 기존 `logs/app.log` 읽기 유지
+- Railway 환경 주의사항 노트 추가
+
+#### 재발 방지
+- 프로토콜 갱신: Y → `docs/agent-protocols/log-diagnose.md`
+- ADR 작성    : N (1회 발생, 반복 아님)
+- 관련 SC     : 없음
+
+#### 해결 시각
+2026-06-02 16:00
+
+---
+
 ### [ADR] 기술 의사결정 기록
 
 ```

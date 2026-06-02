@@ -6,12 +6,15 @@
 
 ### 상황별 수집 방법
 
-| 상황 | 1순위 수집 방법 | 2순위 |
-|------|--------------|------|
-| 컴파일 오류 | `logs/agent-capture.log` 읽기 (Hook 자동 저장) | Bash 출력 직접 참조 |
-| 테스트 실패 | `logs/agent-capture.log` 읽기 (Hook 자동 저장) | Bash 출력에서 FAILED 블록 추출 |
-| 런타임 오류 (서버 실행 중) | `logs/app.log` 읽기 (파일 Appender 자동 저장) | HTTP API 조회 |
-| 런타임 오류 (서버 미실행) | `logs/app.log` 읽기 (마지막 실행 로그) | — |
+| 상황 | 환경 | 1순위 수집 방법 | 2순위 |
+|------|------|--------------|------|
+| 컴파일 오류 | 공통 | `logs/agent-capture.log` 읽기 (Hook 자동 저장) | Bash 출력 직접 참조 |
+| 테스트 실패 | 공통 | `logs/agent-capture.log` 읽기 (Hook 자동 저장) | Bash 출력에서 FAILED 블록 추출 |
+| 런타임 오류 | **Railway(prod)** | `railway logs --service SSAC_BACKEND` | HTTP API 조회 |
+| 런타임 오류 | **local/dev** | `logs/app.log` 읽기 (파일 Appender 자동 저장) | HTTP API 조회 |
+
+> **Railway 환경 주의:** `prod` 프로파일은 `JSON_CONSOLE`(stdout)만 활성화되며 FILE Appender가 없다.
+> `logs/app.log`는 Railway 컨테이너에 존재하지 않는다. Railway 런타임 로그는 반드시 `railway logs`로 수집한다.
 
 ### 1-A. Bash 오류 — `logs/agent-capture.log` 읽기
 
@@ -29,7 +32,32 @@ Command: ./gradlew test
 (전체 stdout/stderr 출력)
 ```
 
-### 1-B. 런타임 오류 — `logs/app.log` 읽기
+### 1-B. 런타임 오류 — 환경별 로그 수집
+
+#### Railway(prod) 환경 — `railway logs` 사용
+
+`prod` 프로파일은 FILE Appender가 없다. `logs/app.log`는 존재하지 않으며, 모든 로그는 stdout(JSON_CONSOLE)으로만 출력된다.
+
+```bash
+# 최근 100줄 수집
+railway logs --service SSAC_BACKEND --tail 100
+
+# WARN/ERROR만 필터링
+railway logs --service SSAC_BACKEND --tail 200 | grep -E "\[WARN\]|\[ERROR\]"
+
+# 특정 traceId 추적
+railway logs --service SSAC_BACKEND --tail 500 | grep "{traceId}"
+```
+
+Railway 로그 형식 (JSON_CONSOLE → LogstashEncoder):
+```
+{타임스탬프} [WARN] [{ErrorCode}] {METHOD} {PATH} | traceId={...} | userId={...}
+-> {메시지}
+```
+
+`traceId`가 있으면 추출하여 STEP 1-C로 이동한다.
+
+#### local/dev 환경 — `logs/app.log` 읽기
 
 서버 실행 중 발생한 WARN/ERROR는 파일 Appender가 자동 저장한다:
 
