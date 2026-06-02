@@ -211,7 +211,10 @@
       "Bash(node scripts/e2e-diagnose/naver-relogin-diagnose.js)",
       "Bash(del:*)",
       "Bash(node scripts/e2e-diagnose/full-service-diagnose.js)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(mysql:*)",
+      "Bash(local/dev)",
+      "Bash(logs/app.log)"
     ]
   }
 }
