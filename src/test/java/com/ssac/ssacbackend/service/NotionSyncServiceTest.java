@@ -106,11 +106,13 @@ class NotionSyncServiceTest {
     void 동기화_후_캐시_초기화() {
         given(notionProperties.getDatabaseId()).willReturn("db-id");
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(), false));
-        given(stringRedisTemplate.keys(anyString())).willReturn(Set.of("contents:v4:list:null:null:null"));
+        given(stringRedisTemplate.keys("contents:v4:*")).willReturn(Set.of("contents:v4:list:null:null:null"));
+        given(stringRedisTemplate.keys("content:blocks:*")).willReturn(Set.of("content:blocks:page-id"));
 
         notionSyncService.syncAll();
 
         verify(stringRedisTemplate).delete(Set.of("contents:v4:list:null:null:null"));
+        verify(stringRedisTemplate).delete(Set.of("content:blocks:page-id"));
     }
 
     @Test

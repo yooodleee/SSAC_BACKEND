@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotionSyncService {
 
     private static final String CACHE_PREFIX = "contents:v4:";
+    private static final String BLOCK_CACHE_PREFIX = "content:blocks:";
     private static final long CACHE_TTL_SECONDS = 3600L;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .registerModule(new JavaTimeModule())
@@ -391,7 +392,12 @@ public class NotionSyncService {
         Set<String> keys = stringRedisTemplate.keys(CACHE_PREFIX + "*");
         if (keys != null && !keys.isEmpty()) {
             stringRedisTemplate.delete(keys);
-            log.debug("콘텐츠 캐시 초기화 완료: {}개 키 삭제", keys.size());
+            log.debug("콘텐츠 목록 캐시 초기화 완료: {}개 키 삭제", keys.size());
+        }
+        Set<String> blockKeys = stringRedisTemplate.keys(BLOCK_CACHE_PREFIX + "*");
+        if (blockKeys != null && !blockKeys.isEmpty()) {
+            stringRedisTemplate.delete(blockKeys);
+            log.debug("블록 캐시 초기화 완료: {}개 키 삭제", blockKeys.size());
         }
     }
 

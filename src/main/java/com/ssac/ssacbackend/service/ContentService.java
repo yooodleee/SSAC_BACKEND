@@ -1,8 +1,11 @@
 package com.ssac.ssacbackend.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
+import com.ssac.ssacbackend.component.NotionImageMigrator;
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentProgress;
 import com.ssac.ssacbackend.domain.content.ContentViewHistory;
@@ -16,7 +19,9 @@ import com.ssac.ssacbackend.repository.ContentProgressRepository;
 import com.ssac.ssacbackend.repository.ContentRepository;
 import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import notion.api.v1.NotionClient;
 import notion.api.v1.model.blocks.Blocks;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -39,6 +45,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ContentService {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String BLOCK_CACHE_PREFIX = "content:blocks:";
+    private static final long BLOCK_CACHE_TTL_SECONDS = 86400L;
+
     private final UserRepository userRepository;
     private final ContentRepository contentRepository;
     private final ContentProgressRepository contentProgressRepository;
@@ -47,8 +57,8 @@ public class ContentService {
     private final ContentViewHistoryRepository contentViewHistoryRepository;
     private final NotionSyncService notionSyncService;
     private final NotionClient notionClient;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final NotionImageMigrator notionImageMigrator;
+    private final StringRedisTemplate stringRedisTemplate;
 
     /**
      * 게시된 콘텐츠 목록을 반환한다. 비로그인 사용자도 조회 가능하다.
@@ -88,7 +98,8 @@ public class ContentService {
     }
 
     /**
-     * 콘텐츠 상세를 반환한다. Notion 블록을 실시간으로 조회한다.
+     * 콘텐츠 상세를 반환한다. Notion 블록을 조회하며 결과는 Redis에 24시간 캐싱된다.
+     * Image 타입 블록의 URL은 Cloudinary로 이전하여 만료 없는 영구 URL로 제공한다.
      *
      * @param id   콘텐츠 ID
      * @param auth 인증 정보 (null 허용)
@@ -181,31 +192,80 @@ public class ContentService {
 
     // ── 내부 유틸 ──────────────────────────────────────────────────────────────
 
+    /**
+     * Notion 블록을 조회한다. Redis 캐시 히트 시 캐시를 반환하고,
+     * 미스 시 Notion API를 호출하여 Image 블록 URL을 Cloudinary로 이전한 뒤 캐싱한다.
+     */
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> fetchNotionBlocks(String notionPageId) {
         if (notionPageId == null || notionPageId.isBlank()) {
             return List.of();
         }
+        String cacheKey = BLOCK_CACHE_PREFIX + notionPageId;
+        String cached = stringRedisTemplate.opsForValue().get(cacheKey);
+        if (cached != null) {
+            try {
+                return OBJECT_MAPPER.readValue(cached,
+                    new TypeReference<List<Map<String, Object>>>() {});
+            } catch (JsonProcessingException e) {
+                log.warn("블록 캐시 역직렬화 실패, Notion 재조회: notionPageId={}", notionPageId, e);
+            }
+        }
         try {
             Blocks blocks = notionClient.retrieveBlockChildren(notionPageId, null, 100);
-            return blocks.getResults().stream()
+            List<Map<String, Object>> result = blocks.getResults().stream()
                 .<Map<String, Object>>map(block -> {
                     try {
-                        @SuppressWarnings("unchecked")
                         Map<String, Object> map = OBJECT_MAPPER.convertValue(block, Map.class);
+                        migrateImageUrl(map);
                         return map;
                     } catch (Exception e) {
                         log.warn("블록 직렬화 실패: blockId={}", block.getId(), e);
-                        java.util.Map<String, Object> fallback = new java.util.HashMap<>();
+                        Map<String, Object> fallback = new HashMap<>();
                         fallback.put("id", block.getId());
                         fallback.put("type", block.getType());
                         return fallback;
                     }
                 })
                 .toList();
+            try {
+                String json = OBJECT_MAPPER.writeValueAsString(result);
+                stringRedisTemplate.opsForValue()
+                    .set(cacheKey, json, Duration.ofSeconds(BLOCK_CACHE_TTL_SECONDS));
+            } catch (JsonProcessingException e) {
+                log.warn("블록 캐시 직렬화 실패: notionPageId={}", notionPageId, e);
+            }
+            return result;
         } catch (Exception e) {
             log.warn("Notion 블록 조회 실패: notionPageId={}", notionPageId, e);
             return List.of();
+        }
+    }
+
+    /**
+     * Image 타입 블록의 URL을 Cloudinary URL로 교체한다.
+     * file 타입과 external 타입 모두 처리한다.
+     */
+    @SuppressWarnings("unchecked")
+    private void migrateImageUrl(Map<String, Object> block) {
+        if (!"Image".equals(block.get("type"))) {
+            return;
+        }
+        Map<String, Object> imageMap = (Map<String, Object>) block.get("image");
+        if (imageMap == null) {
+            return;
+        }
+        String imageType = (String) imageMap.get("type");
+        if ("file".equals(imageType)) {
+            Map<String, Object> fileMap = (Map<String, Object>) imageMap.get("file");
+            if (fileMap != null && fileMap.get("url") instanceof String url) {
+                fileMap.put("url", notionImageMigrator.migrateIfNeeded(url));
+            }
+        } else if ("external".equals(imageType)) {
+            Map<String, Object> externalMap = (Map<String, Object>) imageMap.get("external");
+            if (externalMap != null && externalMap.get("url") instanceof String url) {
+                externalMap.put("url", notionImageMigrator.migrateIfNeeded(url));
+            }
         }
     }
 
