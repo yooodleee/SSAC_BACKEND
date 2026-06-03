@@ -1,4 +1,4 @@
-[2026-06-02 22:32:16]
-Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew test 2>&1 | grep "FAILED" | head -10
+[2026-06-03 15:06:33]
+Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew test --tests "com.ssac.ssacbackend.domain.content.ContentCategoryTest" 2>&1 | grep -A 20 "FAILED\|expected\|but was\|IllegalArgument"
 ---
-{'stdout': 'RbacIntegrationTest > \udcec쟾泥\udcb4 \udceb뵒諛붿씠\udcec뒪 濡쒓렇\udcec븘\udcec썐 \udced썑 紐⑤뱺 \udcec꽭\udcec뀡\udcec쓽 Access Token\udcec씠 李⑤떒\udceb맂\udceb떎 FAILED\nRbacIntegrationTest > 濡쒓렇\udcec븘\udcec썐 \udced썑 湲곗〈 Access Token\udcec쑝濡\udc9c API \udced샇異\udc9c \udcec떆 401\udcec쓣 \udcec쓳\udceb떟諛쏅뒗\udceb떎 FAILED\n> Task :test FAILED\nBUILD FAILED in 28s', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+{'stdout': "> Task :test FAILED\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':test'.\n> No tests found for given includes: [com.ssac.ssacbackend.domain.content.ContentCategoryTest](--tests filter)\n\n* Try:\n> Run with --scan to get full insights from a Build Scan (powered by Develocity).\n\nBUILD FAILED in 1s\n5 actionable tasks: 1 executed, 4 up-to-date", 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}

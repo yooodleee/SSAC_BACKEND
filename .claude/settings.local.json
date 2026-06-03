@@ -214,7 +214,11 @@
       "Bash(node:*)",
       "Bash(mysql:*)",
       "Bash(local/dev)",
-      "Bash(logs/app.log)"
+      "Bash(logs/app.log)",
+      "Bash(ContentCategory.java)",
+      "Bash(\\\\\"budget\\\\\")",
+      "Bash(\\\\\"series\\\\\")",
+      "Bash(ContentCategoryTest.java)"
     ]
   }
 }
