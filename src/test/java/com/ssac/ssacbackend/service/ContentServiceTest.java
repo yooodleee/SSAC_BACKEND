@@ -3,6 +3,7 @@ package com.ssac.ssacbackend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -11,12 +12,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ssac.ssacbackend.common.exception.NotFoundException;
+import com.ssac.ssacbackend.component.NotionImageMigrator;
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentProgress;
 import com.ssac.ssacbackend.domain.content.ContentViewHistory;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.ContentCompleteResponse;
+import com.ssac.ssacbackend.dto.response.ContentDetailResponse;
 import com.ssac.ssacbackend.dto.response.ContentItemDto;
 import com.ssac.ssacbackend.dto.response.ContentListResponse;
 import com.ssac.ssacbackend.dto.response.LevelUpResult;
@@ -24,7 +27,9 @@ import com.ssac.ssacbackend.repository.ContentProgressRepository;
 import com.ssac.ssacbackend.repository.ContentRepository;
 import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import notion.api.v1.NotionClient;
 import notion.api.v1.model.blocks.Blocks;
@@ -38,6 +43,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -62,6 +69,12 @@ class ContentServiceTest {
     private NotionSyncService notionSyncService;
     @Mock
     private NotionClient notionClient;
+    @Mock
+    private NotionImageMigrator notionImageMigrator;
+    @Mock
+    private StringRedisTemplate stringRedisTemplate;
+    @Mock
+    private ValueOperations<String, String> valueOperations;
 
     @InjectMocks
     private ContentService contentService;
@@ -82,6 +95,9 @@ class ContentServiceTest {
         given(mockContent.isPublished()).willReturn(true);
         given(mockContent.getCategories()).willReturn(List.of("AI"));
         given(mockContent.getDomains()).willReturn(new java.util.LinkedHashSet<>());
+
+        given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.get(anyString())).willReturn(null);
     }
 
     @Nested
@@ -159,17 +175,31 @@ class ContentServiceTest {
     class GetContent {
 
         @Test
-        @DisplayName("존재하는 게시된 콘텐츠 ID로 상세를 반환한다")
-        void getContent_정상() {
+        @DisplayName("캐시 미스 시 Notion에서 블록을 조회하고 Redis에 캐싱한다")
+        void getContent_캐시미스_Notion조회() {
             given(contentRepository.findById(10L)).willReturn(Optional.of(mockContent));
             Blocks blocks = mock(Blocks.class);
             given(blocks.getResults()).willReturn(List.of());
             given(notionClient.retrieveBlockChildren("page-abc", null, 100)).willReturn(blocks);
 
-            var result = contentService.getContent(10L, null);
+            ContentDetailResponse result = contentService.getContent(10L, null);
 
             assertThat(result.id()).isEqualTo("10");
             assertThat(result.title()).isEqualTo("테스트 콘텐츠");
+            verify(notionClient).retrieveBlockChildren("page-abc", null, 100);
+            verify(valueOperations).set(eq("content:blocks:page-abc"), anyString(), any());
+        }
+
+        @Test
+        @DisplayName("캐시 히트 시 Notion 호출 없이 캐시된 블록을 반환한다")
+        void getContent_캐시히트_Notion미호출() {
+            given(contentRepository.findById(10L)).willReturn(Optional.of(mockContent));
+            given(valueOperations.get("content:blocks:page-abc")).willReturn("[]");
+
+            ContentDetailResponse result = contentService.getContent(10L, null);
+
+            assertThat(result.blocks()).isEmpty();
+            verify(notionClient, never()).retrieveBlockChildren(anyString(), any(), any());
         }
 
         @Test
@@ -190,6 +220,63 @@ class ContentServiceTest {
 
             assertThatThrownBy(() -> contentService.getContent(20L, null))
                 .isInstanceOf(NotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("migrateImageUrl")
+    class MigrateImageUrl {
+
+        @Test
+        @DisplayName("file 타입 Image 블록의 URL을 Cloudinary로 교체한다")
+        void migrateImageUrl_file타입() {
+            given(notionImageMigrator.migrateIfNeeded("https://s3.example.com/image.png"))
+                .willReturn("https://res.cloudinary.com/test/image.png");
+
+            Map<String, Object> fileMap = new HashMap<>();
+            fileMap.put("url", "https://s3.example.com/image.png");
+            Map<String, Object> imageMap = new HashMap<>();
+            imageMap.put("type", "file");
+            imageMap.put("file", fileMap);
+            Map<String, Object> block = new HashMap<>();
+            block.put("type", "Image");
+            block.put("image", imageMap);
+
+            ReflectionTestUtils.invokeMethod(contentService, "migrateImageUrl", block);
+
+            assertThat(fileMap.get("url")).isEqualTo("https://res.cloudinary.com/test/image.png");
+        }
+
+        @Test
+        @DisplayName("external 타입 Image 블록의 URL을 Cloudinary로 교체한다")
+        void migrateImageUrl_external타입() {
+            given(notionImageMigrator.migrateIfNeeded("https://external.example.com/image.png"))
+                .willReturn("https://res.cloudinary.com/test/external.png");
+
+            Map<String, Object> externalMap = new HashMap<>();
+            externalMap.put("url", "https://external.example.com/image.png");
+            Map<String, Object> imageMap = new HashMap<>();
+            imageMap.put("type", "external");
+            imageMap.put("external", externalMap);
+            Map<String, Object> block = new HashMap<>();
+            block.put("type", "Image");
+            block.put("image", imageMap);
+
+            ReflectionTestUtils.invokeMethod(contentService, "migrateImageUrl", block);
+
+            assertThat(externalMap.get("url"))
+                .isEqualTo("https://res.cloudinary.com/test/external.png");
+        }
+
+        @Test
+        @DisplayName("Image가 아닌 블록은 migrateIfNeeded를 호출하지 않는다")
+        void migrateImageUrl_비Image블록_스킵() {
+            Map<String, Object> block = new HashMap<>();
+            block.put("type", "Paragraph");
+
+            ReflectionTestUtils.invokeMethod(contentService, "migrateImageUrl", block);
+
+            verify(notionImageMigrator, never()).migrateIfNeeded(anyString());
         }
     }
 
