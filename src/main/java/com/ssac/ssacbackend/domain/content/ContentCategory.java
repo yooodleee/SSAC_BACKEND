@@ -21,7 +21,9 @@ public enum ContentCategory {
     WORK       ("work",        "근로/급여",     "💼"),
     INVESTMENT ("investment",  "재테크/신용",   "💰"),
     SCHOLARSHIP("scholarship", "학자금/장학금", "🎓"),
-    SERIES     ("budget",      "시리즈",        "📚");
+    SERIES     ("series",      "시리즈",        "📚"),
+    WELFARE    ("welfare",     "사회보험/복지", "🛡️"),
+    BUDGET     ("budget",      "소비/예산관리", "💳");
 
     private final String notionTag;
     private final String label;

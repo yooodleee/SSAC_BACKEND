@@ -17,7 +17,7 @@ class ContentCategoryTest {
         assertThat(ContentCategory.fromNotionTag("work")).isEqualTo(ContentCategory.WORK);
         assertThat(ContentCategory.fromNotionTag("investment")).isEqualTo(ContentCategory.INVESTMENT);
         assertThat(ContentCategory.fromNotionTag("scholarship")).isEqualTo(ContentCategory.SCHOLARSHIP);
-        assertThat(ContentCategory.fromNotionTag("budget")).isEqualTo(ContentCategory.SERIES);
+        assertThat(ContentCategory.fromNotionTag("series")).isEqualTo(ContentCategory.SERIES);
     }
 
     @Test
@@ -42,9 +42,9 @@ class ContentCategoryTest {
     }
 
     @Test
-    @DisplayName("all()은 6개 카테고리를 반환한다")
-    void all_카테고리_6개() {
-        assertThat(ContentCategory.all()).hasSize(6);
+    @DisplayName("all()은 8개 카테고리를 반환한다")
+    void all_카테고리_8개() {
+        assertThat(ContentCategory.all()).hasSize(8);
     }
 
     @Test
@@ -52,8 +52,19 @@ class ContentCategoryTest {
     void 카테고리_필드_정의() {
         assertThat(ContentCategory.INVESTMENT.getNotionTag()).isEqualTo("investment");
         assertThat(ContentCategory.INVESTMENT.getLabel()).isEqualTo("재테크/신용");
-        assertThat(ContentCategory.SERIES.getNotionTag()).isEqualTo("budget");
+        assertThat(ContentCategory.SERIES.getNotionTag()).isEqualTo("series");
         assertThat(ContentCategory.SERIES.getLabel()).isEqualTo("시리즈");
         assertThat(ContentCategory.WORK.getNotionTag()).isEqualTo("work");
+        assertThat(ContentCategory.WELFARE.getNotionTag()).isEqualTo("welfare");
+        assertThat(ContentCategory.WELFARE.getLabel()).isEqualTo("사회보험/복지");
+        assertThat(ContentCategory.BUDGET.getNotionTag()).isEqualTo("budget");
+        assertThat(ContentCategory.BUDGET.getLabel()).isEqualTo("소비/예산관리");
+    }
+
+    @Test
+    @DisplayName("신규 태그 welfare, budget으로 ContentCategory를 찾는다")
+    void fromNotionTag_신규_태그() {
+        assertThat(ContentCategory.fromNotionTag("welfare")).isEqualTo(ContentCategory.WELFARE);
+        assertThat(ContentCategory.fromNotionTag("budget")).isEqualTo(ContentCategory.BUDGET);
     }
 }

@@ -88,7 +88,7 @@ public class AuthV1Controller {
                 + "PHONE-001: 휴대폰 형식 오류 | GENDER-001: 성별 값 오류 | "
                 + "EMAIL-001: 이메일 형식 오류 | PASSWORD-001: 비밀번호 형식 오류 | TERMS-001: 필수 약관 미동의"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409",
-            description = "EMAIL-002: 이메일 중복")
+            description = "EMAIL-002: 이메일 중복 | PHONE-002: 휴대폰 번호 중복")
     })
     public ResponseEntity<ApiResponse<com.ssac.ssacbackend.dto.response.RegisterV2Response>> registerWithEmail(
         @RequestBody @Valid EmailRegisterRequest request,
