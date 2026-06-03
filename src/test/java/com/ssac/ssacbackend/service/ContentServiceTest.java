@@ -223,6 +223,36 @@ class ContentServiceTest {
     }
 
     @Nested
+    @DisplayName("fetchChildBlocks")
+    class FetchChildBlocks {
+
+        @Test
+        @DisplayName("자식 블록을 조회하여 반환한다")
+        void fetchChildBlocks_정상() {
+            Blocks childBlocks = mock(Blocks.class);
+            given(childBlocks.getResults()).willReturn(List.of());
+            given(notionClient.retrieveBlockChildren("child-block-id", null, 100))
+                .willReturn(childBlocks);
+
+            List<Map<String, Object>> result = org.springframework.test.util.ReflectionTestUtils
+                .invokeMethod(contentService, "fetchChildBlocks", "child-block-id");
+
+            assertThat(result).isEmpty();
+            verify(notionClient).retrieveBlockChildren("child-block-id", null, 100);
+        }
+
+        @Test
+        @DisplayName("blockId가 null이면 빈 리스트를 반환하고 Notion을 호출하지 않는다")
+        void fetchChildBlocks_nullId() {
+            List<Map<String, Object>> result = org.springframework.test.util.ReflectionTestUtils
+                .invokeMethod(contentService, "fetchChildBlocks", (Object) null);
+
+            assertThat(result).isEmpty();
+            verify(notionClient, never()).retrieveBlockChildren(anyString(), any(), any());
+        }
+    }
+
+    @Nested
     @DisplayName("migrateImageUrl")
     class MigrateImageUrl {
 

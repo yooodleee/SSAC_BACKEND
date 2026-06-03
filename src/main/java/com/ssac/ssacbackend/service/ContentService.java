@@ -218,6 +218,9 @@ public class ContentService {
                     try {
                         Map<String, Object> map = OBJECT_MAPPER.convertValue(block, Map.class);
                         migrateImageUrl(map);
+                        if (Boolean.TRUE.equals(map.get("hasChildren"))) {
+                            map.put("children", fetchChildBlocks((String) map.get("id")));
+                        }
                         return map;
                     } catch (Exception e) {
                         log.warn("블록 직렬화 실패: blockId={}", block.getId(), e);
@@ -238,6 +241,37 @@ public class ContentService {
             return result;
         } catch (Exception e) {
             log.warn("Notion 블록 조회 실패: notionPageId={}", notionPageId, e);
+            return List.of();
+        }
+    }
+
+    /**
+     * 자식 블록 목록을 조회하여 직렬화한다. Image 블록 URL은 Cloudinary로 이전한다.
+     */
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> fetchChildBlocks(String blockId) {
+        if (blockId == null || blockId.isBlank()) {
+            return List.of();
+        }
+        try {
+            Blocks children = notionClient.retrieveBlockChildren(blockId, null, 100);
+            return children.getResults().stream()
+                .<Map<String, Object>>map(block -> {
+                    try {
+                        Map<String, Object> map = OBJECT_MAPPER.convertValue(block, Map.class);
+                        migrateImageUrl(map);
+                        return map;
+                    } catch (Exception e) {
+                        log.warn("자식 블록 직렬화 실패: blockId={}", block.getId(), e);
+                        Map<String, Object> fallback = new HashMap<>();
+                        fallback.put("id", block.getId());
+                        fallback.put("type", block.getType());
+                        return fallback;
+                    }
+                })
+                .toList();
+        } catch (Exception e) {
+            log.warn("자식 블록 조회 실패: blockId={}", blockId, e);
             return List.of();
         }
     }
