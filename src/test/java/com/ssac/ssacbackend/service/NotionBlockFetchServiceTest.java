@@ -124,13 +124,14 @@ class NotionBlockFetchServiceTest {
     class MigrateImageUrl {
 
         @Test
-        @DisplayName("file 타입 Image 블록의 URL을 Cloudinary로 교체한다")
+        @DisplayName("file 타입 Image 블록의 URL을 Cloudinary로 교체하고 expiry_time을 제거한다")
         void migrateImageUrl_file타입() {
             given(notionImageMigrator.migrateIfNeeded("https://s3.example.com/image.png"))
                 .willReturn("https://res.cloudinary.com/test/image.png");
 
             Map<String, Object> fileMap = new HashMap<>();
             fileMap.put("url", "https://s3.example.com/image.png");
+            fileMap.put("expiry_time", "2026-06-04T10:48:55.847Z");
             Map<String, Object> imageMap = new HashMap<>();
             imageMap.put("type", "file");
             imageMap.put("file", fileMap);
@@ -141,6 +142,7 @@ class NotionBlockFetchServiceTest {
             ReflectionTestUtils.invokeMethod(notionBlockFetchService, "migrateImageUrl", block);
 
             assertThat(fileMap.get("url")).isEqualTo("https://res.cloudinary.com/test/image.png");
+            assertThat(fileMap).doesNotContainKey("expiry_time");
         }
 
         @Test
