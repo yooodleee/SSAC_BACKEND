@@ -1,4 +1,4 @@
-[2026-06-03 23:26:25]
-Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && bash scripts/run-tests.sh 2>&1 | grep -E "tests completed|FAILED|BUILD" | tail -10
+[2026-06-04 11:59:45]
+Command: ./gradlew test 2>&1 | grep -E "tests completed|FAILED|BUILD" | tail -5
 ---
-{'stdout': 'BUILD SUCCESSFUL in 3s\nRbacIntegrationTest > \udcec쟾泥\udcb4 \udceb뵒諛붿씠\udcec뒪 濡쒓렇\udcec븘\udcec썐 \udced썑 紐⑤뱺 \udcec꽭\udcec뀡\udcec쓽 Access Token\udcec씠 李⑤떒\udceb맂\udceb떎 FAILED\nRbacIntegrationTest > 濡쒓렇\udcec븘\udcec썐 \udced썑 湲곗〈 Access Token\udcec쑝濡\udc9c API \udced샇異\udc9c \udcec떆 401\udcec쓣 \udcec쓳\udceb떟諛쏅뒗\udceb떎 FAILED\nSchemaValidationTest > flywayMigrations_matchAllJpaEntities() FAILED\n397 tests completed, 3 failed\n> Task :test FAILED\nBUILD FAILED in 42s', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+{'stdout': 'RbacIntegrationTest > \udcec쟾泥\udcb4 \udceb뵒諛붿씠\udcec뒪 濡쒓렇\udcec븘\udcec썐 \udced썑 紐⑤뱺 \udcec꽭\udcec뀡\udcec쓽 Access Token\udcec씠 李⑤떒\udceb맂\udceb떎 FAILED\nRbacIntegrationTest > 濡쒓렇\udcec븘\udcec썐 \udced썑 湲곗〈 Access Token\udcec쑝濡\udc9c API \udced샇異\udc9c \udcec떆 401\udcec쓣 \udcec쓳\udceb떟諛쏅뒗\udceb떎 FAILED\n397 tests completed, 2 failed, 1 skipped\n> Task :test FAILED\nBUILD FAILED in 1m 3s', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
