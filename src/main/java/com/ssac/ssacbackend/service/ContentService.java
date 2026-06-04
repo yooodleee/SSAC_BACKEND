@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.util.CacheKeys;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.component.NotionImageMigrator;
 import com.ssac.ssacbackend.domain.content.Content;
@@ -48,8 +49,6 @@ public class ContentService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final Gson GSON = new Gson();
-    private static final String BLOCK_CACHE_PREFIX = "content:blocks:";
-    private static final long BLOCK_CACHE_TTL_SECONDS = 86400L;
 
     private final UserRepository userRepository;
     private final ContentRepository contentRepository;
@@ -203,7 +202,7 @@ public class ContentService {
         if (notionPageId == null || notionPageId.isBlank()) {
             return List.of();
         }
-        String cacheKey = BLOCK_CACHE_PREFIX + notionPageId;
+        String cacheKey = CacheKeys.BLOCK_PREFIX + notionPageId;
         String cached = stringRedisTemplate.opsForValue().get(cacheKey);
         if (cached != null) {
             try {
@@ -238,7 +237,7 @@ public class ContentService {
             try {
                 String json = OBJECT_MAPPER.writeValueAsString(result);
                 stringRedisTemplate.opsForValue()
-                    .set(cacheKey, json, Duration.ofSeconds(BLOCK_CACHE_TTL_SECONDS));
+                    .set(cacheKey, json, Duration.ofSeconds(CacheKeys.BLOCK_TTL_SECONDS));
             } catch (JsonProcessingException e) {
                 log.warn("블록 캐시 직렬화 실패: notionPageId={}", notionPageId, e);
             }

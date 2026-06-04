@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ssac.ssacbackend.common.exception.BadRequestException;
+import com.ssac.ssacbackend.common.util.CacheKeys;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.component.NotionImageMigrator;
 import com.ssac.ssacbackend.config.NotionProperties;
@@ -49,8 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotionSyncService {
 
-    private static final String CACHE_PREFIX = "contents:v4:";
-    private static final String BLOCK_CACHE_PREFIX = "content:blocks:";
     private static final long CACHE_TTL_SECONDS = 3600L;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .registerModule(new JavaTimeModule())
@@ -162,7 +161,7 @@ public class NotionSyncService {
     }
 
     private String buildCacheKey(List<String> categories, String difficulty, String domain) {
-        return CACHE_PREFIX + "list:" +
+        return CacheKeys.CONTENT_LIST_PREFIX + "list:" +
             (categories != null ? categories.toString() : "null") + ":" +
             (difficulty != null ? difficulty : "null") + ":" +
             (domain != null ? domain : "null");
@@ -389,12 +388,12 @@ public class NotionSyncService {
     }
 
     private void evictContentsCache() {
-        Set<String> keys = stringRedisTemplate.keys(CACHE_PREFIX + "*");
+        Set<String> keys = stringRedisTemplate.keys(CacheKeys.CONTENT_LIST_PREFIX + "*");
         if (keys != null && !keys.isEmpty()) {
             stringRedisTemplate.delete(keys);
             log.debug("콘텐츠 목록 캐시 초기화 완료: {}개 키 삭제", keys.size());
         }
-        Set<String> blockKeys = stringRedisTemplate.keys(BLOCK_CACHE_PREFIX + "*");
+        Set<String> blockKeys = stringRedisTemplate.keys(CacheKeys.BLOCK_PREFIX + "*");
         if (blockKeys != null && !blockKeys.isEmpty()) {
             stringRedisTemplate.delete(blockKeys);
             log.debug("블록 캐시 초기화 완료: {}개 키 삭제", blockKeys.size());
