@@ -3,7 +3,9 @@ package com.ssac.ssacbackend.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.ssac.ssacbackend.common.util.CacheKeys;
 import com.ssac.ssacbackend.component.NotionImageMigrator;
 import java.time.Duration;
@@ -29,7 +31,9 @@ import org.springframework.stereotype.Service;
 public class NotionBlockFetchService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON = new GsonBuilder()
+        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .create();
 
     private final NotionClient notionClient;
     private final NotionImageMigrator notionImageMigrator;
