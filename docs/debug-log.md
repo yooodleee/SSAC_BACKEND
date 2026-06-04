@@ -15,6 +15,46 @@
 □ 이 파일을 직접 편집하여 내용을 삭제하지 않는다
 ```
 
+---
+
+## ✅ [DIAGNOSE] 2026-06-04 17:30 — 토큰 재발급 무한 루프
+
+### 오류 개요
+- 발생 환경 : Railway 운영
+- 서비스    : ssac-backend
+- 오류 유형 : 토큰 경쟁 조건 경로의 구 토큰 미삭제로 인한 무한 재발급 루프
+- 오류 메시지: `토큰 로테이션 경쟁 조건 감지 — 재발급 진행: userId=1` 가 초당 수 회 반복
+
+### 진단 결과
+- STEP 2 서비스 상태 : 정상 (Online)
+- STEP 3 로그 분석   :
+  - `POST /api/v1/auth/reissue`가 초당 2~5회 지속 발생
+  - 모든 요청이 "토큰 재발급 완료"로 성공 응답 — BE 자체 루프 아님
+  - 일부 요청이 "경쟁 조건 감지" → 재발급 성공 패턴이 교번 반복
+  - `userId="anonymous"`: 모든 reissue 요청에 accessToken 없음 → FE가 새 토큰을 사용하지 못함
+
+### 근본 원인 (5-Why)
+1. 앱이 `/api/v1/auth/reissue`를 무한 반복 호출한다
+2. BE가 동일한 구 refresh 토큰을 계속 수락하기 때문
+3. `reissueWithUser()`의 경쟁 조건 처리 경로(`alreadyRevoked=true`)가 구 토큰을 `revoked=true` 상태로 남겨둠 (삭제 안 함)
+4. `findUserIdByHashIncludingRevoked()`가 `revoked=true`인 토큰도 조회하므로 구 토큰이 7일 TTL 동안 계속 유효
+5. 앱이 받은 새 토큰을 제대로 저장/사용하지 못하고, BE도 구 토큰 재사용을 무한 허용
+
+### 조치 내용
+- `TokenService.reissueWithUser()` 경쟁 조건 경로에 `tokenStore.deleteToken(tokenHash)` 추가
+- 경쟁 조건으로 발급 후 구 토큰 레코드를 완전 삭제 → 2회차 이후 동일 토큰 사용 시 `TOKEN_INVALID` 반환
+- 테스트: `TokenServiceTest.로테이션된_토큰_재발급_성공` — `deleteToken` 호출 검증 추가
+
+### 재발 방지
+- 프로토콜 갱신 필요 여부: N
+- ADR 작성 필요 여부: N (1회 발생)
+- FE 측 추가 조치 필요: 재발급 응답의 새 accessToken을 Authorization 헤더로 즉시 반영할 것
+
+### 해결 완료 시각
+2026-06-04 17:30 KST
+
+---
+
 ## 반복 오류 판단 기준
 동일한 오류 메시지 / 원인이 3회 이상 기록된 경우 adr-create.md를 즉시 실행한다.
 

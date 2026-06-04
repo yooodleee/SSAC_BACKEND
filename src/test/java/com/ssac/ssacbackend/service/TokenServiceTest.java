@@ -183,7 +183,7 @@ class TokenServiceTest {
         }
 
         @Test
-        @DisplayName("이미 로테이션된 토큰이지만 만료 전이면 재발급에 성공한다(경쟁 조건 처리)")
+        @DisplayName("이미 로테이션된 토큰이지만 만료 전이면 재발급에 성공하고, 구 토큰은 완전 삭제된다(경쟁 조건 처리)")
         void 로테이션된_토큰_재발급_성공() {
             User user = mockUser(2L, "user@test.com", UserRole.USER);
             given(tokenStore.findUserIdByHash(anyString())).willReturn(Optional.empty());
@@ -199,6 +199,8 @@ class TokenServiceTest {
             assertThat(result.tokens().accessToken()).isEqualTo("new-access");
             // 이미 revoke된 토큰이므로 revoke를 다시 호출하지 않는다
             then(tokenStore).should(never()).revoke(anyString());
+            // 무한 재사용을 방지하기 위해 구 토큰 레코드를 완전 삭제한다
+            then(tokenStore).should().deleteToken(anyString());
         }
 
         @Test
