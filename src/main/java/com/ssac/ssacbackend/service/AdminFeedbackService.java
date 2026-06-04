@@ -4,7 +4,6 @@ import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.feedback.Feedback;
 import com.ssac.ssacbackend.domain.feedback.FeedbackStatus;
-import com.ssac.ssacbackend.domain.user.UserRole;
 import com.ssac.ssacbackend.dto.response.FeedbackListResponse;
 import com.ssac.ssacbackend.dto.response.FeedbackListResponse.FeedbackItem;
 import com.ssac.ssacbackend.repository.FeedbackRepository;
@@ -96,24 +95,4 @@ public class AdminFeedbackService {
         return nickname.substring(0, visibleLength) + "*".repeat(nickname.length() - visibleLength);
     }
 
-    /**
-     * 관리자 홈용 통계: 전체 사용자 수 (GUEST 제외).
-     */
-    public long countNonGuestUsers() {
-        return userRepository.countByRoleNot(UserRole.GUEST);
-    }
-
-    /**
-     * 관리자 홈용 통계: 전체 피드백 수.
-     */
-    public long countTotalFeedbacks() {
-        return feedbackRepository.count();
-    }
-
-    /**
-     * 관리자 홈용 통계: PENDING 피드백 수.
-     */
-    public long countPendingFeedbacks() {
-        return feedbackRepository.countByStatus(FeedbackStatus.PENDING);
-    }
 }
