@@ -29,6 +29,11 @@ public interface ViewCountStore {
     /**
      * 뉴스 조회 이벤트를 기록한다.
      *
+     * <p>구현체는 자체적으로 트랜잭션을 관리해야 한다.
+     * MySQL 구현체는 {@code REQUIRES_NEW}로 독립 트랜잭션을 열어 INSERT하며,
+     * Redis 구현체는 DB 트랜잭션에 참여하지 않는다.
+     * 호출자의 트랜잭션 속성(readOnly 여부)에 관계없이 동작이 보장된다.
+     *
      * @param news 조회된 뉴스 엔티티
      */
     void record(News news);

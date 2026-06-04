@@ -5,6 +5,8 @@ import com.ssac.ssacbackend.domain.news.NewsView;
 import com.ssac.ssacbackend.repository.NewsViewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * MySQL JPA 기반 뉴스 조회 수 저장소.
@@ -26,8 +28,10 @@ public class MysqlViewCountStore implements ViewCountStore {
      * {@inheritDoc}
      *
      * <p>news_views 테이블에 즉시 INSERT한다.
+     * 호출자의 readOnly 트랜잭션 여부와 관계없이 독립적으로 커밋된다.
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(News news) {
         newsViewRepository.save(NewsView.builder().news(news).build());
     }
