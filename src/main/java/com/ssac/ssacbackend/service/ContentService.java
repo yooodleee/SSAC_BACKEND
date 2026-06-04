@@ -3,6 +3,7 @@ package com.ssac.ssacbackend.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.component.NotionImageMigrator;
@@ -46,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ContentService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final Gson GSON = new Gson();
     private static final String BLOCK_CACHE_PREFIX = "content:blocks:";
     private static final long BLOCK_CACHE_TTL_SECONDS = 86400L;
 
@@ -216,9 +218,11 @@ public class ContentService {
             List<Map<String, Object>> result = blocks.getResults().stream()
                 .<Map<String, Object>>map(block -> {
                     try {
-                        Map<String, Object> map = OBJECT_MAPPER.convertValue(block, Map.class);
+                        String json = GSON.toJson(block);
+                        Map<String, Object> map = OBJECT_MAPPER.readValue(
+                            json, new TypeReference<Map<String, Object>>() {});
                         migrateImageUrl(map);
-                        if (Boolean.TRUE.equals(map.get("hasChildren"))) {
+                        if (Boolean.TRUE.equals(map.get("has_children"))) {
                             map.put("children", fetchChildBlocks((String) map.get("id")));
                         }
                         return map;
@@ -226,7 +230,7 @@ public class ContentService {
                         log.warn("블록 직렬화 실패: blockId={}", block.getId(), e);
                         Map<String, Object> fallback = new HashMap<>();
                         fallback.put("id", block.getId());
-                        fallback.put("type", block.getType());
+                        fallback.put("type", block.getType().toString());
                         return fallback;
                     }
                 })
@@ -258,14 +262,16 @@ public class ContentService {
             return children.getResults().stream()
                 .<Map<String, Object>>map(block -> {
                     try {
-                        Map<String, Object> map = OBJECT_MAPPER.convertValue(block, Map.class);
+                        String json = GSON.toJson(block);
+                        Map<String, Object> map = OBJECT_MAPPER.readValue(
+                            json, new TypeReference<Map<String, Object>>() {});
                         migrateImageUrl(map);
                         return map;
                     } catch (Exception e) {
                         log.warn("자식 블록 직렬화 실패: blockId={}", block.getId(), e);
                         Map<String, Object> fallback = new HashMap<>();
                         fallback.put("id", block.getId());
-                        fallback.put("type", block.getType());
+                        fallback.put("type", block.getType().toString());
                         return fallback;
                     }
                 })
@@ -282,7 +288,7 @@ public class ContentService {
      */
     @SuppressWarnings("unchecked")
     private void migrateImageUrl(Map<String, Object> block) {
-        if (!"Image".equals(block.get("type"))) {
+        if (!"image".equals(block.get("type"))) {
             return;
         }
         Map<String, Object> imageMap = (Map<String, Object>) block.get("image");

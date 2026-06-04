@@ -268,7 +268,7 @@ class ContentServiceTest {
             imageMap.put("type", "file");
             imageMap.put("file", fileMap);
             Map<String, Object> block = new HashMap<>();
-            block.put("type", "Image");
+            block.put("type", "image");
             block.put("image", imageMap);
 
             ReflectionTestUtils.invokeMethod(contentService, "migrateImageUrl", block);
@@ -288,7 +288,7 @@ class ContentServiceTest {
             imageMap.put("type", "external");
             imageMap.put("external", externalMap);
             Map<String, Object> block = new HashMap<>();
-            block.put("type", "Image");
+            block.put("type", "image");
             block.put("image", imageMap);
 
             ReflectionTestUtils.invokeMethod(contentService, "migrateImageUrl", block);

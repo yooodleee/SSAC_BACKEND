@@ -218,7 +218,16 @@
       "Bash(ContentCategory.java)",
       "Bash(\\\\\"budget\\\\\")",
       "Bash(\\\\\"series\\\\\")",
-      "Bash(ContentCategoryTest.java)"
+      "Bash(ContentCategoryTest.java)",
+      "Read(//c/tmp/**)",
+      "Bash(jar -xf /c/Users/LEGION/.gradle/caches/modules-2/files-2.1/com.github.seratch/notion-sdk-jvm-core/1.1.0/a2934f8d912c9f9a66cae3fa361d28dbe03f5fba/notion-sdk-jvm-core-1.1.0.jar)",
+      "Bash(javap -c notion/api/v1/model/blocks/BlockType.class)",
+      "Bash(javap -verbose notion/api/v1/model/blocks/BlockType.class)",
+      "Bash(javap notion/api/v1/model/blocks/HeadingTwoBlock.class)",
+      "Bash(javap notion/api/v1/model/blocks/CalloutBlock.class)",
+      "Bash(javap -verbose notion/api/v1/model/blocks/Block.class)",
+      "Bash(ContentService.java)",
+      "Bash(ContentServiceTest.java)"
     ]
   }
 }
