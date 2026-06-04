@@ -1,4 +1,4 @@
-[2026-06-04 15:10:36]
+[2026-06-04 15:22:03]
 Command: ./gradlew test 2>&1 | grep -E "tests completed|FAILED|BUILD" | tail -5
 ---
-{'stdout': 'SchemaValidationTest > flywayMigrations_matchAllJpaEntities() FAILED\n397 tests completed, 1 failed\n> Task :test FAILED\nBUILD FAILED in 1m 13s', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+{'stdout': 'SchemaValidationTest > flywayMigrations_matchAllJpaEntities() FAILED\n399 tests completed, 1 failed\n> Task :test FAILED\nBUILD FAILED in 51s', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
