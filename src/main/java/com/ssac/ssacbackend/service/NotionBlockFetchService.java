@@ -154,6 +154,8 @@ public class NotionBlockFetchService {
             Map<String, Object> fileMap = (Map<String, Object>) imageMap.get("file");
             if (fileMap != null && fileMap.get("url") instanceof String url) {
                 fileMap.put("url", notionImageMigrator.migrateIfNeeded(url));
+                // Cloudinary URL은 만료되지 않으므로 Notion S3의 expiry_time 메타데이터를 제거한다
+                fileMap.remove("expiry_time");
             }
         } else if ("external".equals(imageType)) {
             Map<String, Object> externalMap = (Map<String, Object>) imageMap.get("external");
