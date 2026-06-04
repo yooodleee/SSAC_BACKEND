@@ -114,6 +114,7 @@ public class TokenService {
                 throw new BadRequestException(ErrorCode.TOKEN_INVALID);
             }
             alreadyRevoked = true;
+            tokenStore.deleteToken(tokenHash);
             log.info("토큰 로테이션 경쟁 조건 감지 — 재발급 진행: userId={}", userIdOpt.get());
         }
 
