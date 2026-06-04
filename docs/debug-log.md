@@ -17,6 +17,46 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-04 — 콘텐츠 이미지 블록 썸네일 미표시
+
+### 오류 개요
+- 발생 환경 : Railway 운영
+- 서비스    : ssac-backend
+- 오류 유형 : 콘텐츠 상세 이미지 블록에 만료된 `expiry_time` 잔류 → FE 이미지 미렌더링
+- 오류 메시지: 없음 (HTTP 200 정상 응답이나 이미지가 화면에 표시되지 않음)
+
+### 진단 결과
+- STEP 3 로그 분석: WARN/ERROR 없음. API 응답은 200 OK
+- STEP 5 Redis 조회:
+  - `content:blocks:*` 캐시 조회 시 이미지 블록에 다음 데이터 확인:
+    ```json
+    "file": {
+      "url": "https://res.cloudinary.com/...",  ← 이미 Cloudinary로 교체됨
+      "expiry_time": "2026-06-04T10:48:55.847Z"  ← 만료된 Notion S3 만료 시각 잔류
+    }
+    ```
+  - `thumbnailUrl` 필드(콘텐츠 목록/상세 API)는 정상 Cloudinary URL 반환
+
+### 근본 원인
+`migrateImageUrl()`이 `file.url`을 Cloudinary URL로 교체하지만
+Notion S3 URL의 `expiry_time` 메타데이터를 제거하지 않음.
+FE가 `expiry_time`이 현재 시각보다 이전이면 이미지를 렌더링하지 않는 로직으로 인해 미표시.
+
+### 조치 내용
+- `NotionBlockFetchService.migrateImageUrl()`: file 타입 처리 시 `fileMap.remove("expiry_time")` 추가
+- `NotionBlockFetchServiceTest`: `expiry_time` 제거 검증 추가
+- Redis `content:blocks:*` 캐시 수동 플러시 (1개 키 삭제)
+- 커밋: `efe9692`
+
+### 재발 방지
+- 프로토콜 갱신 필요 여부: N
+- ADR 작성 필요 여부: N (1회 발생)
+
+### 해결 완료 시각
+2026-06-04 KST
+
+---
+
 ## 🔴 [DIAGNOSE] 2026-06-04 — 재로그인 후 토큰 재발급 무한 루프 (FE 기인)
 
 ### 오류 개요
