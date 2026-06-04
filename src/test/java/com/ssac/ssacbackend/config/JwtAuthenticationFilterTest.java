@@ -8,6 +8,8 @@ import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserRole;
 import com.ssac.ssacbackend.repository.UserRepository;
 import com.ssac.ssacbackend.service.JwtService;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -143,6 +145,26 @@ class JwtAuthenticationFilterTest {
         assertThat(auth.getAuthorities())
             .extracting(GrantedAuthority::getAuthority)
             .containsExactly("ROLE_GUEST");
+    }
+
+    @Test
+    @DisplayName("로그아웃 시각과 동일한 초에 발급된 토큰은 유효하게 처리된다(같은 초 경계 허용)")
+    void doFilterTokenIssuedAtSameSecondAsInvalidatedBeforeIsAccepted() throws Exception {
+        String email = "user@test.com";
+        User mockUser = mock(User.class);
+        when(mockUser.getRole()).thenReturn(UserRole.USER);
+        // 토큰 발급과 같은 초를 invalidatedBefore로 설정 → !isBefore(T, T) = true 이므로 허용
+        LocalDateTime sameSecond = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        when(mockUser.getInvalidatedBefore()).thenReturn(sameSecond);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
+
+        String token = jwtService.generateAccessToken(1L, email, "USER");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + token);
+
+        filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
     }
 
     @Test

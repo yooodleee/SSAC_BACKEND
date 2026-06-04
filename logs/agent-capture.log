@@ -1,4 +1,1 @@
-[2026-06-04 16:46:27]
-Command: grep -r "getType\|BlockType" /c/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/ssac-backend/src/main/java --include="*.java" 2>/dev/null | head -20
----
-{'stdout': '/c/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/ssac-backend/src/main/java/com/ssac/ssacbackend/common/exception/GlobalExceptionHandler.java:            && UserType.class.equals(ife.getTargetType())) {\n/c/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/ssac-backend/src/main/java/com/ssac/ssacbackend/common/exception/GlobalExceptionHandler.java:            && Gender.class.equals(ife.getTargetType())) {\n/c/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/ssac-backend/src/main/java/com/ssac/ssacbackend/service/NotionBlockFetchService.java:                        fallback.put("type", block.getType().toString());\n/c/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/ssac-backend/src/main/java/com/ssac/ssacbackend/service/NotionBlockFetchService.java:                        fallback.put("type", block.getType().toString());', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+[2026-06-04 18:20:43]

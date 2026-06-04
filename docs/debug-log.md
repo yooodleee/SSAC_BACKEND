@@ -17,6 +17,45 @@
 
 ---
 
+## 🔴 [DIAGNOSE] 2026-06-04 — 재로그인 후 토큰 재발급 무한 루프 (FE 기인)
+
+### 오류 개요
+- 발생 환경 : Railway 운영
+- 서비스    : ssac-backend + Next.js BFF
+- 오류 유형 : 로그아웃 → 재로그인 후 `/api/v1/auth/reissue`만 15초 이상 반복 호출
+- 오류 메시지: 로그 상 401 없음, API 호출 없음, reissue만 ~1.7초 간격으로 반복
+
+### 진단 결과
+- STEP 3 로그 분석:
+  - `08:57:27.474` Naver OAuth 콜백 → `08:57:28.317` 로그인 완료 (새 RT 발급)
+  - `08:57:28.350` AUTH-003: 구 refresh 토큰 거부 (deleteToken 픽스 정상 동작)
+  - `08:57:28.913` reissue SUCCESS ← 루프 시작
+  - `08:57:30.609` reissue SUCCESS, `08:57:30.801` 경쟁 조건 reissue SUCCESS
+  - 이후 15초간 reissue 호출만 반복 — 다른 API 없음, `무효화된 토큰` WARN 없음
+- 결론: BE 거부 없음 → access token이 정상 동작 중임에도 FE가 reissue를 반복 호출
+
+### 근본 원인
+1. **주요 (FE)**: Next.js App Router의 Server Component/Middleware 레벨에서 startup reissue 로직이 `cookieStore.set()` 이후 발생하는 re-render에 의해 반복 실행됨
+   - 성공한 reissue → refreshToken 쿠키 갱신 → Server Component re-render → reissue 재호출 → 무한 루프
+2. **보조 (BE)**: `isTokenStillValid()`의 `isAfter(>)` 비교가 로그아웃과 재로그인이 같은 초에 발생할 경우 정상 토큰을 거부 (`T.000.isAfter(T.000) = FALSE`)
+   - 초기 거부가 FE의 재시도를 유발하여 루프를 촉발할 수 있음
+
+### 조치 내용 (BE)
+- `JwtAuthenticationFilter.isTokenStillValid()`: `isAfter(>)` → `!isBefore(>=)` 변경
+  - 같은 초 경계에서 발급된 토큰을 올바르게 허용
+  - 테스트: `JwtAuthenticationFilterTest.doFilterTokenIssuedAtSameSecondAsInvalidatedBeforeIsAccepted` 추가
+
+### FE 필요 조치
+- startup reissue 호출을 **단 1회로 보장**하는 메커니즘 필요:
+  - `cookieStore.set()` 이후 발생하는 re-render에서 reissue가 재실행되지 않도록 방어 플래그 또는 zustand/session-storage 상태 추가
+  - accessToken 쿠키가 유효한 경우 startup reissue를 스킵하는 로직 추가
+  - middleware.ts에서 reissue를 호출하는 경우 응답에 `X-Reissued: true` 헤더를 추가하여 루프 감지 가능
+
+### 해결 완료 시각 (BE 부분)
+2026-06-04 KST
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-04 17:30 — 토큰 재발급 무한 루프
 
 ### 오류 개요
