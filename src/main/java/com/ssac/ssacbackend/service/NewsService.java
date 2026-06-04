@@ -55,7 +55,7 @@ public class NewsService {
      * @param newsId 조회할 뉴스 ID
      * @throws BusinessException 뉴스가 존재하지 않을 경우 NOT_FOUND
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public NewsItemResponse getNewsDetail(Long newsId) {
         News news = newsRepository.findById(newsId)
             .orElseThrow(() -> new NotFoundException(ErrorCode.NEWS_NOT_FOUND));
