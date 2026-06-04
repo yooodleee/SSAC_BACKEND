@@ -80,12 +80,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * invalidatedBefore가 null이면 무효화된 적 없는 계정이므로 항상 유효하다.
      *
      * <p>JWT iat와 invalidatedBefore 모두 초 단위 정밀도다.
-     * 로그아웃과 동시에 발급된 새 토큰(같은 초)은 재인증 요청 시 1초 이내에 새 토큰이
-     * 재발급되므로 isAfter (>) 조건으로 충분하다.
+     * issuedAt >= invalidatedBefore 이면 유효한 토큰으로 판단한다(!isBefore, 경계 포함).
+     * 로그아웃과 재발급이 같은 초에 발생하는 경우 새 토큰의 iat == invalidatedBefore가
+     * 되므로, isAfter(>) 대신 !isBefore(>=)를 사용하여 정상 재발급 토큰이 거부되지 않도록 한다.
      */
     private boolean isTokenStillValid(User user, LocalDateTime issuedAt) {
         LocalDateTime invalidatedBefore = user.getInvalidatedBefore();
-        return invalidatedBefore == null || issuedAt.isAfter(invalidatedBefore);
+        return invalidatedBefore == null || !issuedAt.isBefore(invalidatedBefore);
     }
 
     private void setAuthentication(String principal, String role, HttpServletRequest request) {
