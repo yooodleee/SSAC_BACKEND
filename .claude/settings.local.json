@@ -229,7 +229,11 @@
       "Bash(ContentService.java)",
       "Bash(ContentServiceTest.java)",
       "Bash(xargs wc:*)",
-      "Bash(./gradlew cleanTest test --tests \"com.ssac.ssacbackend.RbacIntegrationTest\")"
+      "Bash(./gradlew cleanTest test --tests \"com.ssac.ssacbackend.RbacIntegrationTest\")",
+      "Bash(./gradlew jacocoTestReport --continue)",
+      "Bash(TestcontainersConfiguration.java)",
+      "Bash(NewsIntegrationTest)",
+      "Bash(V0__create_initial_schema.sql)"
     ]
   }
 }
