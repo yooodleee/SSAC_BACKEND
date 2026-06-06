@@ -17,6 +17,32 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-06 — /contents/series 카테고리 필터 미작동
+
+### 오류 개요
+- 발생 환경 : Railway 운영
+- 서비스    : ssac-backend
+- 오류 유형 : `GET /api/v1/contents?category=series` 호출 시 categories에 series가 포함된 콘텐츠 미반환
+- 증상      : FE `/contents/series` 페이지가 빈 목록 표시 (`DOMAIN_CATEGORY_MAP` 매핑은 정상)
+
+### 진단 결과
+- STEP 1 코드 분석:
+  - `ContentService.getContents()` → `categories = ["series"]` (size=1) → `findAllPublishedByCategory("series")` 호출
+  - 기존 JPQL: `JOIN c.categories cat WHERE cat = :category`
+  - `LEFT JOIN FETCH c.categories`와 `JOIN c.categories cat`이 동일 컬렉션을 두 번 조인
+  - Hibernate가 두 JOIN 별칭을 병합할 경우 WHERE 필터가 FETCH JOIN에 적용되어 단일 카테고리 비교로 동작
+
+- STEP 2 근본 원인:
+  - `categories = [realestate, series]`인 콘텐츠에서 Hibernate JOIN 병합으로 인해 첫 번째 카테고리만 매칭
+  - `MEMBER OF` 대신 JOIN 방식으로 contains 검사를 구현한 것이 원인
+
+### 조치 내용
+- `ContentRepository.findAllPublishedByCategory` — `JOIN c.categories cat WHERE cat = :category` → `:category MEMBER OF c.categories`
+- `ContentRepository.findAllPublishedByCategoryAndDifficulty` — 동일하게 `MEMBER OF` 방식으로 변경
+- 컴파일 및 전체 테스트 통과 확인
+
+---
+
 ## 🔴 [DIAGNOSE] 2026-06-04 — /home/account-settings 접근 시 인증 실패 리다이렉트
 
 ### 오류 개요

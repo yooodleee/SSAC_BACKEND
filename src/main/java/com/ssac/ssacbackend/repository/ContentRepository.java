@@ -24,8 +24,8 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
     List<Content> findAllPublished();
 
     @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.categories LEFT JOIN FETCH c.domains"
-        + " JOIN c.categories cat"
-        + " WHERE c.isPublished = true AND cat = :category ORDER BY c.notionLastEditedAt DESC")
+        + " WHERE c.isPublished = true AND :category MEMBER OF c.categories"
+        + " ORDER BY c.notionLastEditedAt DESC")
     List<Content> findAllPublishedByCategory(@Param("category") String category);
 
     @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.categories LEFT JOIN FETCH c.domains"
@@ -34,9 +34,8 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
     List<Content> findAllPublishedByDifficulty(@Param("difficulty") ContentDifficulty difficulty);
 
     @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.categories LEFT JOIN FETCH c.domains"
-        + " JOIN c.categories cat"
-        + " WHERE c.isPublished = true AND cat = :category AND c.difficulty = :difficulty"
-        + " ORDER BY c.notionLastEditedAt DESC")
+        + " WHERE c.isPublished = true AND :category MEMBER OF c.categories"
+        + " AND c.difficulty = :difficulty ORDER BY c.notionLastEditedAt DESC")
     List<Content> findAllPublishedByCategoryAndDifficulty(
         @Param("category") String category,
         @Param("difficulty") ContentDifficulty difficulty);
