@@ -236,7 +236,10 @@
       "Bash(V0__create_initial_schema.sql)",
       "Bash(javap -p -c notion/api/v1/model/blocks/CalloutBlock.class)",
       "Bash(javap -verbose notion/api/v1/model/blocks/CalloutBlock.class)",
-      "Bash(javap -p notion/api/v1/model/blocks/ToDo*.class)"
+      "Bash(javap -p notion/api/v1/model/blocks/ToDo*.class)",
+      "Bash(ContentRepository.findAllPublishedByCategory)",
+      "Bash(findAllPublishedByCategoryAndDifficulty)",
+      "Bash(MEMBER OF)"
     ]
   }
 }
