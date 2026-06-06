@@ -17,6 +17,38 @@
 
 ---
 
+## 🔴 [DIAGNOSE] 2026-06-04 — /home/account-settings 접근 시 인증 실패 리다이렉트
+
+### 오류 개요
+- 발생 환경 : Railway 운영
+- 서비스    : ssac-backend + FE(Next.js)
+- 오류 유형 : AT 만료 상태에서 /home/account-settings 진입 시 "인증이 필요하다" 표시 + /home 리다이렉트
+- 오류 메시지: "인증이 필요하다" (FE 표시), Railway 로그 2건
+
+### 진단 결과
+- STEP 1 로그 수집:
+  - `토큰 재발급 완료: userId=1` — 정상 reissue 완료
+  - `토큰 로테이션 경쟁 조건 감지 - 재발급 진행: userId=1` — race condition path 성공
+
+- STEP 2 코드 분석:
+  - `TokenService.reissueWithUser()` : Request 1 정상 경로(revoke), Request 2 경쟁 조건 경로(deleteToken) 모두 200 OK
+  - `SecurityConfig` : `/api/v1/users/**` → `hasAnyRole("USER", "ADMIN")` 정상 구성
+  - BE 측 결함 없음 — 두 요청 모두 새 AT/RT 발급 성공
+
+- STEP 3 근본 원인:
+  - AT 만료 상태에서 /home/account-settings Server Component가 `GET /api/v1/users/me` 호출 → 401
+  - FE 에러 핸들러가 reissue 완료를 기다리지 않고 즉시 `/home` 리다이렉트
+  - reissue POST × 2 (Server Component + 클라이언트 인터셉터 동시 발화) 는 모두 성공하지만 리다이렉트는 이미 실행됨
+
+### 조치 내용
+- BE 수정 없음 — 토큰 발급 로직 정상 동작 확인
+- FE 팀 전달 사항:
+  1. 401 에러 핸들러에서 reissue 완료 후 `originalUrl`로 retry할 것
+  2. reissue 성공 후 항상 `/home`으로 push하는 로직 제거 필요
+  3. Next.js `middleware` 또는 layout에서 AT 유효성을 proactive하게 확인하여 페이지 진입 전 reissue 처리 권장
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-04 — 콘텐츠 이미지 블록 썸네일 미표시
 
 ### 오류 개요
