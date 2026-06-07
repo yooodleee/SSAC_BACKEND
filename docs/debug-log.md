@@ -17,6 +17,43 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-07 — 인용 블록 내 글머리·제목·코드 블록 미인식
+
+### 오류 개요
+- 발생 환경 : Railway 운영
+- 서비스    : ssac-backend
+- 오류 유형 : 인용(quote) 블록 내부 bulleted_list_item, heading, code 블록이 FE에서 인식 안 됨
+
+### 진단 결과
+- STEP 2 원인 분석 — 두 가지 복합 원인 확인:
+
+  **(1) `fetchChildBlocks` 재귀 미지원**
+  - `fetchBlocks`는 `has_children: true` 블록에 대해 `fetchChildBlocks`를 호출함
+  - 그러나 `fetchChildBlocks`는 자신이 반환한 블록에 대해 `has_children`을 검사하지 않음
+  - 인용 블록이 toggle/callout 등 다른 블록 안에 중첩된 경우, 인용의 자식 블록이 전혀 조회되지 않음
+
+  **(2) GSON이 `BlockType` enum을 PascalCase(`name()`)로 직렬화**
+  - SDK의 `BlockType` enum은 `name()`이 "BulletedListItem", "Code" 등 PascalCase
+  - Notion API / FE가 기대하는 값은 "bulleted_list_item", "code" 등 snake_case
+  - `block.getType().getValue()`를 사용해야 올바른 값을 반환함
+
+### 조치 내용
+- `processBlockList()`, `serializeBlock()` 공통 메서드 추출
+- `serializeBlock()`에서 `block.getType().getValue()`로 type 필드 교체
+- `fetchChildBlocks()`도 `processBlockList()` 경유하여 재귀 처리
+- 재귀 테스트 2건 추가 (`인용블록_자식_재귀조회`, `fetchChildBlocks_재귀조회`)
+- 전체 테스트 통과 확인
+
+### 재발 방지
+- 프로토콜 갱신 필요 여부: N
+- ADR 작성 필요 여부: N
+- 관련 파일: `NotionBlockFetchService.java`, `NotionBlockFetchServiceTest.java`
+
+### 해결 완료 시각
+2026-06-07 19:45 KST
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-07 — Notion 블록 조회 실패 (콘텐츠 본문 미출력)
 
 ### 오류 개요

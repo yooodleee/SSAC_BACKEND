@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder;
 import com.ssac.ssacbackend.common.util.CacheKeys;
 import com.ssac.ssacbackend.component.NotionImageMigrator;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import notion.api.v1.NotionClient;
+import notion.api.v1.model.blocks.Block;
 import notion.api.v1.model.blocks.Blocks;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -45,12 +47,11 @@ public class NotionBlockFetchService {
      *
      * <p>Redis 캐시 히트 시 캐시를 반환하고, 미스 시 Notion API를 호출한다.
      * Image 타입 블록의 URL은 Cloudinary로 이전하여 만료 없는 영구 URL로 제공한다.
-     * has_children이 true인 블록은 자식 블록을 함께 조회하여 포함한다.
+     * has_children이 true인 블록은 자식 블록을 함께 조회하여 재귀적으로 포함한다.
      *
      * @param notionPageId Notion 페이지 ID
      * @return 블록 목록 (Notion API 원본 형식)
      */
-    @SuppressWarnings("unchecked")
     public List<Map<String, Object>> fetchBlocks(String notionPageId) {
         if (notionPageId == null || notionPageId.isBlank()) {
             return List.of();
@@ -67,32 +68,7 @@ public class NotionBlockFetchService {
         }
         try {
             Blocks blocks = notionClient.retrieveBlockChildren(notionPageId, null, 100);
-            List<Map<String, Object>> result = blocks.getResults().stream()
-                .filter(Objects::nonNull)
-                .<Map<String, Object>>map(block -> {
-                    try {
-                        String json = GSON.toJson(block);
-                        Map<String, Object> map = OBJECT_MAPPER.readValue(
-                            json, new TypeReference<Map<String, Object>>() {});
-                        if (map == null) {
-                            return null;
-                        }
-                        migrateImageUrl(map);
-                        if (Boolean.TRUE.equals(map.get("has_children"))) {
-                            map.put("children", fetchChildBlocks((String) map.get("id")));
-                        }
-                        return map;
-                    } catch (Exception e) {
-                        log.warn("블록 직렬화 실패: blockId={}", block.getId(), e);
-                        Map<String, Object> fallback = new HashMap<>();
-                        fallback.put("id", block.getId());
-                        fallback.put("type", block.getType() != null
-                            ? block.getType().toString() : "unknown");
-                        return fallback;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .toList();
+            List<Map<String, Object>> result = processBlockList(blocks.getResults());
             try {
                 String json = OBJECT_MAPPER.writeValueAsString(result);
                 stringRedisTemplate.opsForValue()
@@ -110,41 +86,76 @@ public class NotionBlockFetchService {
     /**
      * 자식 블록 목록을 조회하여 직렬화한다.
      *
-     * <p>Image 블록 URL은 Cloudinary로 이전한다.
+     * <p>has_children이 true인 블록은 재귀적으로 자식을 조회하여 포함한다.
+     * Image 블록 URL은 Cloudinary로 이전한다.
      */
-    @SuppressWarnings("unchecked")
     List<Map<String, Object>> fetchChildBlocks(String blockId) {
         if (blockId == null || blockId.isBlank()) {
             return List.of();
         }
         try {
             Blocks children = notionClient.retrieveBlockChildren(blockId, null, 100);
-            return children.getResults().stream()
-                .filter(Objects::nonNull)
-                .<Map<String, Object>>map(block -> {
-                    try {
-                        String json = GSON.toJson(block);
-                        Map<String, Object> map = OBJECT_MAPPER.readValue(
-                            json, new TypeReference<Map<String, Object>>() {});
-                        if (map == null) {
-                            return null;
-                        }
-                        migrateImageUrl(map);
-                        return map;
-                    } catch (Exception e) {
-                        log.warn("자식 블록 직렬화 실패: blockId={}", block.getId(), e);
-                        Map<String, Object> fallback = new HashMap<>();
-                        fallback.put("id", block.getId());
-                        fallback.put("type", block.getType() != null
-                            ? block.getType().toString() : "unknown");
-                        return fallback;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .toList();
+            return processBlockList(children.getResults());
         } catch (Exception e) {
             log.warn("자식 블록 조회 실패: blockId={}", blockId, e);
             return List.of();
+        }
+    }
+
+    /**
+     * Block 목록을 Map 목록으로 직렬화한다.
+     *
+     * <p>null 요소를 제거하고, has_children이 true인 블록은 자식을 재귀적으로 포함한다.
+     */
+    private List<Map<String, Object>> processBlockList(List<? extends Block> blocks) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Block block : blocks) {
+            if (block == null) {
+                continue;
+            }
+            Map<String, Object> map = serializeBlock(block);
+            if (map == null) {
+                continue;
+            }
+            result.add(map);
+        }
+        return result;
+    }
+
+    /**
+     * 단일 Block을 Map으로 직렬화한다.
+     *
+     * <p>GSON으로 직렬화한 뒤 ObjectMapper로 역직렬화한다.
+     * BlockType enum은 Notion API 값(snake_case)으로 교체한다.
+     * has_children이 true이면 자식 블록을 재귀적으로 포함한다.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> serializeBlock(Block block) {
+        try {
+            String json = GSON.toJson(block);
+            Map<String, Object> map = OBJECT_MAPPER.readValue(
+                json, new TypeReference<Map<String, Object>>() {});
+            if (map == null) {
+                return null;
+            }
+            // GSON은 BlockType enum을 name()(PascalCase)으로 직렬화한다.
+            // Notion API 원본 형식(snake_case)으로 교체한다.
+            if (block.getType() != null) {
+                map.put("type", block.getType().getValue());
+            }
+            migrateImageUrl(map);
+            if (Boolean.TRUE.equals(map.get("has_children"))) {
+                String childId = (String) map.get("id");
+                map.put("children", fetchChildBlocks(childId));
+            }
+            return map;
+        } catch (Exception e) {
+            log.warn("블록 직렬화 실패: blockId={}", block.getId(), e);
+            Map<String, Object> fallback = new HashMap<>();
+            fallback.put("id", block.getId());
+            fallback.put("type", block.getType() != null
+                ? block.getType().getValue() : "unknown");
+            return fallback;
         }
     }
 
