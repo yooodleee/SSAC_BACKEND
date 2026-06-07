@@ -17,6 +17,40 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-07 — Notion 블록 조회 실패 (콘텐츠 본문 미출력)
+
+### 오류 개요
+- 발생 환경 : Railway 운영
+- 서비스    : ssac-backend
+- 오류 유형 : `NullPointerException` — `Notion 블록 조회 실패: notionPageId=...`
+- 오류 메시지: `Cannot invoke "notion.api.v1.model.blocks.Block.getId()" because "block" is null`
+
+### 진단 결과
+- STEP 3 로그 분석:
+  - `NotionBlockFetchService.lambda$fetchBlocks$0(NotionBlockFetchService.java:81)` 에서 NPE 발생
+  - `blocks.getResults()`에 `null` 요소가 포함될 경우 내부 `catch` 블록의 `block.getId()` 호출이 2차 NPE를 발생시킴
+  - 2차 NPE가 스트림 밖으로 전파 → 외부 `catch`에서 `Notion 블록 조회 실패` 로그 후 `List.of()` 반환
+  - 결과: 콘텐츠 본문 블록이 빈 배열로 응답됨
+
+### 근본 원인
+- Notion API `getResults()`가 null 요소를 포함한 리스트를 반환할 수 있는 상황에서 null 방어 코드 부재
+- 내부 catch 블록이 `block` 자체가 null인 경우를 고려하지 않음
+
+### 조치 내용
+- `fetchBlocks()`, `fetchChildBlocks()` 스트림에 `.filter(Objects::nonNull)` 추가 (스트림 진입 전 + 직렬화 후)
+- `block.getType()` null 방어 처리 추가
+- `compileJava` + `NotionBlockFetchServiceTest` 통과 확인
+
+### 재발 방지
+- 프로토콜 갱신 필요 여부: N
+- ADR 작성 필요 여부: N
+- 관련 파일: `NotionBlockFetchService.java`
+
+### 해결 완료 시각
+2026-06-07 10:10 KST
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-06 — /contents/series 카테고리 필터 미작동
 
 ### 오류 개요
