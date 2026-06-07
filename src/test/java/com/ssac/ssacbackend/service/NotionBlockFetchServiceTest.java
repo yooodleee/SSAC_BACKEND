@@ -13,7 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import notion.api.v1.NotionClient;
+import notion.api.v1.model.blocks.BulletedListItemBlock;
 import notion.api.v1.model.blocks.Blocks;
+import notion.api.v1.model.blocks.BlockType;
+import notion.api.v1.model.blocks.QuoteBlock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -57,7 +61,7 @@ class NotionBlockFetchServiceTest {
         @Test
         @DisplayName("캐시 미스 시 Notion에서 블록을 조회하고 Redis에 캐싱한다")
         void fetchBlocks_캐시미스_Notion조회() {
-            Blocks blocks = org.mockito.Mockito.mock(Blocks.class);
+            Blocks blocks = Mockito.mock(Blocks.class);
             given(blocks.getResults()).willReturn(List.of());
             given(notionClient.retrieveBlockChildren("page-abc", null, 100)).willReturn(blocks);
 
@@ -87,6 +91,51 @@ class NotionBlockFetchServiceTest {
             assertThat(result).isEmpty();
             verify(notionClient, never()).retrieveBlockChildren(anyString(), any(), any());
         }
+
+        @Test
+        @DisplayName("블록 목록에 null 요소가 포함되어도 빈 리스트를 반환하고 예외가 발생하지 않는다")
+        void fetchBlocks_null요소_포함_예외없음() {
+            Blocks blocks = Mockito.mock(Blocks.class);
+            given(blocks.getResults()).willReturn(java.util.Arrays.asList(null, null));
+            given(notionClient.retrieveBlockChildren("page-abc", null, 100)).willReturn(blocks);
+
+            List<Map<String, Object>> result = notionBlockFetchService.fetchBlocks("page-abc");
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("인용 블록의 자식(글머리, 코드 등)이 재귀적으로 조회된다")
+        void fetchBlocks_인용블록_자식_재귀조회() {
+            // 글머리 자식 블록 (BulletedListItem)
+            BulletedListItemBlock bulletBlock = Mockito.mock(BulletedListItemBlock.class);
+            given(bulletBlock.getType()).willReturn(BlockType.BulletedListItem);
+            given(bulletBlock.getId()).willReturn("bullet-id");
+            Blocks childBlocks = Mockito.mock(Blocks.class);
+            given(childBlocks.getResults()).willReturn(List.of(bulletBlock));
+
+            // 인용 블록 (has_children = true)
+            QuoteBlock quoteBlock = new QuoteBlock();
+            quoteBlock.setId("quote-id");
+            quoteBlock.setHasChildren(true);
+
+            Blocks topBlocks = Mockito.mock(Blocks.class);
+            given(topBlocks.getResults()).willReturn(List.of(quoteBlock));
+
+            given(notionClient.retrieveBlockChildren("page-abc", null, 100)).willReturn(topBlocks);
+            given(notionClient.retrieveBlockChildren("quote-id", null, 100)).willReturn(childBlocks);
+
+            List<Map<String, Object>> result = notionBlockFetchService.fetchBlocks("page-abc");
+
+            assertThat(result).hasSize(1);
+            Map<String, Object> quoteMap = result.get(0);
+            assertThat(quoteMap).containsKey("children");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> children = (List<Map<String, Object>>) quoteMap.get("children");
+            assertThat(children).hasSize(1);
+            // BlockType.getValue()로 snake_case 타입이 올바르게 포함되어야 한다
+            assertThat(children.get(0).get("type")).isEqualTo("bulleted_list_item");
+        }
     }
 
     @Nested
@@ -96,7 +145,7 @@ class NotionBlockFetchServiceTest {
         @Test
         @DisplayName("자식 블록을 조회하여 반환한다")
         void fetchChildBlocks_정상() {
-            Blocks childBlocks = org.mockito.Mockito.mock(Blocks.class);
+            Blocks childBlocks = Mockito.mock(Blocks.class);
             given(childBlocks.getResults()).willReturn(List.of());
             given(notionClient.retrieveBlockChildren("child-block-id", null, 100))
                 .willReturn(childBlocks);
@@ -116,6 +165,39 @@ class NotionBlockFetchServiceTest {
 
             assertThat(result).isEmpty();
             verify(notionClient, never()).retrieveBlockChildren(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("자식 블록에 has_children이 true이면 손자 블록도 재귀 조회한다")
+        void fetchChildBlocks_재귀조회() {
+            // 손자 블록 (BulletedListItem, no children)
+            BulletedListItemBlock bulletBlock = Mockito.mock(BulletedListItemBlock.class);
+            given(bulletBlock.getType()).willReturn(BlockType.BulletedListItem);
+            given(bulletBlock.getId()).willReturn("bullet-id");
+            Blocks grandChildBlocks = Mockito.mock(Blocks.class);
+            given(grandChildBlocks.getResults()).willReturn(List.of(bulletBlock));
+
+            // 자식 블록 (QuoteBlock, has_children = true)
+            QuoteBlock quoteBlock = new QuoteBlock();
+            quoteBlock.setId("quote-id");
+            quoteBlock.setHasChildren(true);
+
+            Blocks childBlocks = Mockito.mock(Blocks.class);
+            given(childBlocks.getResults()).willReturn(List.of(quoteBlock));
+
+            given(notionClient.retrieveBlockChildren("toggle-id", null, 100)).willReturn(childBlocks);
+            given(notionClient.retrieveBlockChildren("quote-id", null, 100))
+                .willReturn(grandChildBlocks);
+
+            List<Map<String, Object>> result =
+                notionBlockFetchService.fetchChildBlocks("toggle-id");
+
+            assertThat(result).hasSize(1);
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> grandChildren =
+                (List<Map<String, Object>>) result.get(0).get("children");
+            assertThat(grandChildren).hasSize(1);
+            assertThat(grandChildren.get(0).get("type")).isEqualTo("bulleted_list_item");
         }
     }
 
