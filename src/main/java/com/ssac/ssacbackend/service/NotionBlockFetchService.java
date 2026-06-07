@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import notion.api.v1.NotionClient;
@@ -67,11 +68,15 @@ public class NotionBlockFetchService {
         try {
             Blocks blocks = notionClient.retrieveBlockChildren(notionPageId, null, 100);
             List<Map<String, Object>> result = blocks.getResults().stream()
+                .filter(Objects::nonNull)
                 .<Map<String, Object>>map(block -> {
                     try {
                         String json = GSON.toJson(block);
                         Map<String, Object> map = OBJECT_MAPPER.readValue(
                             json, new TypeReference<Map<String, Object>>() {});
+                        if (map == null) {
+                            return null;
+                        }
                         migrateImageUrl(map);
                         if (Boolean.TRUE.equals(map.get("has_children"))) {
                             map.put("children", fetchChildBlocks((String) map.get("id")));
@@ -81,10 +86,12 @@ public class NotionBlockFetchService {
                         log.warn("블록 직렬화 실패: blockId={}", block.getId(), e);
                         Map<String, Object> fallback = new HashMap<>();
                         fallback.put("id", block.getId());
-                        fallback.put("type", block.getType().toString());
+                        fallback.put("type", block.getType() != null
+                            ? block.getType().toString() : "unknown");
                         return fallback;
                     }
                 })
+                .filter(Objects::nonNull)
                 .toList();
             try {
                 String json = OBJECT_MAPPER.writeValueAsString(result);
@@ -113,21 +120,27 @@ public class NotionBlockFetchService {
         try {
             Blocks children = notionClient.retrieveBlockChildren(blockId, null, 100);
             return children.getResults().stream()
+                .filter(Objects::nonNull)
                 .<Map<String, Object>>map(block -> {
                     try {
                         String json = GSON.toJson(block);
                         Map<String, Object> map = OBJECT_MAPPER.readValue(
                             json, new TypeReference<Map<String, Object>>() {});
+                        if (map == null) {
+                            return null;
+                        }
                         migrateImageUrl(map);
                         return map;
                     } catch (Exception e) {
                         log.warn("자식 블록 직렬화 실패: blockId={}", block.getId(), e);
                         Map<String, Object> fallback = new HashMap<>();
                         fallback.put("id", block.getId());
-                        fallback.put("type", block.getType().toString());
+                        fallback.put("type", block.getType() != null
+                            ? block.getType().toString() : "unknown");
                         return fallback;
                     }
                 })
+                .filter(Objects::nonNull)
                 .toList();
         } catch (Exception e) {
             log.warn("자식 블록 조회 실패: blockId={}", blockId, e);
