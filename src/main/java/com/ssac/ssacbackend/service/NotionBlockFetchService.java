@@ -66,8 +66,13 @@ public class NotionBlockFetchService {
             }
         }
         try {
-            Blocks blocks = notionClient.retrieveBlockChildren(notionPageId, null, 100);
-            List<Map<String, Object>> result = processBlockList(blocks.getResults());
+            List<Map<String, Object>> result = new ArrayList<>();
+            String startCursor = null;
+            do {
+                Blocks blocks = notionClient.retrieveBlockChildren(notionPageId, startCursor, 100);
+                result.addAll(processBlockList(blocks.getResults()));
+                startCursor = Boolean.TRUE.equals(blocks.getHasMore()) ? blocks.getNextCursor() : null;
+            } while (startCursor != null);
             try {
                 String json = OBJECT_MAPPER.writeValueAsString(result);
                 stringRedisTemplate.opsForValue()
@@ -93,8 +98,14 @@ public class NotionBlockFetchService {
             return List.of();
         }
         try {
-            Blocks children = notionClient.retrieveBlockChildren(blockId, null, 100);
-            return processBlockList(children.getResults());
+            List<Map<String, Object>> result = new ArrayList<>();
+            String startCursor = null;
+            do {
+                Blocks children = notionClient.retrieveBlockChildren(blockId, startCursor, 100);
+                result.addAll(processBlockList(children.getResults()));
+                startCursor = Boolean.TRUE.equals(children.getHasMore()) ? children.getNextCursor() : null;
+            } while (startCursor != null);
+            return result;
         } catch (Exception e) {
             log.warn("자식 블록 조회 실패: blockId={}", blockId, e);
             return List.of();
