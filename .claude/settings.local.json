@@ -244,7 +244,12 @@
       "Bash(javap -p notion/api/v1/model/blocks/BlockType.class)",
       "Bash(javap -p notion/api/v1/json/gson/BlockParser.class)",
       "Bash(javap -p notion/api/v1/model/blocks/QuoteBlock.class)",
-      "Bash(javap -p notion/api/v1/model/blocks/BulletedListItemBlock.class)"
+      "Bash(javap -p notion/api/v1/model/blocks/BulletedListItemBlock.class)",
+      "Bash(javap -private notion/api/v1/model/blocks/CodeBlock.class)",
+      "Bash(javap -private 'notion/api/v1/model/blocks/CodeBlock$Element.class')",
+      "Bash(javap -private 'notion/api/v1/model/pages/PageProperty$RichText.class')",
+      "Bash(javap -private 'notion/api/v1/model/pages/PageProperty$RichText$Text.class')",
+      "Bash(javap -private notion/api/v1/model/blocks/Blocks.class)"
     ]
   }
 }

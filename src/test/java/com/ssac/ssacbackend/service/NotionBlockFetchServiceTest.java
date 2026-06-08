@@ -105,6 +105,36 @@ class NotionBlockFetchServiceTest {
         }
 
         @Test
+        @DisplayName("hasMore가 true이면 nextCursor로 다음 페이지를 연속 조회한다")
+        void fetchBlocks_페이지네이션_연속조회() {
+            BulletedListItemBlock block1 = Mockito.mock(BulletedListItemBlock.class);
+            given(block1.getType()).willReturn(BlockType.BulletedListItem);
+            given(block1.getId()).willReturn("block-1");
+
+            BulletedListItemBlock block2 = Mockito.mock(BulletedListItemBlock.class);
+            given(block2.getType()).willReturn(BlockType.BulletedListItem);
+            given(block2.getId()).willReturn("block-2");
+
+            Blocks page1 = Mockito.mock(Blocks.class);
+            given(page1.getResults()).willReturn(List.of(block1));
+            given(page1.getHasMore()).willReturn(Boolean.TRUE);
+            given(page1.getNextCursor()).willReturn("cursor-1");
+
+            Blocks page2 = Mockito.mock(Blocks.class);
+            given(page2.getResults()).willReturn(List.of(block2));
+            given(page2.getHasMore()).willReturn(Boolean.FALSE);
+
+            given(notionClient.retrieveBlockChildren("page-abc", null, 100)).willReturn(page1);
+            given(notionClient.retrieveBlockChildren("page-abc", "cursor-1", 100)).willReturn(page2);
+
+            List<Map<String, Object>> result = notionBlockFetchService.fetchBlocks("page-abc");
+
+            assertThat(result).hasSize(2);
+            verify(notionClient).retrieveBlockChildren("page-abc", null, 100);
+            verify(notionClient).retrieveBlockChildren("page-abc", "cursor-1", 100);
+        }
+
+        @Test
         @DisplayName("인용 블록의 자식(글머리, 코드 등)이 재귀적으로 조회된다")
         void fetchBlocks_인용블록_자식_재귀조회() {
             // 글머리 자식 블록 (BulletedListItem)
@@ -165,6 +195,37 @@ class NotionBlockFetchServiceTest {
 
             assertThat(result).isEmpty();
             verify(notionClient, never()).retrieveBlockChildren(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("자식 블록이 100개를 초과하면 nextCursor로 다음 페이지를 연속 조회한다")
+        void fetchChildBlocks_페이지네이션_연속조회() {
+            BulletedListItemBlock block1 = Mockito.mock(BulletedListItemBlock.class);
+            given(block1.getType()).willReturn(BlockType.BulletedListItem);
+            given(block1.getId()).willReturn("block-1");
+
+            BulletedListItemBlock block2 = Mockito.mock(BulletedListItemBlock.class);
+            given(block2.getType()).willReturn(BlockType.BulletedListItem);
+            given(block2.getId()).willReturn("block-2");
+
+            Blocks page1 = Mockito.mock(Blocks.class);
+            given(page1.getResults()).willReturn(List.of(block1));
+            given(page1.getHasMore()).willReturn(Boolean.TRUE);
+            given(page1.getNextCursor()).willReturn("cursor-1");
+
+            Blocks page2 = Mockito.mock(Blocks.class);
+            given(page2.getResults()).willReturn(List.of(block2));
+            given(page2.getHasMore()).willReturn(Boolean.FALSE);
+
+            given(notionClient.retrieveBlockChildren("parent-id", null, 100)).willReturn(page1);
+            given(notionClient.retrieveBlockChildren("parent-id", "cursor-1", 100)).willReturn(page2);
+
+            List<Map<String, Object>> result =
+                notionBlockFetchService.fetchChildBlocks("parent-id");
+
+            assertThat(result).hasSize(2);
+            verify(notionClient).retrieveBlockChildren("parent-id", null, 100);
+            verify(notionClient).retrieveBlockChildren("parent-id", "cursor-1", 100);
         }
 
         @Test
