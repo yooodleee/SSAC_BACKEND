@@ -105,8 +105,10 @@ public class Content {
                                 LocalDateTime notionLastEditedAt, LocalDateTime publishedAt) {
         this.title = title;
         this.thumbnailUrl = thumbnailUrl;
-        this.categories = new ArrayList<>(categories);
-        this.domains = new LinkedHashSet<>(domains);
+        this.categories.clear();
+        this.categories.addAll(categories);
+        this.domains.clear();
+        this.domains.addAll(domains);
         this.difficulty = difficulty;
         this.isPublished = isPublished;
         this.notionCreatedAt = notionCreatedAt;
