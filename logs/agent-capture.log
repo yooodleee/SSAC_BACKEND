@@ -1,4 +1,1 @@
-[2026-06-07 19:52:14]
-Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew checkstyleMain checkstyleTest 2>&1 | grep -iE "Checkstyle|error|violation|warning|FAILED" | head -40
----
-{'stdout': "> Task :checkstyleTest\n> Task :checkstyleMain\n[ant:checkstyle] [ERROR] C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\main\\java\\com\\ssac\\ssacbackend\\service\\NotionBlockFetchService.java:16:8: Unused import - java.util.Objects. [UnusedImports]\n> Task :checkstyleMain FAILED\nFAILURE: Build failed with an exception.\nExecution failed for task ':checkstyleMain'.\n> A failure occurred while executing org.gradle.api.plugins.quality.internal.CheckstyleAction\n   > Checkstyle rule violations were found. See the report at: file:///C:/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/ssac-backend/build/reports/checkstyle/main.html\n     Checkstyle files with violations: 1\n     Checkstyle violations by severity: [error:1]\nBUILD FAILED in 8s", 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+[2026-06-10 20:24:36]
