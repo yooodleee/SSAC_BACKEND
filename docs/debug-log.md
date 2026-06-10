@@ -17,6 +17,43 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-10 — work 도메인 콘텐츠 썸네일 미표시
+
+### 오류 개요
+- 발생 환경 : Railway 운영
+- 서비스    : ssac-backend
+- 오류 유형 : 콘텐츠 썸네일 이미지 미표시 (work 도메인)
+- 오류 메시지: `이미지 마이그레이션 실패, 원본 URL 유지` / `403 Forbidden`
+
+### 진단 결과
+- STEP 3 로그 분석: `2026-06-10T06:35:44` 스케줄 동기화 중 WARN 발생
+  ```
+  이미지 마이그레이션 실패, 원본 URL 유지:
+  https://pixabay.com/ko/images/download/kirill_makes_pics-despaired-2261021_1920.jpg
+  RuntimeException: Error in loading ... - 403 Forbidden
+  ```
+
+### 근본 원인
+- work 콘텐츠 Notion `thumbnail` 프로퍼티에 **Pixabay 다운로드 URL** 입력
+- Pixabay `/ko/images/download/` 경로는 로그인 세션 없이 403 반환
+- Cloudinary 원격 업로드 실패 → 원본 Pixabay URL 그대로 DB 저장
+- FE에서 해당 URL 직접 접근 시에도 403 → 썸네일 미표시
+- realestate 등 다른 도메인은 Unsplash 공개 URL 사용 → 정상
+
+### 조치 내용
+- 데이터 수정: Notion에서 work 콘텐츠 `thumbnail` URL을 공개 접근 가능한 URL로 교체
+- 동기화 반영: `POST /api/v1/admin/contents/sync` 또는 스케줄 동기화 대기
+
+### 재발 방지
+- 프로토콜 갱신 필요 여부: N (코드 결함 아님, 데이터 입력 가이드 필요)
+- ADR 작성 필요 여부: N
+- 관련 SC: SSACBE-30
+
+### 해결 완료 시각
+2026-06-10 (Notion URL 교체 후 재동기화 시점)
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-07 — 인용 블록 내 글머리·제목·코드 블록 미인식
 
 ### 오류 개요
