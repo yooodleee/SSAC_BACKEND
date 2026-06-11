@@ -87,7 +87,7 @@ class NotionSyncServiceTest {
     }
 
     @Test
-    @DisplayName("동기화 성공 - 기존 콘텐츠 업데이트 (save 미호출)")
+    @DisplayName("동기화 성공 - 기존 콘텐츠 업데이트 (save 호출)")
     void 동기화_기존_콘텐츠_업데이트() {
         given(notionProperties.getDatabaseId()).willReturn("db-id");
         given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(buildPage("page-2")), false));
@@ -99,7 +99,7 @@ class NotionSyncServiceTest {
 
         assertThat(result.updatedCount()).isEqualTo(1);
         assertThat(result.createdCount()).isEqualTo(0);
-        verify(contentRepository, never()).save(any(Content.class));
+        verify(contentRepository).save(any(Content.class));
     }
 
     @Test

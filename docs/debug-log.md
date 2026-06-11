@@ -17,6 +17,42 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-11 — work 도메인 첫 번째 시리즈 콘텐츠 썸네일 미표시 (재진단)
+
+### 오류 개요
+- 발생 환경 : Railway 운영
+- 서비스    : ssac-backend
+- 오류 유형 : 동기화 실패 — `LazyInitializationException` + 기존 콘텐츠 미갱신
+- 오류 메시지: `Cannot lazily initialize collection of role 'Content.categories' with key '8' (no session)`
+
+### 진단 결과
+- STEP 3 로그 분석: `LazyInitializationException` 2026-06-10T14:53부터 매 시간 반복 발생
+- 근본 원인: `@Scheduled` → `@Transactional` 자기 호출(self-invocation) 문제로 `syncAll()` 트랜잭션 미적용
+  - `findByNotionPageId` 쿼리가 lazy 컬렉션 반환 → `categories.clear()` 시 세션 없음
+  - 기존 콘텐츠 업데이트 시 `save()` 미호출 → detached 엔티티 변경사항 DB 미반영
+
+### 근본 원인 (5-Why)
+1. 썸네일 미표시 → DB에 구 Pixabay URL 저장
+2. 구 URL 저장 → 동기화 시 기존 콘텐츠 업데이트가 DB에 반영되지 않음
+3. DB 미반영 → `upsertContent`가 기존 콘텐츠에 `save()` 호출 안 함
+4. `save()` 미호출 → 트랜잭션 미적용으로 dirty checking 불동작
+5. 트랜잭션 미적용 → `@Scheduled` self-invocation이 `@Transactional` 프록시를 우회
+
+### 조치 내용
+- `ContentRepository.findByNotionPageId`: `LEFT JOIN FETCH c.categories LEFT JOIN FETCH c.domains` 추가 → LazyInitializationException 방지
+- `NotionSyncService.upsertContent`: `if (isNew)` 조건 제거, 신규/기존 모두 `save()` 호출 → detached merge 적용
+- `NotionSyncServiceTest`: 기존 콘텐츠 업데이트 테스트에서 `verify(never().save)` → `verify(save)` 수정
+
+### 재발 방지
+- 프로토콜 갱신 필요 여부: N
+- ADR 작성 필요 여부: N (기술 결정 단순, 트랜잭션 패턴 오용 수정)
+- 관련 파일: `ContentRepository.java`, `NotionSyncService.java`, `NotionSyncServiceTest.java`
+
+### 해결 완료 시각
+2026-06-11
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-10 — work 도메인 콘텐츠 썸네일 미표시
 
 ### 오류 개요

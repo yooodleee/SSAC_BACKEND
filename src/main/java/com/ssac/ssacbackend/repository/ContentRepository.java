@@ -15,7 +15,9 @@ import org.springframework.data.repository.query.Param;
  */
 public interface ContentRepository extends JpaRepository<Content, Long> {
 
-    Optional<Content> findByNotionPageId(String notionPageId);
+    @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.categories LEFT JOIN FETCH c.domains"
+        + " WHERE c.notionPageId = :notionPageId")
+    Optional<Content> findByNotionPageId(@Param("notionPageId") String notionPageId);
 
     // ── 게시된 콘텐츠 조회 ──────────────────────────────────────────────────────
 
