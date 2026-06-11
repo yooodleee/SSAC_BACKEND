@@ -250,7 +250,8 @@
       "Bash(javap -private 'notion/api/v1/model/pages/PageProperty$RichText.class')",
       "Bash(javap -private 'notion/api/v1/model/pages/PageProperty$RichText$Text.class')",
       "Bash(javap -private notion/api/v1/model/blocks/Blocks.class)",
-      "Bash(findstr /C:\"name\\\\\":\\\\\"work\")"
+      "Bash(findstr /C:\"name\\\\\":\\\\\"work\")",
+      "Bash(./gradlew checkstyleMain checkstyleTest compileJava test)"
     ]
   }
 }
