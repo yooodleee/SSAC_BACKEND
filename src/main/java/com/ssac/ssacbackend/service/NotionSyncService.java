@@ -263,9 +263,7 @@ public class NotionSyncService {
         content.syncFromNotion(title, thumbnailUrl, categories, domains, difficulty,
             isPublished, notionCreatedAt, notionLastEditedAt, publishedAt);
 
-        if (isNew) {
-            contentRepository.save(content);
-        }
+        contentRepository.save(content);
         return isNew;
     }
 
