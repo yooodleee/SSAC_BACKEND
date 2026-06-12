@@ -17,6 +17,197 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-12 — adr-create.md 하네스 개편 (204줄 → 111줄)
+
+### 변경 개요
+- 기존: 204줄 (STEP 1 중간 출력 형식 + STEP 2 5-Why 예시 10줄 + STEP 3 ADR 템플릿 + STEP 4 갱신 조건 5개 서술 + 출력 형식)
+- 변경: 111줄 (중간 출력 형식 제거 + STEP 1 체크리스트 통합 + STEP 4 표 압축 + STEP 5 기록 형식 압축)
+
+### 제거 항목
+- STEP 1 중간 출력 형식 블록 (~8줄)
+- STEP 2 5-Why 예시 (Redis 직렬화 케이스) → 형식만 유지
+- STEP 4 갱신 조건 5개 서술 → 5행 표로 압축 / 출력 형식 제거
+- STEP 5 기록 형식 일부 필드 압축
+
+### 유지 항목
+- STEP 3 ADR 문서 양식 전체 (핵심 deliverable)
+- STEP 2 5-Why 구조 + 대안 탐색 표
+- STEP 4 프로토콜 갱신 판단 기준 5개
+- "갱신은 백로그 SC로 등록, 직접 수정 금지" 원칙
+
+---
+
+## ✅ [AUDIT] 2026-06-12 — backlog-generate.md 하네스 개편 (226줄 → 99줄)
+
+### 변경 개요
+- 기존: 226줄 (STEP 1~4 각각에 중간 출력 형식 블록 + STEP 2/3 섹션별 서술 + STEP 4 수정 유형 4개 원본/수정/근거 서술)
+- 변경: 99줄 (중간 출력 형식 제거 + 분석/검토 섹션 체크리스트 통합 + 수정 유형 표 압축)
+
+### 제거 항목
+- STEP 1~4 각 단계 말미의 중간 출력 형식 블록 4개 (~40줄)
+- STEP 2 분석 4개 섹션 서술 → 단일 체크리스트로 통합
+- STEP 3 검토 4개 섹션 서술 → API/ErrorCode/SQL 3그룹 체크리스트로 통합
+- STEP 4 수정 유형 4개 원본/수정/근거 서술 → 4행 표로 압축
+
+### 유지 항목
+- STEP 1 핵심 파일 목록 표 (6개 파일 + 파악 목적)
+- STEP 3 sc-structure-check.md 역할 분리 명시 (충돌 실제 검증은 다음 단계)
+- STEP 4 충돌 유형별 수정 방향 + 근거
+- STEP 5 최종 SC 출력 형식 (deliverable)
+
+---
+
+## ✅ [AUDIT] 2026-06-12 — harness-audit.md 하네스 개편 (271줄 → 101줄)
+
+### 변경 개요
+- 기존: 271줄 (STEP 3 파일별 bullets 52줄 + STEP 4 트리거 code block 4개 46줄 + STEP 5 예시 출력 45줄 + STEP 6 기록 형식 27줄)
+- 변경: 101줄 (파일별 점검 표 통합 + 트리거 연쇄 목록 압축 + 출력/기록 형식 간소화)
+
+### 제거 항목
+- STEP 3: 파일별 bullets → 8행 표로 통합 (핵심 점검 항목 2개씩 유지)
+- STEP 4: 4개 code block 흐름도 → 4줄 목록으로 압축
+- STEP 5: 전체 예시 출력(파일별 ✅/❌ 나열) → 요약 형식 1개로 압축
+- STEP 6: 기록 양식 불필요한 날짜/시각 필드 → 핵심 3섹션으로 압축
+
+### 유지 항목
+- STEP 1 필수/보조 파일 목록 전체
+- STEP 2 CLAUDE.md 정합성 체크리스트
+- STEP 3 표: 8개 파일 × 핵심 점검 항목
+- STEP 4 트리거 연쇄 4개 경로
+- 200줄 초과 파일 High 분류 기준 (개편 작업 교훈 반영)
+
+---
+
+## ✅ [AUDIT] 2026-06-12 — e2e-diagnose.md 하네스 개편 (286줄 → 111줄)
+
+### 변경 개요
+- 기존: 286줄 (AI 추론 레퍼런스 패턴 3개 code block ~74줄 + STEP 4 출력 형식 ~30줄 + STEP 5 기록 형식 ~39줄)
+- 변경: 111줄 (AI 추론 패턴 표로 통합, 출력/기록 형식 압축)
+
+### 제거 항목
+- AI 추론 레퍼런스 패턴 3개(Cookie 저장 안 됨/401 반복/CORS) code block → 증상별 원인 표로 통합 (~58줄 절감)
+- STEP 4 상세 출력 형식 (Cookie 필드별 상세 나열) → 단일 라인 형식으로 압축
+- STEP 5 debug-log 기록 형식 (12개 필드) → 핵심 4개 섹션으로 압축
+
+### 유지 항목
+- 시나리오 A~D 설명 (표 형식 유지)
+- 데이터 수집 항목 표 (6종)
+- 증상별 원인 추론 기준 표 (10개 패턴 — Cookie/401/CORS)
+- Playwright 설치 명령 및 파일 구조
+
+---
+
+## ✅ [AUDIT] 2026-06-12 — testing.md 하네스 개편 (306줄 → 132줄)
+
+### 변경 개요
+- 기존: 306줄 (STEP 1~6, 각 단계별 성공/실패 처리 분리 + STEP 4 오류 유형 5개 bullets + STEP 6 성공/실패 출력 형식 두 세트)
+- 변경: 132줄 (STEP 1~3 오류 유형 표로 통합 + 커버리지 Rule 표로 압축 + 출력 형식 단일화)
+
+### 제거 항목
+- STEP 1~3 각각의 "성공 시 → ... / 실패 시 → ..." 분기 설명 → 표로 대체
+- STEP 4 오류 유형 5개의 bullets 형식 → STEP 3 표에 통합
+- STEP 5 Rule별 실패 처리 개별 섹션 → 조치 기준 3줄로 압축
+- STEP 6 성공 출력 형식 + 실패 출력 형식 두 세트 → 단일 형식으로 통합
+- 커버리지 부족 분석 출력 형식 섹션 삭제
+
+### 유지 항목
+- JaCoCo 제외 클래스 목록 테이블 (12개 패턴 + 제외 이유)
+- 4-Rule 커버리지 기준 테이블
+- 제외 클래스 등록 절차 (build.gradle 수정 → 목록 추가 → ADR)
+- Checkstyle / compileJava / test 오류 유형 표
+
+---
+
+## ✅ [AUDIT] 2026-06-12 — self-diagnose.md 하네스 개편 (364줄 → 118줄)
+
+### 변경 개요
+- 기존: 364줄 (STEP 1~4 장황한 설명 체크리스트 + STEP 5 Redis CACHE-1~5 코드 블록 199줄 + STEP 6 출력 형식)
+- 변경: 118줄 (체크리스트 텍스트 압축 + Redis fallback 코드만 유지)
+
+### 제거 항목
+- STEP 1~4: 각 항목의 장황한 설명("→ ...이면 ❌") → 체크리스트 불릿으로 압축
+- CACHE-1: `RedisConfig` Bean 코드 예시 → 규칙 텍스트로 대체
+- CACHE-2: 캐시 키 예시/직렬화 코드 블록 → Redis fallback 패턴만 유지
+- CACHE-3: TTL 코드 예시 → 규칙 + TTL 기준값 텍스트로 대체
+- CACHE-4: 캐시 무효화 코드 예시 → 규칙 텍스트로 대체
+- CACHE-5: yaml/bash 코드 예시 → 규칙 텍스트로 대체
+- CACHE 점검 완료 출력 형식 섹션 → STEP 6에 통합
+
+### 유지 항목 (비자명 패턴)
+- CACHE-2 Redis 장애 fallback 코드 (HARNESS-001 교훈 — 미적용 시 운영 500 오류 발생)
+- CACHE-3 TTL 기준값 (콘텐츠 1시간, 프로필 30분, 온보딩 24시간)
+- STEP 6 완료 판단 규칙 (❌/⚠️/✅ 처리 기준)
+
+---
+
+## ✅ [AUDIT] 2026-06-12 — new-feature.md 하네스 개편 (553줄 → 199줄)
+
+### 변경 개요
+- 기존: 553줄 (STEP 1~8 각 레이어에 코드 예시 포함, STEP 8 테스트 패턴 3세트)
+- 변경: 199줄 (규칙 텍스트 중심 압축, 비자명 패턴만 코드 예시 유지)
+
+### 제거 항목
+- STEP 1: 정적 팩토리/@Builder 코드 예시 → 규칙 텍스트로 대체
+- STEP 3: Repository 기본 구조 코드 예시 → 규칙 목록으로 대체
+- STEP 4: @Transactional 코드 예시, 로깅 예시 → 규칙 텍스트로 대체
+- STEP 5: Controller 메서드 구조 코드 예시 → 규칙 텍스트로 대체
+- STEP 6: Request/Response record 코드 예시 → 규칙 목록으로 대체
+- STEP 7: @Operation/@ApiResponses 전체 코드 예시 → 형식만 명시
+- STEP 8: Service 테스트(간소화), CookieProperties 독립 패턴, Admin 패턴, 통합 테스트 전체 코드 → 핵심만 유지
+
+### 유지 항목 (비자명 패턴)
+- Flyway information_schema 조건부 SQL 템플릿 (MySQL 미지원 문법 대체)
+- Controller 단위 테스트 패턴 + CookieProperties 주의사항
+- 예외 처리 클래스 테이블
+- 커버리지 기준 테이블
+
+---
+
+## ✅ [AUDIT] 2026-06-12 — log-diagnose.md 하네스 개편 (600줄 → 104줄)
+
+### 변경 개요
+- 기존: 600줄 (일반 진단 STEP 1~5 + Railway 특화 STEP 1~7 중복 구조 + CORS + 로그 보존 정책)
+- 변경: 104줄 (단일 STEP 1~5 흐름 + Railway 추가 진단 섹션 통합)
+
+### 제거 항목
+- Railway STEP 1~7 독립 섹션 → STEP 1~5와 통합 (중복 제거)
+- Redis CLI / Python 클라이언트 상세 코드 블록 (~80줄) → 핵심 명령어만 유지
+- CORS 오류 진단 섹션 → `e2e-diagnose.md` 소관으로 제거
+- 로그 보존 정책 섹션 → 참고 정보로 제거
+- actuator/health 전체 JSON 반복 출력 → 단일 인라인 예시로 통합
+
+### 유지 항목
+- 상황별 로그 수집 테이블 (환경별 분기)
+- 런타임 오류 패턴 분류 테이블
+- Railway 배포 실패 패턴 분류 테이블
+- 원인 검증 체크리스트
+- Redis 직접 조회 핵심 명령어 + 조치 기준
+
+---
+
+## ✅ [DIAGNOSE] 2026-06-12 — HARNESS-001 Redis fallback 미적용 수정
+
+### 오류 개요
+- 발생 환경 : Railway 운영 (2026-06-09 로그 확인)
+- 서비스    : ssac-backend
+- 오류 유형 : Redis 불가용 시 `/api/v1/contents` 500 오류
+- 오류 위치 : `NotionSyncService.getPublishedContentItems()` line 137
+
+### 진단 결과
+- 하네스 감사 HARNESS-001 항목으로 식별
+- `stringRedisTemplate.opsForValue().get(cacheKey)` 호출 시 Redis 연결 실패가 예외로 전파
+- `self-diagnose.md` CACHE-2 체크항목("Redis 장애 시 fallback 처리가 있는가?") 미적용 상태였음
+
+### 수정 내용
+- GET 호출을 try-catch(Exception)로 감쌈 → Redis 불가용 시 DB 재조회 fallback
+- SET 호출에 catch(Exception) 추가 → Redis 저장 실패 시 결과는 정상 반환
+
+### 재발 방지
+- 신규 테스트 추가: `Redis_조회_실패_시_DB_fallback`
+- 전체 테스트 및 커버리지 검증 통과 (BUILD SUCCESSFUL)
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-11 — work 도메인 첫 번째 시리즈 콘텐츠 썸네일 미표시 (재진단)
 
 ### 오류 개요
@@ -949,4 +1140,29 @@ HomeService가 RedisTemplate\<String, Object\>에 GenericJackson2JsonRedisSerial
 - 관련 파일: `NotionSyncService.java` (extractTitle, syncAll)
 
 ### 해결 완료 시각
+2026-06-12
+
+---
+
+## [AUDIT] 2026-06-12 — Harness Audit
+
+### 감사 요약
+- Critical  : 0개
+- High      : 1개
+- Medium    : 0개
+- Low       : 2개
+
+### 주요 발견 항목
+- ❌ [High] `NotionSyncService.getPublishedContentItems` Redis GET 호출에 try-catch 없음
+  → self-diagnose.md CACHE-2 "Redis 장애 시 fallback" 점검 항목이 있으나 코드 미반영
+  → 운영 로그(2026-06-09)에서 Redis 다운 시 콘텐츠 목록 API 500 실패 확인됨
+- ⚠️ [Low] log-diagnose.md 600줄 초과 → 500줄 초과 기준 위반
+- ⚠️ [Low] new-feature.md 553줄 초과 → 500줄 초과 기준 위반
+
+### 조치 계획
+- HARNESS-001: NotionSyncService.getPublishedContentItems Redis fallback 추가
+- HARNESS-002: log-diagnose.md Railway 진단 섹션 분리
+- HARNESS-003: new-feature.md STEP 8 테스트 패턴 섹션 분리
+
+### 감사 완료 시각
 2026-06-12

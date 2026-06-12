@@ -422,6 +422,22 @@ class NotionSyncServiceTest {
         assertThat(items).isEmpty();
     }
 
+    @Test
+    @DisplayName("Redis 조회 실패 시 DB fallback으로 콘텐츠 목록 반환")
+    void Redis_조회_실패_시_DB_fallback() {
+        given(valueOps.get(anyString())).willThrow(new RuntimeException("Redis connection refused"));
+        Content content = buildContent("page-fallback");
+        ReflectionTestUtils.setField(content, "isPublished", true);
+        ReflectionTestUtils.setField(content, "title", "Fallback 콘텐츠");
+        given(contentRepository.findAllPublished()).willReturn(List.of(content));
+
+        List<ContentItemDto> items = notionSyncService.getPublishedContentItems(null, null, null);
+
+        assertThat(items).hasSize(1);
+        assertThat(items.get(0).title()).isEqualTo("Fallback 콘텐츠");
+        verify(contentRepository).findAllPublished();
+    }
+
     // ── 헬퍼 ────────────────────────────────────────────────────────────────────
 
     private Content buildContent(String notionPageId) {
