@@ -3,7 +3,7 @@ name: Swagger Contract 추출 · 배포 · 알림
 # master 브랜치에 PR이 머지될 때마다 실행
 on:
   push:
-    branches: [master]
+    branches: [main]
   # 수동 실행 (초기 베이스라인 생성 등)
   workflow_dispatch:
 

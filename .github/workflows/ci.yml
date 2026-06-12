@@ -1,8 +1,8 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [ master ]
+  push:
+    branches: [ main ]
 
 jobs:
   build-and-test:
@@ -58,19 +58,7 @@ jobs:
           name: jacoco-report
           path: build/reports/jacoco/
 
-      # CI 체크 6: PR 커버리지 코멘트 자동 게시
-      - name: PR 커버리지 코멘트
-        uses: madrapps/jacoco-report@v1.6.1
-        if: github.event_name == 'pull_request'
-        with:
-          paths: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 70
-          min-coverage-changed-files: 70
-          title: '서비스 레이어 테스트 커버리지 리포트'
-          update-comment: true
-
-      # CI 체크 7: 테스트 결과 업로드 (실패 시 확인용)
+      # CI 체크 6: 테스트 결과 업로드 (실패 시 확인용)
       - name: 테스트 결과 업로드
         uses: actions/upload-artifact@v4
         if: failure()
@@ -150,9 +138,11 @@ jobs:
         run: |
           # 패턴: 'password:', 'secret:', 'jwt.secret:' 등의 키 뒤에
           #        환경 변수 참조(${...}) 없이 실제 값이 오는 경우를 탐지
+          # grep -v '\${' 로 환경 변수 참조 라인을 제외하여 거짓 양성 방지
           VIOLATIONS=$(grep -nE \
-            '^\s*(password|secret|client-secret|client-id)\s*:\s*[^$#\n][^{]' \
-            src/main/resources/application-prod.yml || true)
+            '^\s*(password|secret|client-secret|client-id)\s*:\s+[^#\s]' \
+            src/main/resources/application-prod.yml \
+            | grep -v '\${' || true)
 
           if [ -n "$VIOLATIONS" ]; then
             echo "❌ prod 프로파일에 하드코딩된 민감 값이 발견되었습니다:"
@@ -240,7 +230,7 @@ jobs:
           ERRORCODE_FILE="src/main/java/com/ssac/ssacbackend/common/exception/ErrorCode.java"
           CONTRACT_FILE="contract/error-contract.yml"
 
-          CHANGED=$(git diff origin/master...HEAD -- "$ERRORCODE_FILE" 2>/dev/null || true)
+          CHANGED=$(git diff origin/main...HEAD -- "$ERRORCODE_FILE" 2>/dev/null || true)
           if [ -z "$CHANGED" ]; then
             echo "ℹ️ ErrorCode.java 변경 없음, version 갱신 불필요"
             exit 0
@@ -248,7 +238,7 @@ jobs:
 
           CURRENT=$(grep 'version:' "$CONTRACT_FILE" | head -1 \
             | sed 's/.*version: *"\(.*\)"/\1/')
-          PREV=$(git show origin/master:"$CONTRACT_FILE" 2>/dev/null \
+          PREV=$(git show origin/main:"$CONTRACT_FILE" 2>/dev/null \
             | grep 'version:' | head -1 \
             | sed 's/.*version: *"\(.*\)"/\1/' || echo "0.0.0")
 
@@ -368,6 +358,30 @@ jobs:
 
           echo "✅ MySQL 호환성 검사 통과"
 
+  # ──────────────────────────────────────────────────────────────────────────────
+  # deploy: 4개 CI 잡 전체 통과 후 Railway 배포 실행
+  # build-and-test, profile-validation, error-contract-validation, flyway-validation
+  # 중 하나라도 실패하면 이 잡은 실행되지 않는다.
+  #
+  # 사전 준비 (GitHub → Settings → Secrets → Actions):
+  #   RAILWAY_TOKEN      : Railway Account Settings → Tokens에서 발급
+  #   RAILWAY_SERVICE_ID : Railway 대시보드 → 서비스 → Settings → Service ID
+  # ──────────────────────────────────────────────────────────────────────────────
+  deploy:
+    needs: [build-and-test, profile-validation, error-contract-validation, flyway-validation]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Railway CLI 설치
+        run: npm install -g @railway/cli
+
+      - name: Railway 배포
+        run: railway up --service ${{ secrets.RAILWAY_SERVICE_ID }} --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
 # CI 체크 항목 요약:
 # ── build-and-test ──
 # 1. ✅ 컴파일 통과 (gradlew build -x test)
@@ -375,21 +389,21 @@ jobs:
 # 3. ✅ 테스트 통과 + 커버리지 리포트 생성 (gradlew test jacocoTestReport)
 # 4. ✅ 서비스 레이어 라인 커버리지 70% 이상 (gradlew jacocoTestCoverageVerification)
 # 5. ✅ 커버리지 리포트 아티팩트 보존 (항상 실행)
-# 6. ✅ PR 커버리지 코멘트 자동 게시 (madrapps/jacoco-report)
-# 7. ✅ 테스트 결과 아티팩트 보존 (실패 시)
+# 6. ✅ 테스트 결과 아티팩트 보존 (실패 시)
 # ── profile-validation ──
-# 8. ✅ test 프로파일 서버 기동 + /actuator/health 200 응답 확인
-# 9. ✅ application-prod.yml 파일 존재 여부 확인
-# 10. ✅ prod 프로파일 하드코딩 시크릿 탐지
-# 11. ✅ prod 프로파일 필수 보안 설정 (ddl-auto, stacktrace, show-sql) 확인
+# 7. ✅ test 프로파일 서버 기동 + /actuator/health 200 응답 확인
+# 8. ✅ application-prod.yml 파일 존재 여부 확인
+# 9. ✅ prod 프로파일 하드코딩 시크릿 탐지
+# 10. ✅ prod 프로파일 필수 보안 설정 (ddl-auto, stacktrace, show-sql) 확인
 # ── error-contract-validation ──
-# 12. ✅ ErrorCode Enum ↔ Contract 정합성 검증 (gradlew validateErrorContract)
-# 13. ✅ Contract 파일 미커밋 변경사항 탐지 (git diff)
-# 14. ✅ ErrorCode 변경 시 Contract 버전 갱신 여부 확인
-# 15. ✅ Contract 변경 시 FE 저장소(ssac-org/SSAC_FRONTEND)에 이슈 생성 (FE_NOTIFY_TOKEN 필요)
-# ──────────────────────────────────────────────────────────────────────────────
+# 11. ✅ ErrorCode Enum ↔ Contract 정합성 검증 (gradlew validateErrorContract)
+# 12. ✅ Contract 파일 미커밋 변경사항 탐지 (git diff)
+# 13. ✅ ErrorCode 변경 시 Contract 버전 갱신 여부 확인
+# 14. ✅ Contract 변경 시 FE 저장소(ssac-org/SSAC_FRONTEND)에 이슈 생성 (FE_NOTIFY_TOKEN 필요)
 # ── flyway-validation ──
-# 16. ✅ MySQL 미지원 문법 검사 (ADD COLUMN IF NOT EXISTS, CREATE INDEX IF NOT EXISTS)
-# 17. ✅ CREATE TABLE IF NOT EXISTS 누락 검사
+# 15. ✅ MySQL 미지원 문법 검사 (ADD COLUMN IF NOT EXISTS, CREATE INDEX IF NOT EXISTS)
+# 16. ✅ CREATE TABLE IF NOT EXISTS 누락 검사
+# ── deploy ──
+# 17. ✅ 위 4개 잡 전체 통과 후 Railway 배포 (RAILWAY_TOKEN, RAILWAY_SERVICE_ID 필요)
 # ──────────────────────────────────────────────────────────────────────────────
-# 👤 보안/비밀키 하드코딩 — PR 템플릿 리뷰어 체크리스트로 강제
+# 👤 보안/비밀키 하드코딩 — prod 프로파일 정적 검사(검증 9)로 강제

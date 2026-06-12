@@ -148,12 +148,12 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("로그아웃 시각과 동일한 초에 발급된 토큰은 유효하게 처리된다(같은 초 경계 허용)")
-    void doFilterTokenIssuedAtSameSecondAsInvalidatedBeforeIsAccepted() throws Exception {
+    @DisplayName("로그아웃 시각과 동일한 초에 발급된 토큰은 차단된다(strictly after 정책)")
+    void doFilterTokenIssuedAtSameSecondAsInvalidatedBeforeIsRejected() throws Exception {
         String email = "user@test.com";
         User mockUser = mock(User.class);
         when(mockUser.getRole()).thenReturn(UserRole.USER);
-        // 토큰 발급과 같은 초를 invalidatedBefore로 설정 → !isBefore(T, T) = true 이므로 허용
+        // 토큰 발급과 같은 초를 invalidatedBefore로 설정 → isAfter(T, T) = false 이므로 차단
         LocalDateTime sameSecond = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         when(mockUser.getInvalidatedBefore()).thenReturn(sameSecond);
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
@@ -164,7 +164,7 @@ class JwtAuthenticationFilterTest {
 
         filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
     @Test
