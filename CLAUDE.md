@@ -33,10 +33,10 @@
 6순위 `self-diagnose.md`        → 자가 점검
 
 ### [오류 발생 시 — 즉시 실행]
-즉시   `log-diagnose.md`        → 서버 로그 기반 원인 진단 (STEP 1~6)
+즉시   `log-diagnose.md`        → 서버 로그 기반 원인 진단 (STEP 1~5)
 추가   `e2e-diagnose.md`        → 브라우저 환경 진단 (인증/쿠키/CORS 의심 시)
            ↓
-       STEP 7                   → docs/debug-log.md 결과 기록
+       STEP 5                   → docs/debug-log.md 결과 기록
            ↓
 1순위 `self-diagnose.md`        → 자가 점검
 2순위 `testing.md`              → 재발 방지 테스트 추가
@@ -49,8 +49,6 @@
 
 ---
 
----
-
 ## 🚂 Railway 배포 실패 시 자동 진단 규칙
 
 **트리거 조건:**
@@ -59,7 +57,7 @@
 
 **자동 실행 절차:**
 1. `railway logs --deployment` 실행하여 로그 수집
-2. `log-diagnose.md` Railway 섹션 분류표 기준으로 원인 분류
+2. `log-diagnose.md` STEP 2 Railway 배포 실패 패턴 기준으로 원인 분류
 3. 원인 확정 후 수정 진행
 4. 수정 완료 후 `railway logs --tail`로 재배포 확인
 
@@ -178,7 +176,7 @@ grep -rn "CREATE TABLE " src/main/resources/db/migration/ | \
 
 아래 행동은 금지된다:
 
-□ log-diagnose.md STEP 7 완료 후 debug-log.md 미기록 금지
+□ log-diagnose.md STEP 5 완료 후 debug-log.md 미기록 금지
   → 진단 결과는 반드시 [DIAGNOSE] 양식으로 기록 후 종료
 
 □ adr-create.md 완료 후 debug-log.md 미기록 금지
