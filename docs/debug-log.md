@@ -17,6 +17,29 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-12 — HARNESS-001 Redis fallback 미적용 수정
+
+### 오류 개요
+- 발생 환경 : Railway 운영 (2026-06-09 로그 확인)
+- 서비스    : ssac-backend
+- 오류 유형 : Redis 불가용 시 `/api/v1/contents` 500 오류
+- 오류 위치 : `NotionSyncService.getPublishedContentItems()` line 137
+
+### 진단 결과
+- 하네스 감사 HARNESS-001 항목으로 식별
+- `stringRedisTemplate.opsForValue().get(cacheKey)` 호출 시 Redis 연결 실패가 예외로 전파
+- `self-diagnose.md` CACHE-2 체크항목("Redis 장애 시 fallback 처리가 있는가?") 미적용 상태였음
+
+### 수정 내용
+- GET 호출을 try-catch(Exception)로 감쌈 → Redis 불가용 시 DB 재조회 fallback
+- SET 호출에 catch(Exception) 추가 → Redis 저장 실패 시 결과는 정상 반환
+
+### 재발 방지
+- 신규 테스트 추가: `Redis_조회_실패_시_DB_fallback`
+- 전체 테스트 및 커버리지 검증 통과 (BUILD SUCCESSFUL)
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-11 — work 도메인 첫 번째 시리즈 콘텐츠 썸네일 미표시 (재진단)
 
 ### 오류 개요
@@ -949,4 +972,29 @@ HomeService가 RedisTemplate\<String, Object\>에 GenericJackson2JsonRedisSerial
 - 관련 파일: `NotionSyncService.java` (extractTitle, syncAll)
 
 ### 해결 완료 시각
+2026-06-12
+
+---
+
+## [AUDIT] 2026-06-12 — Harness Audit
+
+### 감사 요약
+- Critical  : 0개
+- High      : 1개
+- Medium    : 0개
+- Low       : 2개
+
+### 주요 발견 항목
+- ❌ [High] `NotionSyncService.getPublishedContentItems` Redis GET 호출에 try-catch 없음
+  → self-diagnose.md CACHE-2 "Redis 장애 시 fallback" 점검 항목이 있으나 코드 미반영
+  → 운영 로그(2026-06-09)에서 Redis 다운 시 콘텐츠 목록 API 500 실패 확인됨
+- ⚠️ [Low] log-diagnose.md 600줄 초과 → 500줄 초과 기준 위반
+- ⚠️ [Low] new-feature.md 553줄 초과 → 500줄 초과 기준 위반
+
+### 조치 계획
+- HARNESS-001: NotionSyncService.getPublishedContentItems Redis fallback 추가
+- HARNESS-002: log-diagnose.md Railway 진단 섹션 분리
+- HARNESS-003: new-feature.md STEP 8 테스트 패턴 섹션 분리
+
+### 감사 완료 시각
 2026-06-12

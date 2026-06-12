@@ -134,7 +134,12 @@ public class NotionSyncService {
         List<String> categories, String difficulty, String domain) {
 
         String cacheKey = buildCacheKey(categories, difficulty, domain);
-        String cached = stringRedisTemplate.opsForValue().get(cacheKey);
+        String cached = null;
+        try {
+            cached = stringRedisTemplate.opsForValue().get(cacheKey);
+        } catch (Exception e) {
+            log.warn("콘텐츠 캐시 조회 실패 (Redis 불가용), DB 재조회: key={}", cacheKey);
+        }
         if (cached != null) {
             try {
                 return OBJECT_MAPPER.readValue(cached, new TypeReference<List<ContentItemDto>>() {});
@@ -164,6 +169,8 @@ public class NotionSyncService {
                 .set(cacheKey, json, Duration.ofSeconds(CACHE_TTL_SECONDS));
         } catch (JsonProcessingException e) {
             log.warn("콘텐츠 캐시 직렬화 실패: key={}", cacheKey, e);
+        } catch (Exception e) {
+            log.warn("콘텐츠 캐시 저장 실패 (Redis 불가용): key={}", cacheKey);
         }
 
         return result;
