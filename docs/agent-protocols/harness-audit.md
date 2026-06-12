@@ -45,7 +45,7 @@ Read: CLAUDE.md
 | `token-optimize.md` | 컨텍스트 최소화 절차 / harness-audit 트리거 참조 |
 | `sc-harness.md` | BE/FE 관심사 분리 기준 / 혼재 항목 재작성 규칙 |
 | `backlog-generate.md` | 프로젝트 구조 파악 5단계 / 핵심 파일 목록 / SC 충돌 감지 절차 |
-| `sc-structure-check.md` | API 경로·엔티티·ErrorCode·Flyway 충돌 점검 / MySQL 호환 문법 점검 |
+| `sc-structure-check.md` | API 경로·엔티티·ErrorCode·Flyway 버전 충돌 점검 (MySQL 문법은 backlog-generate.md 위임) |
 | `testing.md` | checkstyle→compileJava→test→jacoco 순서 / 오류 유형 조치 / 커버리지 70% 기준 / 자동 트리거 |
 | `self-diagnose.md` | 레이어 책임·인증·응답 구조·Contract 점검 / Redis fallback(CACHE-2) 점검 |
 | `log-diagnose.md` | Railway 로그 수집 절차 / Redis 직접 조회 절차 / debug-log.md 연결 |
