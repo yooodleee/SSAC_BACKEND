@@ -17,6 +17,35 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-12 — Harness Audit (전체 시스템 재평가)
+
+### 감사 요약
+- Critical 0개 / High 0개 / Medium 1개 (즉시 수정 완료) / Low 0개
+
+### 주요 발견 항목
+- ⚠️ `harness-audit.md` STEP 3 표: `sc-structure-check.md` 항목에 "MySQL 호환 문법 점검" 기재 → 실제 파일은 해당 책임을 `backlog-generate.md`에 위임하고 있어 불일치
+
+### 조치 내용
+- `harness-audit.md` STEP 3 표 수정: "MySQL 호환 문법 점검" → "API 경로·엔티티·ErrorCode·Flyway 버전 충돌 점검 (MySQL 문법은 backlog-generate.md 위임)"
+
+### 감사 시점 기준 전체 파일 라인 수
+| 파일 | 줄 수 |
+|------|------|
+| new-feature.md | 199 |
+| sc-structure-check.md | 194 |
+| sc-harness.md | 164 |
+| testing.md | 132 |
+| contract-sync.md | 125 |
+| token-optimize.md | 121 |
+| self-diagnose.md | 118 |
+| e2e-diagnose.md | 111 |
+| adr-create.md | 111 |
+| log-diagnose.md | 104 |
+| harness-audit.md | 101 |
+| backlog-generate.md | 99 |
+
+---
+
 ## ✅ [AUDIT] 2026-06-12 — adr-create.md 하네스 개편 (204줄 → 111줄)
 
 ### 변경 개요
