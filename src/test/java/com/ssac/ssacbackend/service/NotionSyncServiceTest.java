@@ -339,6 +339,68 @@ class NotionSyncServiceTest {
     }
 
     @Test
+    @DisplayName("제목 RichText 중 plainText가 null인 요소가 있어도 동기화 실패하지 않음")
+    void 제목_null_plainText_동기화_실패_없음() {
+        given(notionProperties.getDatabaseId()).willReturn("db-id");
+
+        ObjenesisStd objenesis = new ObjenesisStd();
+        notion.api.v1.model.pages.PageProperty.RichText rt1 =
+            objenesis.newInstance(notion.api.v1.model.pages.PageProperty.RichText.class);
+        ReflectionTestUtils.setField(rt1, "plainText", "근로");
+        notion.api.v1.model.pages.PageProperty.RichText rt2 =
+            objenesis.newInstance(notion.api.v1.model.pages.PageProperty.RichText.class);
+        ReflectionTestUtils.setField(rt2, "plainText", null); // null plainText
+
+        notion.api.v1.model.pages.PageProperty nameProp =
+            objenesis.newInstance(notion.api.v1.model.pages.PageProperty.class);
+        ReflectionTestUtils.setField(nameProp, "title", List.of(rt1, rt2));
+
+        notion.api.v1.model.pages.PageProperty publishedProp =
+            objenesis.newInstance(notion.api.v1.model.pages.PageProperty.class);
+        ReflectionTestUtils.setField(publishedProp, "checkbox", false);
+
+        java.util.Map<String, notion.api.v1.model.pages.PageProperty> props = new java.util.HashMap<>();
+        props.put("Name", nameProp);
+        props.put("published", publishedProp);
+
+        Page page = objenesis.newInstance(Page.class);
+        ReflectionTestUtils.setField(page, "id", "page-null-title");
+        ReflectionTestUtils.setField(page, "createdTime", "2026-05-25T00:00:00.000Z");
+        ReflectionTestUtils.setField(page, "lastEditedTime", "2026-05-25T00:00:00.000Z");
+        ReflectionTestUtils.setField(page, "properties", props);
+
+        given(notionClient.queryDatabase(any())).willReturn(buildQueryResults(List.of(page), false));
+        given(contentRepository.findByNotionPageId("page-null-title")).willReturn(Optional.empty());
+        given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
+
+        ContentSyncResponse result = notionSyncService.syncAll();
+
+        assertThat(result.syncedCount()).isEqualTo(1);
+        assertThat(result.createdCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("한 페이지 동기화 실패 시 나머지 페이지는 계속 동기화됨")
+    void 한_페이지_실패_시_나머지_동기화_계속() {
+        given(notionProperties.getDatabaseId()).willReturn("db-id");
+        Page goodPage = buildPage("page-good");
+        Page badPage = buildPage("page-bad");
+
+        given(notionClient.queryDatabase(any()))
+            .willReturn(buildQueryResults(List.of(badPage, goodPage), false));
+        given(contentRepository.findByNotionPageId("page-bad"))
+            .willThrow(new RuntimeException("DB error"));
+        given(contentRepository.findByNotionPageId("page-good")).willReturn(Optional.empty());
+        given(notionImageMigrator.migrateIfNeeded(any())).willReturn(null);
+
+        ContentSyncResponse result = notionSyncService.syncAll();
+
+        assertThat(result.syncedCount()).isEqualTo(2);
+        assertThat(result.createdCount()).isEqualTo(1);
+        verify(contentRepository).save(any(Content.class));
+    }
+
+    @Test
     @DisplayName("categories=[realestate,tax] 콘텐츠가 investment 필터 목록에 미포함")
     void 복수_카테고리_콘텐츠_investment_미포함() {
         given(contentRepository.findAllPublishedByCategory("investment")).willReturn(List.of());

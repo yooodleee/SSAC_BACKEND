@@ -92,13 +92,22 @@ public class NotionSyncService {
         int created = 0;
         int updated = 0;
 
+        int failed = 0;
         for (Page page : pages) {
-            boolean isNew = upsertContent(page);
-            if (isNew) {
-                created++;
-            } else {
-                updated++;
+            try {
+                boolean isNew = upsertContent(page);
+                if (isNew) {
+                    created++;
+                } else {
+                    updated++;
+                }
+            } catch (Exception e) {
+                failed++;
+                log.error("페이지 동기화 실패: pageId={}", page.getId(), e);
             }
+        }
+        if (failed > 0) {
+            log.warn("동기화 중 {}개 페이지 실패", failed);
         }
 
         evictContentsCache();
@@ -273,7 +282,7 @@ public class NotionSyncService {
             return null;
         }
         return prop.getTitle().stream()
-            .map(PageProperty.RichText::getPlainText)
+            .map(rt -> rt.getPlainText() != null ? rt.getPlainText() : "")
             .reduce("", String::concat);
     }
 
