@@ -918,3 +918,35 @@ HomeService가 RedisTemplate\<String, Object\>에 GenericJackson2JsonRedisSerial
 |-----|------------|----------------|-----|
 | 현재 (1단계) | 60% | 40% | 2025-05-30 |
 | 2단계 | 70% | 50% | P3 완료 후 |
+
+---
+
+## [DIAGNOSE] 2026-06-12 — work 도메인 시리즈 콘텐츠 제목 미출력
+
+### 오류 개요
+- 발생 환경 : local/dev
+- 서비스    : ssac-backend / NotionSyncService
+- 오류 유형 : NullPointerException + 동기화 루프 중단
+- 오류 메시지: Notion 자동 동기화 실패 (logs/app.log 2026-06-09)
+
+### 진단 결과
+- STEP 1 로그 수집   : `logs/app.log` 확인 (2026-06-09)
+- STEP 2 에러 분류   : `extractTitle` 에서 `getPlainText()` null → NPE 가설
+- STEP 3 원인 검증   : `String::concat` 이 null 인수 시 NPE 발생 코드 확인
+
+### 근본 원인
+1. `extractTitle`: Notion RichText 요소의 `getPlainText()` 가 null 반환 시 `String::concat` 에서 NPE 발생
+2. `syncAll` 루프: per-page try-catch 없음 → 한 페이지 실패 시 이후 전체 페이지 동기화 중단 → 신규 콘텐츠 DB 미등록
+
+### 조치 내용
+- `extractTitle` : `rt.getPlainText() != null ? rt.getPlainText() : ""` 로 null 안전 처리
+- `syncAll` 루프: per-page try-catch 추가, 실패 페이지 수 WARN 로깅 후 계속 진행
+- 테스트 2건 추가: null plainText 동기화 정상 처리 / 한 페이지 실패 후 나머지 계속 동기화
+
+### 재발 방지
+- 프로토콜 갱신 필요 여부: N
+- ADR 작성 필요 여부: N (단순 null 안전성 패치)
+- 관련 파일: `NotionSyncService.java` (extractTitle, syncAll)
+
+### 해결 완료 시각
+2026-06-12

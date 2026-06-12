@@ -251,7 +251,13 @@
       "Bash(javap -private 'notion/api/v1/model/pages/PageProperty$RichText$Text.class')",
       "Bash(javap -private notion/api/v1/model/blocks/Blocks.class)",
       "Bash(findstr /C:\"name\\\\\":\\\\\"work\")",
-      "Bash(./gradlew checkstyleMain checkstyleTest compileJava test)"
+      "Bash(./gradlew checkstyleMain checkstyleTest compileJava test)",
+      "Bash(javap -c /tmp/notion/api/v1/model/blocks/BlockType.class)",
+      "Bash(javap -verbose /tmp/notion/api/v1/model/blocks/BlockType.class)",
+      "Bash(javap -verbose /tmp/notion/api/v1/model/blocks/Block.class)",
+      "Bash(javap -verbose /tmp/notion/api/v1/json/gson/BlockParser.class)",
+      "Bash(javap -verbose /tmp/notion/api/v1/model/pages/PageProperty.class)",
+      "Bash(javap -verbose '/tmp/notion/api/v1/model/pages/PageProperty$RichText.class')"
     ]
   }
 }
