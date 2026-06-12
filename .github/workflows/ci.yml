@@ -138,9 +138,11 @@ jobs:
         run: |
           # 패턴: 'password:', 'secret:', 'jwt.secret:' 등의 키 뒤에
           #        환경 변수 참조(${...}) 없이 실제 값이 오는 경우를 탐지
+          # grep -v '\${' 로 환경 변수 참조 라인을 제외하여 거짓 양성 방지
           VIOLATIONS=$(grep -nE \
-            '^\s*(password|secret|client-secret|client-id)\s*:\s*[^$#\n][^{]' \
-            src/main/resources/application-prod.yml || true)
+            '^\s*(password|secret|client-secret|client-id)\s*:\s+[^#\s]' \
+            src/main/resources/application-prod.yml \
+            | grep -v '\${' || true)
 
           if [ -n "$VIOLATIONS" ]; then
             echo "❌ prod 프로파일에 하드코딩된 민감 값이 발견되었습니다:"
