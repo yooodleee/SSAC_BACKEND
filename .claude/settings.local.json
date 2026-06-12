@@ -259,7 +259,8 @@
       "Bash(javap -verbose /tmp/notion/api/v1/model/pages/PageProperty.class)",
       "Bash(javap -verbose '/tmp/notion/api/v1/model/pages/PageProperty$RichText.class')",
       "Bash(wc -l C:/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/ssac-backend/docs/agent-protocols/*.md)",
-      "Bash(wc -l docs/agent-protocols/*.md)"
+      "Bash(wc -l docs/agent-protocols/*.md)",
+      "Bash(wc -l \"C:\\\\Users\\\\dhals_zn0ga5j\\\\python_seed\\\\SSAC_BACKEND\\\\ssac-backend\\\\docs\\\\agent-protocols\"/*.md)"
     ]
   }
 }
