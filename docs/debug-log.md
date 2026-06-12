@@ -17,6 +17,29 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-12 — new-feature.md 하네스 개편 (553줄 → 199줄)
+
+### 변경 개요
+- 기존: 553줄 (STEP 1~8 각 레이어에 코드 예시 포함, STEP 8 테스트 패턴 3세트)
+- 변경: 199줄 (규칙 텍스트 중심 압축, 비자명 패턴만 코드 예시 유지)
+
+### 제거 항목
+- STEP 1: 정적 팩토리/@Builder 코드 예시 → 규칙 텍스트로 대체
+- STEP 3: Repository 기본 구조 코드 예시 → 규칙 목록으로 대체
+- STEP 4: @Transactional 코드 예시, 로깅 예시 → 규칙 텍스트로 대체
+- STEP 5: Controller 메서드 구조 코드 예시 → 규칙 텍스트로 대체
+- STEP 6: Request/Response record 코드 예시 → 규칙 목록으로 대체
+- STEP 7: @Operation/@ApiResponses 전체 코드 예시 → 형식만 명시
+- STEP 8: Service 테스트(간소화), CookieProperties 독립 패턴, Admin 패턴, 통합 테스트 전체 코드 → 핵심만 유지
+
+### 유지 항목 (비자명 패턴)
+- Flyway information_schema 조건부 SQL 템플릿 (MySQL 미지원 문법 대체)
+- Controller 단위 테스트 패턴 + CookieProperties 주의사항
+- 예외 처리 클래스 테이블
+- 커버리지 기준 테이블
+
+---
+
 ## ✅ [AUDIT] 2026-06-12 — log-diagnose.md 하네스 개편 (600줄 → 104줄)
 
 ### 변경 개요
