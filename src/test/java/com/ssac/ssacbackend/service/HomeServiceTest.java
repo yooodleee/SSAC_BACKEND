@@ -73,6 +73,11 @@ class HomeServiceTest {
     @BeforeEach
     void setUp() {
         lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
+        // buildCategories() N+1 개선: GROUP BY 쿼리 기본 응답 설정
+        lenient().when(contentRepository.countPublishedGroupByCategory())
+            .thenReturn(new java.util.ArrayList<>());
+        lenient().when(contentProgressRepository.countCompletedByUserEmailGroupByCategory(anyString()))
+            .thenReturn(new java.util.ArrayList<>());
     }
 
     @Nested
@@ -323,6 +328,57 @@ class HomeServiceTest {
 
             HomeResponse res = (HomeResponse) result;
             assertThat(res.recommendedContents()).anyMatch(c -> c.id().equals("800"));
+        }
+    }
+
+    @Nested
+    @DisplayName("카테고리 섹션 - GROUP BY 쿼리 최적화")
+    class CategoryGroupBy {
+
+        @Test
+        @DisplayName("카테고리별 게시 수와 완료 수를 GROUP BY 쿼리 2회로 집계한다")
+        void 카테고리_집계_groupby_쿼리_사용() {
+            User user = mockUser(10L, true, UserLevel.SEED, null);
+            given(userRepository.findByEmail("cat@test.com")).willReturn(Optional.of(user));
+            given(valueOps.get("home:10")).willReturn(null);
+            given(userInterestRepository.findDomainIdsByUserId(10L)).willReturn(List.of());
+            given(valueOps.get("home:rec_history:10")).willReturn(null);
+            given(contentProgressRepository.findCompletedContentIdsByUserEmail("cat@test.com"))
+                .willReturn(List.of());
+            given(contentRepository.findByDifficultyPublished(any())).willReturn(List.of());
+            given(contentRepository.findAllPublishedOrderByLastEdited()).willReturn(List.of());
+            given(contentProgressRepository.findContinueLearning(anyString(), any()))
+                .willReturn(List.of());
+            given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
+                .willReturn(List.of());
+
+            // GROUP BY 결과: realestate 3개 게시, tax 1개 완료
+            List<Object[]> publishedRows = new java.util.ArrayList<>();
+            publishedRows.add(new Object[]{"realestate", 3L});
+            publishedRows.add(new Object[]{"tax", 2L});
+            List<Object[]> completedRows = new java.util.ArrayList<>();
+            completedRows.add(new Object[]{"tax", 1L});
+            given(contentRepository.countPublishedGroupByCategory()).willReturn(publishedRows);
+            given(contentProgressRepository.countCompletedByUserEmailGroupByCategory("cat@test.com"))
+                .willReturn(completedRows);
+
+            Object result = homeService.getHome("cat@test.com");
+
+            HomeResponse res = (HomeResponse) result;
+            HomeResponse.CategoryDto realestate = res.categories().stream()
+                .filter(c -> "realestate".equals(c.id())).findFirst().orElseThrow();
+            HomeResponse.CategoryDto tax = res.categories().stream()
+                .filter(c -> "tax".equals(c.id())).findFirst().orElseThrow();
+
+            assertThat(realestate.totalCount()).isEqualTo(3L);
+            assertThat(realestate.completedCount()).isEqualTo(0L);
+            assertThat(tax.totalCount()).isEqualTo(2L);
+            assertThat(tax.completedCount()).isEqualTo(1L);
+
+            // 카테고리별 단건 쿼리(N+1)가 호출되지 않았음을 검증
+            then(contentRepository).should(never()).countByPublishedAndCategory(anyString());
+            then(contentProgressRepository).should(never())
+                .countCompletedByUserEmailAndCategory(anyString(), anyString());
         }
     }
 

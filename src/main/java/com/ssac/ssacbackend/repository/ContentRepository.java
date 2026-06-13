@@ -73,6 +73,15 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
         + " WHERE cat = :category AND c.isPublished = true")
     long countByPublishedAndCategory(@Param("category") String category);
 
+    /**
+     * 카테고리별 게시 콘텐츠 수를 한 번에 조회한다 (홈 categories 섹션 N+1 개선용).
+     *
+     * @return [category(String), count(Long)] 쌍의 목록
+     */
+    @Query("SELECT cat, COUNT(DISTINCT c) FROM Content c JOIN c.categories cat"
+        + " WHERE c.isPublished = true GROUP BY cat")
+    List<Object[]> countPublishedGroupByCategory();
+
     long countByIsPublished(boolean isPublished);
 
     long countByDifficulty(ContentDifficulty difficulty);

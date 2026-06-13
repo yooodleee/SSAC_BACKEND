@@ -64,6 +64,18 @@ public interface ContentProgressRepository extends JpaRepository<ContentProgress
         @Param("email") String email, @Param("category") String category);
 
     /**
+     * 사용자의 카테고리별 완료 콘텐츠 수를 한 번에 조회한다 (홈 categories 섹션 N+1 개선용).
+     *
+     * @return [category(String), count(Long)] 쌍의 목록
+     */
+    @Query("""
+        SELECT cp.category, COUNT(cp) FROM ContentProgress cp
+        WHERE cp.user.email = :email AND cp.progressRate >= 100 AND cp.category IS NOT NULL
+        GROUP BY cp.category
+        """)
+    List<Object[]> countCompletedByUserEmailGroupByCategory(@Param("email") String email);
+
+    /**
      * 특정 콘텐츠 ID와 사용자 ID로 진행 기록을 조회한다(콘텐츠 완료 처리용).
      */
     Optional<ContentProgress> findByContentIdAndUserId(Long contentId, Long userId);

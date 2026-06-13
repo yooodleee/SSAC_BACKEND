@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -129,11 +130,19 @@ public class HomeService {
         excludedIds.addAll(recentlyRecommendedIds);
 
         UserLevel level = user.getLevel() != null ? user.getLevel() : UserLevel.SEED;
+        ContentDifficulty contentDiff = toContentDifficulty(level);
+
+        // 콘텐츠 3종 사전 조회 — buildRecommended, buildTodayCard에서 공유하여 중복 쿼리 제거
+        List<Content> interestContents = interestDomains.isEmpty()
+            ? List.of()
+            : contentRepository.findByCategoriesInAndDifficultyPublished(interestDomains, contentDiff);
+        List<Content> diffContents = contentRepository.findByDifficultyPublished(contentDiff);
+        List<Content> allContents = contentRepository.findAllPublishedOrderByLastEdited();
 
         List<RecommendedContentDto> recommended = buildRecommended(
-            interestDomains, level, completedIds, excludedIds);
+            interestContents, diffContents, allContents, level, completedIds, excludedIds);
         TodayCardDto todayCard = buildTodayCard(
-            user.getId(), interestDomains, level, completedIds);
+            user.getId(), interestContents, diffContents, allContents, completedIds);
         ContinueLearningDto continueLearning = buildContinueLearning(email);
         TodayQuizDto todayQuiz = buildTodayQuiz(user.getId(), level, email);
         List<CategoryDto> categories = buildCategories(email);
@@ -161,17 +170,14 @@ public class HomeService {
     // ── 추천 콘텐츠 ────────────────────────────────────────────────────────────
 
     private List<RecommendedContentDto> buildRecommended(
-        List<String> interestDomains, UserLevel level,
-        Set<Long> completedIds, Set<Long> excludedIds) {
+        List<Content> interestContents, List<Content> diffContents, List<Content> allContents,
+        UserLevel level, Set<Long> completedIds, Set<Long> excludedIds) {
 
         Set<Long> addedIds = new LinkedHashSet<>();
         List<RecommendedContentDto> result = new ArrayList<>();
 
-        ContentDifficulty contentDiff = toContentDifficulty(level);
-
-        if (!interestDomains.isEmpty()) {
-            contentRepository.findByCategoriesInAndDifficultyPublished(interestDomains, contentDiff)
-                .stream()
+        if (!interestContents.isEmpty()) {
+            interestContents.stream()
                 .filter(c -> !excludedIds.contains(c.getId()))
                 .limit(RECOMMENDED_MAX)
                 .forEach(c -> {
@@ -181,8 +187,7 @@ public class HomeService {
         }
 
         if (result.size() < RECOMMENDED_MAX) {
-            contentRepository.findByDifficultyPublished(contentDiff)
-                .stream()
+            diffContents.stream()
                 .filter(c -> !excludedIds.contains(c.getId()) && !addedIds.contains(c.getId()))
                 .limit((long) RECOMMENDED_MAX - result.size())
                 .forEach(c -> {
@@ -192,8 +197,7 @@ public class HomeService {
         }
 
         if (result.size() < RECOMMENDED_MAX) {
-            contentRepository.findAllPublishedOrderByLastEdited()
-                .stream()
+            allContents.stream()
                 .filter(c -> !excludedIds.contains(c.getId()) && !addedIds.contains(c.getId()))
                 .limit((long) RECOMMENDED_MAX - result.size())
                 .forEach(c -> {
@@ -245,29 +249,23 @@ public class HomeService {
     // ── 오늘의 카드 ────────────────────────────────────────────────────────────
 
     private TodayCardDto buildTodayCard(
-        Long userId, List<String> interestDomains, UserLevel level, Set<Long> completedIds) {
+        Long userId, List<Content> interestContents, List<Content> diffContents,
+        List<Content> allContents, Set<Long> completedIds) {
 
         List<Content> candidates = new ArrayList<>();
 
-        ContentDifficulty contentDiff = toContentDifficulty(level);
+        interestContents.stream()
+            .filter(c -> !completedIds.contains(c.getId()))
+            .forEach(candidates::add);
 
-        if (!interestDomains.isEmpty()) {
-            contentRepository.findByCategoriesInAndDifficultyPublished(interestDomains, contentDiff)
-                .stream()
+        if (candidates.isEmpty()) {
+            diffContents.stream()
                 .filter(c -> !completedIds.contains(c.getId()))
                 .forEach(candidates::add);
         }
 
         if (candidates.isEmpty()) {
-            contentRepository.findByDifficultyPublished(contentDiff)
-                .stream()
-                .filter(c -> !completedIds.contains(c.getId()))
-                .forEach(candidates::add);
-        }
-
-        if (candidates.isEmpty()) {
-            contentRepository.findAllPublishedOrderByLastEdited()
-                .stream()
+            allContents.stream()
                 .filter(c -> !completedIds.contains(c.getId()))
                 .forEach(candidates::add);
         }
@@ -335,13 +333,26 @@ public class HomeService {
     // ── 카테고리 ────────────────────────────────────────────────────────────────
 
     private List<CategoryDto> buildCategories(String email) {
+        Map<String, Long> publishedCounts = contentRepository.countPublishedGroupByCategory()
+            .stream()
+            .collect(Collectors.toMap(
+                row -> (String) row[0],
+                row -> (Long) row[1]
+            ));
+        Map<String, Long> completedCounts =
+            contentProgressRepository.countCompletedByUserEmailGroupByCategory(email)
+                .stream()
+                .collect(Collectors.toMap(
+                    row -> (String) row[0],
+                    row -> (Long) row[1]
+                ));
         return ContentCategory.all().stream()
             .map(cat -> new CategoryDto(
                 cat.getNotionTag(),
                 cat.getLabel(),
                 cat.getEmoji(),
-                contentRepository.countByPublishedAndCategory(cat.getNotionTag()),
-                contentProgressRepository.countCompletedByUserEmailAndCategory(email, cat.getNotionTag())
+                publishedCounts.getOrDefault(cat.getNotionTag(), 0L),
+                completedCounts.getOrDefault(cat.getNotionTag(), 0L)
             ))
             .toList();
     }
