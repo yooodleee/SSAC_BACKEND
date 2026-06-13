@@ -61,6 +61,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class HomeService {
 
     private static final int RECOMMENDED_MAX = 5;
+    /** DB에서 한 번에 조회하는 콘텐츠 상한. 완료·추천이력 제외 후에도 RECOMMENDED_MAX를 채울 수 있는 여유값. */
+    private static final int CONTENT_FETCH_LIMIT = 20;
     private static final String ONBOARDING_REDIRECT = "/onboarding/test";
     private static final String HOME_CACHE_PREFIX = "home:";
     private static final String REC_HISTORY_PREFIX = "home:rec_history:";
@@ -133,11 +135,13 @@ public class HomeService {
         ContentDifficulty contentDiff = toContentDifficulty(level);
 
         // 콘텐츠 3종 사전 조회 — buildRecommended, buildTodayCard에서 공유하여 중복 쿼리 제거
+        // CONTENT_FETCH_LIMIT로 DB 레벨 LIMIT를 걸어 대량 콘텐츠 전체 로드를 방지한다
+        PageRequest contentPage = PageRequest.of(0, CONTENT_FETCH_LIMIT);
         List<Content> interestContents = interestDomains.isEmpty()
             ? List.of()
-            : contentRepository.findByCategoriesInAndDifficultyPublished(interestDomains, contentDiff);
-        List<Content> diffContents = contentRepository.findByDifficultyPublished(contentDiff);
-        List<Content> allContents = contentRepository.findAllPublishedOrderByLastEdited();
+            : contentRepository.findByCategoriesInAndDifficultyPublished(interestDomains, contentDiff, contentPage);
+        List<Content> diffContents = contentRepository.findByDifficultyPublished(contentDiff, contentPage);
+        List<Content> allContents = contentRepository.findAllPublishedOrderByLastEdited(contentPage);
 
         List<RecommendedContentDto> recommended = buildRecommended(
             interestContents, diffContents, allContents, level, completedIds, excludedIds);
@@ -210,10 +214,11 @@ public class HomeService {
         if (result.size() < RECOMMENDED_MAX) {
             UserLevel nextLevel = nextLevel(level);
             if (nextLevel != null) {
-                contentRepository.findByDifficultyPublished(toContentDifficulty(nextLevel))
+                contentRepository.findByDifficultyPublished(
+                        toContentDifficulty(nextLevel),
+                        PageRequest.of(0, RECOMMENDED_MAX - result.size()))
                     .stream()
                     .filter(c -> !addedIds.contains(c.getId()))
-                    .limit((long) RECOMMENDED_MAX - result.size())
                     .forEach(c -> result.add(toRecommendedDto(c, false, true)));
             }
         }

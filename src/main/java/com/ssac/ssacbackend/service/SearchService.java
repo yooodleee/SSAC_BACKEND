@@ -61,10 +61,12 @@ public class SearchService {
     }
 
     private SearchSuggestionResponse getContentSuggestions(String query) {
-        List<Content> contents = contentRepository.findByIsPublishedTrueAndTitleContaining(query);
+        // DB 레벨 LIMIT로 전체 조회 방지 — Java 스트림 limit() 제거
+        List<Content> contents = contentRepository
+            .findByIsPublishedTrueAndTitleContainingPaged(query, PageRequest.of(0, SUGGESTION_LIMIT))
+            .getContent();
 
         List<SuggestionItem> items = contents.stream()
-            .limit(SUGGESTION_LIMIT)
             .map(c -> {
                 String category = c.getFirstCategory();
                 return new SuggestionItem(

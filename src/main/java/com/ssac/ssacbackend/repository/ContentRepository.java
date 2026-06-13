@@ -54,20 +54,38 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
 
     // ── HomeService 호환 쿼리 ───────────────────────────────────────────────────
 
+    /**
+     * 관심 카테고리 + 난이도 필터로 게시된 콘텐츠를 조회한다.
+     *
+     * <p>Pageable로 DB 레벨 LIMIT를 적용하여 대량 콘텐츠 전체 로드를 방지한다.
+     */
     @Query("SELECT DISTINCT c FROM Content c"
         + " JOIN c.categories cat"
         + " WHERE cat IN :categories AND c.difficulty = :difficulty AND c.isPublished = true"
         + " ORDER BY c.notionLastEditedAt DESC")
     List<Content> findByCategoriesInAndDifficultyPublished(
         @Param("categories") List<String> categories,
-        @Param("difficulty") ContentDifficulty difficulty);
+        @Param("difficulty") ContentDifficulty difficulty,
+        Pageable pageable);
 
+    /**
+     * 난이도 필터로 게시된 콘텐츠를 조회한다.
+     *
+     * <p>Pageable로 DB 레벨 LIMIT를 적용하여 대량 콘텐츠 전체 로드를 방지한다.
+     */
     @Query("SELECT c FROM Content c WHERE c.isPublished = true AND c.difficulty = :difficulty"
         + " ORDER BY c.notionLastEditedAt DESC")
-    List<Content> findByDifficultyPublished(@Param("difficulty") ContentDifficulty difficulty);
+    List<Content> findByDifficultyPublished(
+        @Param("difficulty") ContentDifficulty difficulty,
+        Pageable pageable);
 
+    /**
+     * 최근 수정 순으로 게시된 콘텐츠를 조회한다.
+     *
+     * <p>Pageable로 DB 레벨 LIMIT를 적용하여 대량 콘텐츠 전체 로드를 방지한다.
+     */
     @Query("SELECT c FROM Content c WHERE c.isPublished = true ORDER BY c.notionLastEditedAt DESC")
-    List<Content> findAllPublishedOrderByLastEdited();
+    List<Content> findAllPublishedOrderByLastEdited(Pageable pageable);
 
     @Query("SELECT COUNT(DISTINCT c) FROM Content c JOIN c.categories cat"
         + " WHERE cat = :category AND c.isPublished = true")
