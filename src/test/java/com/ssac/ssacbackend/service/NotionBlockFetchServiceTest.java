@@ -16,7 +16,10 @@ import notion.api.v1.NotionClient;
 import notion.api.v1.model.blocks.BulletedListItemBlock;
 import notion.api.v1.model.blocks.Blocks;
 import notion.api.v1.model.blocks.BlockType;
+import notion.api.v1.model.blocks.NumberedListItemBlock;
 import notion.api.v1.model.blocks.QuoteBlock;
+import notion.api.v1.model.blocks.TableBlock;
+import notion.api.v1.model.blocks.TableRowBlock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -132,6 +135,103 @@ class NotionBlockFetchServiceTest {
             assertThat(result).hasSize(2);
             verify(notionClient).retrieveBlockChildren("page-abc", null, 100);
             verify(notionClient).retrieveBlockChildren("page-abc", "cursor-1", 100);
+        }
+
+        @Test
+        @DisplayName("연속된 numbered_list_item 블록에 1부터 시작하는 number 필드가 주입된다")
+        void fetchBlocks_번호매기기목록_순번주입() {
+            NumberedListItemBlock.Element element = new NumberedListItemBlock.Element(List.of());
+            NumberedListItemBlock block1 = new NumberedListItemBlock(element);
+            block1.setId("item-1");
+            NumberedListItemBlock block2 = new NumberedListItemBlock(element);
+            block2.setId("item-2");
+            NumberedListItemBlock block3 = new NumberedListItemBlock(element);
+            block3.setId("item-3");
+
+            Blocks blocks = Mockito.mock(Blocks.class);
+            given(blocks.getResults()).willReturn(List.of(block1, block2, block3));
+            given(blocks.getHasMore()).willReturn(Boolean.FALSE);
+            given(notionClient.retrieveBlockChildren("page-abc", null, 100)).willReturn(blocks);
+
+            List<Map<String, Object>> result = notionBlockFetchService.fetchBlocks("page-abc");
+
+            assertThat(result).hasSize(3);
+            for (int i = 0; i < 3; i++) {
+                assertThat(result.get(i).get("type")).isEqualTo("numbered_list_item");
+                @SuppressWarnings("unchecked")
+                Map<String, Object> itemProp =
+                    (Map<String, Object>) result.get(i).get("numbered_list_item");
+                assertThat(itemProp).isNotNull();
+                assertThat(itemProp.get("number")).isEqualTo(i + 1);
+            }
+        }
+
+        @Test
+        @DisplayName("다른 블록 타입이 중간에 등장하면 번호 매기기 목록의 순번이 1로 초기화된다")
+        void fetchBlocks_번호매기기목록_순번초기화() {
+            NumberedListItemBlock.Element element = new NumberedListItemBlock.Element(List.of());
+            NumberedListItemBlock firstBlock = new NumberedListItemBlock(element);
+            firstBlock.setId("item-1");
+
+            BulletedListItemBlock separator = Mockito.mock(BulletedListItemBlock.class);
+            given(separator.getType()).willReturn(BlockType.BulletedListItem);
+            given(separator.getId()).willReturn("bullet-1");
+
+            NumberedListItemBlock afterReset = new NumberedListItemBlock(element);
+            afterReset.setId("item-2");
+
+            Blocks blocks = Mockito.mock(Blocks.class);
+            given(blocks.getResults()).willReturn(List.of(firstBlock, separator, afterReset));
+            given(blocks.getHasMore()).willReturn(Boolean.FALSE);
+            given(notionClient.retrieveBlockChildren("page-abc", null, 100)).willReturn(blocks);
+
+            List<Map<String, Object>> result = notionBlockFetchService.fetchBlocks("page-abc");
+
+            assertThat(result).hasSize(3);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> firstProp =
+                (Map<String, Object>) result.get(0).get("numbered_list_item");
+            assertThat(firstProp.get("number")).isEqualTo(1);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> afterResetProp =
+                (Map<String, Object>) result.get(2).get("numbered_list_item");
+            assertThat(afterResetProp.get("number")).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("table 블록의 자식(table_row)이 children으로 포함된다")
+        void fetchBlocks_테이블블록_행포함() {
+            TableRowBlock.Element rowElement = new TableRowBlock.Element();
+            TableRowBlock tableRowBlock = new TableRowBlock(rowElement);
+            tableRowBlock.setId("row-1");
+
+            Blocks rowBlocks = Mockito.mock(Blocks.class);
+            given(rowBlocks.getResults()).willReturn(List.of(tableRowBlock));
+            given(rowBlocks.getHasMore()).willReturn(Boolean.FALSE);
+
+            TableBlock.Element tableElement = new TableBlock.Element(2, true, false);
+            TableBlock tableBlock = new TableBlock(tableElement);
+            tableBlock.setId("table-1");
+            tableBlock.setHasChildren(true);
+
+            Blocks topBlocks = Mockito.mock(Blocks.class);
+            given(topBlocks.getResults()).willReturn(List.of(tableBlock));
+            given(topBlocks.getHasMore()).willReturn(Boolean.FALSE);
+
+            given(notionClient.retrieveBlockChildren("page-abc", null, 100)).willReturn(topBlocks);
+            given(notionClient.retrieveBlockChildren("table-1", null, 100)).willReturn(rowBlocks);
+
+            List<Map<String, Object>> result = notionBlockFetchService.fetchBlocks("page-abc");
+
+            assertThat(result).hasSize(1);
+            Map<String, Object> tableMap = result.get(0);
+            assertThat(tableMap.get("type")).isEqualTo("table");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> children =
+                (List<Map<String, Object>>) tableMap.get("children");
+            assertThat(children).hasSize(1);
+            assertThat(children.get(0).get("type")).isEqualTo("table_row");
         }
 
         @Test
