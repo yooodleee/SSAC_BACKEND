@@ -1,5 +1,6 @@
 package com.ssac.ssacbackend.config;
 
+import java.net.http.HttpClient;
 import notion.api.v1.NotionClient;
 import notion.api.v1.http.OkHttp4Client;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -20,5 +21,10 @@ public class NotionConfig {
         NotionClient client = new NotionClient(props.getApiKey());
         client.setHttpClient(new OkHttp4Client());
         return client;
+    }
+
+    @Bean
+    public HttpClient httpClient() {
+        return HttpClient.newHttpClient();
     }
 }

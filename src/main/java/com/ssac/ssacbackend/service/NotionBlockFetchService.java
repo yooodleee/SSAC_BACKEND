@@ -8,6 +8,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.ssac.ssacbackend.common.util.CacheKeys;
 import com.ssac.ssacbackend.component.NotionImageMigrator;
+import com.ssac.ssacbackend.config.NotionProperties;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import notion.api.v1.NotionClient;
 import notion.api.v1.model.blocks.Block;
 import notion.api.v1.model.blocks.Blocks;
+import notion.api.v1.model.blocks.UnsupportedBlock;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +31,7 @@ import org.springframework.stereotype.Service;
  * Notion 블록 조회, Redis 캐싱, Cloudinary 이미지 마이그레이션을 담당하는 서비스.
  *
  * <p>Notion API 블록을 Gson으로 직렬화하여 Notion API 원본 형식(snake_case)을 그대로 반환한다.
+ * SDK가 인식하지 못하는 블록 타입(heading_4 등)은 Notion API에 직접 HTTP 요청하여 원본 타입을 복원한다.
  * 조회 결과는 Redis에 {@value CacheKeys#BLOCK_TTL_SECONDS}초 동안 캐싱된다.
  */
 @Slf4j
@@ -36,10 +43,14 @@ public class NotionBlockFetchService {
     private static final Gson GSON = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .create();
+    private static final String NOTION_API_BASE = "https://api.notion.com/v1";
+    private static final String NOTION_VERSION = "2022-06-28";
 
     private final NotionClient notionClient;
+    private final NotionProperties notionProperties;
     private final NotionImageMigrator notionImageMigrator;
     private final StringRedisTemplate stringRedisTemplate;
+    private final HttpClient httpClient;
 
     /**
      * Notion 페이지의 블록 목록을 반환한다.
@@ -155,13 +166,25 @@ public class NotionBlockFetchService {
     /**
      * 단일 Block을 Map으로 직렬화한다.
      *
-     * <p>GSON으로 직렬화한 뒤 ObjectMapper로 역직렬화한다.
+     * <p>SDK가 인식하지 못한 UnsupportedBlock은 Notion API에 직접 HTTP 요청하여 원본 타입과 콘텐츠를 복원한다.
+     * GSON으로 직렬화한 뒤 ObjectMapper로 역직렬화한다.
      * BlockType enum은 Notion API 값(snake_case)으로 교체한다.
      * has_children이 true이면 자식 블록을 재귀적으로 포함한다.
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> serializeBlock(Block block) {
         try {
+            if (block instanceof UnsupportedBlock) {
+                Map<String, Object> raw = fetchRawBlock(block.getId());
+                if (raw != null) {
+                    migrateImageUrl(raw);
+                    if (Boolean.TRUE.equals(raw.get("has_children"))) {
+                        String childId = (String) raw.get("id");
+                        raw.put("children", fetchChildBlocks(childId));
+                    }
+                    return raw;
+                }
+            }
             String json = GSON.toJson(block);
             Map<String, Object> map = OBJECT_MAPPER.readValue(
                 json, new TypeReference<Map<String, Object>>() {});
@@ -187,6 +210,39 @@ public class NotionBlockFetchService {
                 ? block.getType().getValue() : "unknown");
             return fallback;
         }
+    }
+
+    /**
+     * Notion API에 직접 HTTP 요청하여 단일 블록의 원본 JSON을 반환한다.
+     *
+     * <p>SDK가 인식하지 못하는 블록 타입(heading_4 등)의 실제 타입과 콘텐츠를 복원하는 데 사용된다.
+     */
+    Map<String, Object> fetchRawBlock(String blockId) {
+        if (blockId == null || blockId.isBlank()) {
+            return null;
+        }
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(NOTION_API_BASE + "/blocks/" + blockId))
+            .header("Authorization", "Bearer " + notionProperties.getApiKey())
+            .header("Notion-Version", NOTION_VERSION)
+            .GET()
+            .build();
+        try {
+            HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                return OBJECT_MAPPER.readValue(
+                    response.body(), new TypeReference<Map<String, Object>>() {});
+            }
+            log.warn("Unsupported 블록 원본 조회 실패: blockId={}, status={}",
+                blockId, response.statusCode());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Unsupported 블록 원본 조회 인터럽트: blockId={}", blockId, e);
+        } catch (Exception e) {
+            log.warn("Unsupported 블록 원본 조회 실패: blockId={}", blockId, e);
+        }
+        return null;
     }
 
     /**
