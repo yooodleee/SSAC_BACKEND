@@ -116,9 +116,12 @@ public class NotionBlockFetchService {
      * Block 목록을 Map 목록으로 직렬화한다.
      *
      * <p>null 요소를 제거하고, has_children이 true인 블록은 자식을 재귀적으로 포함한다.
+     * numbered_list_item 블록은 연속 순서대로 number 필드(1부터)를 주입한다.
+     * Notion API는 번호 매기기 목록의 순번을 제공하지 않으므로 백엔드에서 직접 부여한다.
      */
     private List<Map<String, Object>> processBlockList(List<? extends Block> blocks) {
         List<Map<String, Object>> result = new ArrayList<>();
+        int numberedListCounter = 0;
         for (Block block : blocks) {
             if (block == null) {
                 continue;
@@ -127,9 +130,26 @@ public class NotionBlockFetchService {
             if (map == null) {
                 continue;
             }
+            if ("numbered_list_item".equals(map.get("type"))) {
+                numberedListCounter++;
+                injectNumber(map, numberedListCounter);
+            } else {
+                numberedListCounter = 0;
+            }
             result.add(map);
         }
         return result;
+    }
+
+    /**
+     * numbered_list_item 블록의 numbered_list_item 프로퍼티에 number 필드를 주입한다.
+     */
+    @SuppressWarnings("unchecked")
+    private void injectNumber(Map<String, Object> map, int number) {
+        Object element = map.get("numbered_list_item");
+        if (element instanceof Map) {
+            ((Map<String, Object>) element).put("number", number);
+        }
     }
 
     /**

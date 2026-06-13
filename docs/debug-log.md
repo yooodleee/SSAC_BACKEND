@@ -17,6 +17,26 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-13 — investment 시리즈 콘텐츠 table/numbered_list_item 인식 불가
+
+### 증상
+- investment 도메인 시리즈 콘텐츠에서 table 요소와 번호 매기기 목록이 1부터 인식되지 않음
+
+### 원인
+- Notion API는 `numbered_list_item` 블록에 순번(1, 2, 3...)을 포함하지 않음
+- `processBlockList`가 연속된 `numbered_list_item` 블록에 `number` 필드를 주입하지 않아 프론트엔드가 순번을 인식 불가
+- `table` 블록: SDK 및 직렬화 로직 자체는 정상 (has_children 핸들링으로 table_row 자식 포함)
+
+### 수정
+- `NotionBlockFetchService.processBlockList()`: 연속된 `numbered_list_item` 블록에 `number` 필드 주입 (1부터, 다른 타입 블록 등장 시 리셋)
+- `injectNumber()` private 메서드 추가
+- 신규 테스트 3개 추가: 순번 주입, 순번 초기화, table_row 포함 검증
+
+### 검증
+- 전체 테스트 통과 / 커버리지 70% 이상 유지
+
+---
+
 ## ✅ [AUDIT] 2026-06-12 — Harness Audit (전체 시스템 재평가)
 
 ### 감사 요약

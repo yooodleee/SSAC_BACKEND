@@ -261,7 +261,20 @@
       "Bash(wc -l C:/Users/dhals_zn0ga5j/python_seed/SSAC_BACKEND/ssac-backend/docs/agent-protocols/*.md)",
       "Bash(wc -l docs/agent-protocols/*.md)",
       "Bash(wc -l \"C:\\\\Users\\\\dhals_zn0ga5j\\\\python_seed\\\\SSAC_BACKEND\\\\ssac-backend\\\\docs\\\\agent-protocols\"/*.md)",
-      "Bash(echo \"exit:$?\")"
+      "Bash(echo \"exit:$?\")",
+      "Bash(javap -p notion/api/v1/model/blocks/NumberedListItemBlock.class)",
+      "Bash(javap -p notion/api/v1/model/blocks/TableBlock.class)",
+      "Bash(javap -c -verbose notion/api/v1/model/blocks/BlockType.class)",
+      "Bash(javap -p 'notion/api/v1/model/blocks/NumberedListItemBlock$Element.class')",
+      "Bash(javap -p 'notion/api/v1/model/blocks/TableBlock$Element.class')",
+      "Bash(javap -p 'notion/api/v1/model/blocks/TableRowBlock$Element.class')",
+      "Bash(javap -p notion/api/v1/model/blocks/TableRowBlock.class)",
+      "Bash(javap -p notion/api/v1/model/blocks/UnsupportedBlock.class)",
+      "Bash(javap -c -verbose notion/api/v1/model/common/BlockColor.class)",
+      "Bash(javap -c notion/api/v1/json/gson/BlockParser.class)",
+      "Bash(javap -c -verbose notion/api/v1/json/GsonSerializer.class)",
+      "Bash(javap -c notion/api/v1/json/GsonSerializer.class)",
+      "Bash(javap -c notion/api/v1/model/blocks/NumberedListItemBlock.class)"
     ]
   }
 }
