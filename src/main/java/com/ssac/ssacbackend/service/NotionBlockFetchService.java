@@ -225,6 +225,7 @@ public class NotionBlockFetchService {
             .uri(URI.create(NOTION_API_BASE + "/blocks/" + blockId))
             .header("Authorization", "Bearer " + notionProperties.getApiKey())
             .header("Notion-Version", NOTION_VERSION)
+            .timeout(Duration.ofSeconds(10))
             .GET()
             .build();
         try {

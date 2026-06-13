@@ -49,8 +49,8 @@ class SearchServiceTest {
     void 검색어_자동완성_가나다순() {
         Content c1 = makeContent(1L, "재테크 기초", "재테크/신용", 100);
         Content c2 = makeContent(2L, "개인연금 가이드", "재테크/신용", 200);
-        given(contentRepository.findByIsPublishedTrueAndTitleContaining("연"))
-            .willReturn(List.of(c2, c1));
+        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(eq("연"), any(Pageable.class)))
+            .willReturn(new PageImpl<>(List.of(c2, c1)));
 
         SearchSuggestionResponse result = searchService.getSuggestions("연");
 
@@ -64,8 +64,8 @@ class SearchServiceTest {
     void 초성_ㄱ_검색() {
         Content c1 = makeContent(1L, "개인연금", "재테크/신용", 100);
         Content c2 = makeContent(2L, "근로장려금", "재테크/신용", 200);
-        given(contentRepository.findByIsPublishedTrueAndTitleContaining("ㄱ"))
-            .willReturn(List.of(c1, c2));
+        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(eq("ㄱ"), any(Pageable.class)))
+            .willReturn(new PageImpl<>(List.of(c1, c2)));
 
         SearchSuggestionResponse result = searchService.getSuggestions("ㄱ");
 
@@ -92,11 +92,13 @@ class SearchServiceTest {
     @Test
     @DisplayName("자동완성 결과는 최대 10개로 제한된다")
     void 자동완성_최대_10개_제한() {
-        List<Content> manyContents = IntStream.rangeClosed(1, 15)
+        // DB 레벨 LIMIT 10이 적용된 결과를 시뮬레이션
+        List<Content> limitedContents = IntStream.rangeClosed(1, 10)
             .mapToObj(i -> makeContent((long) i, "연말정산" + i, "세금/연말정산", i * 10))
             .toList();
-        given(contentRepository.findByIsPublishedTrueAndTitleContaining("연말"))
-            .willReturn(manyContents);
+        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(
+            eq("연말"), any(Pageable.class)))
+            .willReturn(new PageImpl<>(limitedContents));
 
         SearchSuggestionResponse result = searchService.getSuggestions("연말");
 
