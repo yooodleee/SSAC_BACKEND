@@ -9,6 +9,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.ssac.ssacbackend.component.NotionImageMigrator;
+import com.ssac.ssacbackend.config.NotionProperties;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +24,7 @@ import notion.api.v1.model.blocks.NumberedListItemBlock;
 import notion.api.v1.model.blocks.QuoteBlock;
 import notion.api.v1.model.blocks.TableBlock;
 import notion.api.v1.model.blocks.TableRowBlock;
+import notion.api.v1.model.blocks.UnsupportedBlock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,11 +47,15 @@ class NotionBlockFetchServiceTest {
     @Mock
     private NotionClient notionClient;
     @Mock
+    private NotionProperties notionProperties;
+    @Mock
     private NotionImageMigrator notionImageMigrator;
     @Mock
     private StringRedisTemplate stringRedisTemplate;
     @Mock
     private ValueOperations<String, String> valueOperations;
+    @Mock
+    private HttpClient httpClient;
 
     @InjectMocks
     private NotionBlockFetchService notionBlockFetchService;
@@ -197,6 +206,38 @@ class NotionBlockFetchServiceTest {
             Map<String, Object> afterResetProp =
                 (Map<String, Object>) result.get(2).get("numbered_list_item");
             assertThat(afterResetProp.get("number")).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("SDK가 인식하지 못한 UnsupportedBlock은 Notion API 직접 조회로 실제 타입을 복원한다")
+        @SuppressWarnings("unchecked")
+        void fetchBlocks_unsupportedBlock_원본타입복원() throws Exception {
+            UnsupportedBlock unsupportedBlock = Mockito.mock(UnsupportedBlock.class);
+            given(unsupportedBlock.getType()).willReturn(BlockType.Unsupported);
+            given(unsupportedBlock.getId()).willReturn("heading4-id");
+
+            Blocks blocks = Mockito.mock(Blocks.class);
+            given(blocks.getResults()).willReturn(List.of(unsupportedBlock));
+            given(blocks.getHasMore()).willReturn(Boolean.FALSE);
+            given(notionClient.retrieveBlockChildren("page-abc", null, 100)).willReturn(blocks);
+
+            String rawJson = "{\"id\":\"heading4-id\",\"type\":\"heading_4\","
+                + "\"has_children\":false,"
+                + "\"heading_4\":{\"rich_text\":[{\"plain_text\":\"제목4\"}]}}";
+            HttpResponse<String> httpResponse = Mockito.mock(HttpResponse.class);
+            given(httpResponse.statusCode()).willReturn(200);
+            given(httpResponse.body()).willReturn(rawJson);
+            given(notionProperties.getApiKey()).willReturn("test-key");
+            given(httpClient.send(
+                Mockito.any(HttpRequest.class),
+                Mockito.<HttpResponse.BodyHandler<String>>any()
+            )).willReturn((HttpResponse) httpResponse);
+
+            List<Map<String, Object>> result = notionBlockFetchService.fetchBlocks("page-abc");
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).get("type")).isEqualTo("heading_4");
+            assertThat(result.get(0)).containsKey("heading_4");
         }
 
         @Test

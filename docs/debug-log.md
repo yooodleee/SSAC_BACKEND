@@ -17,6 +17,33 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-13 — work 시리즈 콘텐츠 heading_4 요소 미출력
+
+### 증상
+- work 도메인 네 번째 시리즈 콘텐츠의 heading_4(####) 요소가 Railway 배포 후에도 출력되지 않음
+
+### 원인
+- Notion API는 heading_4 블록 타입을 지원하지만, notion-sdk-jvm 1.1.0/1.11.1 모두 미지원
+- SDK의 BlockParser가 heading_4를 UnsupportedBlock으로 처리 → type: "unsupported" 반환 → FE 렌더 불가
+- FE 변경만으로는 해결 불가 (BE가 "heading_4" 타입 자체를 내려주지 않음)
+
+### 수정
+- `NotionBlockFetchService.serializeBlock()`: UnsupportedBlock 감지 시 Notion REST API 직접 호출(`GET /v1/blocks/{id}`)하여 원본 타입과 콘텐츠 복원
+- `fetchRawBlock()` package-private 메서드 추가 (`java.net.http.HttpClient` 사용)
+- `NotionConfig`: `HttpClient` @Bean 추가 (테스트 목 주입 지원)
+- UnsupportedBlock → heading_4 복원 테스트 추가
+
+### FE 통보 필요 여부
+- extractTitle NPE 수정: 불필요 (API 구조 변화 없음)
+- numbered_list_item number 주입: 필요 (`numbered_list_item.number` 신규 필드)
+- table/table_row 구조: 필요 (렌더러 구현 안내)
+- heading_4 복원: 필요 (이제 `type: "heading_4"` 반환, FE 렌더러 구현 필요)
+
+### 검증
+- 전체 테스트 통과 / 커버리지 70% 이상 유지
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-13 — investment 시리즈 콘텐츠 table/numbered_list_item 인식 불가
 
 ### 증상
