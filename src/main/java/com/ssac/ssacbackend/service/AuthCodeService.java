@@ -1,5 +1,7 @@
 package com.ssac.ssacbackend.service;
 
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.ServiceUnavailableException;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.dto.AuthCodeResult;
 import java.time.Duration;
@@ -39,8 +41,13 @@ public class AuthCodeService {
      */
     public String issueForExistingUser(Long userId) {
         String code = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(
-            KEY_PREFIX + code, "EXISTING:" + userId, Duration.ofSeconds(TTL_SECONDS));
+        try {
+            redisTemplate.opsForValue().set(
+                KEY_PREFIX + code, "EXISTING:" + userId, Duration.ofSeconds(TTL_SECONDS));
+        } catch (Exception e) {
+            log.error("Redis 장애: AuthCode 저장 실패 (기존 회원): userId={}", userId, e);
+            throw new ServiceUnavailableException(ErrorCode.REDIS_UNAVAILABLE);
+        }
         log.debug("AuthCode 발급(기존 회원): userId={}", userId);
         return code;
     }
@@ -54,9 +61,14 @@ public class AuthCodeService {
      */
     public String issueForNewUser(String tempToken, OAuthProvider provider) {
         String code = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(
-            KEY_PREFIX + code, "NEW:" + tempToken + ":" + provider.name(),
-            Duration.ofSeconds(TTL_SECONDS));
+        try {
+            redisTemplate.opsForValue().set(
+                KEY_PREFIX + code, "NEW:" + tempToken + ":" + provider.name(),
+                Duration.ofSeconds(TTL_SECONDS));
+        } catch (Exception e) {
+            log.error("Redis 장애: AuthCode 저장 실패 (신규 회원): provider={}", provider, e);
+            throw new ServiceUnavailableException(ErrorCode.REDIS_UNAVAILABLE);
+        }
         log.debug("AuthCode 발급(신규 회원): provider={}", provider);
         return code;
     }
@@ -86,7 +98,13 @@ public class AuthCodeService {
      * @return 유효한 코드이면 {@link AuthCodeResult}, 만료·미존재이면 empty
      */
     public Optional<AuthCodeResult> consume(String code) {
-        String value = redisTemplate.opsForValue().getAndDelete(KEY_PREFIX + code);
+        String value;
+        try {
+            value = redisTemplate.opsForValue().getAndDelete(KEY_PREFIX + code);
+        } catch (Exception e) {
+            log.error("Redis 장애: AuthCode 소비 실패: code={}", code, e);
+            throw new ServiceUnavailableException(ErrorCode.REDIS_UNAVAILABLE);
+        }
         if (value == null) {
             log.warn("AuthCode 조회 실패 (미존재 또는 이미 소비됨): code={}", code);
             return Optional.empty();

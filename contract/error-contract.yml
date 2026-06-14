@@ -9,8 +9,8 @@
 #   삭제/변경 → Major 증가 (1.0.0 -> 2.0.0)
 #
 # 검증: ./gradlew validateErrorContract
-version: "1.2.0"
-updatedAt: "2026-05-25"
+version: "1.2.1"
+updatedAt: "2026-06-14"
 errors:
   - code: "COMMON-001"
     status: 400
@@ -30,6 +30,11 @@ errors:
   - code: "SERVER-001"
     status: 500
     message: "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+    domain: "SERVER"
+
+  - code: "SERVER-002"
+    status: 503
+    message: "서비스가 일시적으로 불가합니다. 잠시 후 다시 시도해주세요."
     domain: "SERVER"
 
   - code: "AUTH-001"

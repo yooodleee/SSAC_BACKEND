@@ -2,6 +2,7 @@ package com.ssac.ssacbackend.service;
 
 import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.ServiceUnavailableException;
 import com.ssac.ssacbackend.config.NaverOAuthProperties;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.domain.social.SocialAccount;
@@ -56,8 +57,13 @@ public class NaverOAuthService {
      */
     public String generateAuthorizationUrl() {
         String state = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(
-            STATE_KEY_PREFIX + state, "1", Duration.ofSeconds(STATE_TTL_SECONDS));
+        try {
+            redisTemplate.opsForValue().set(
+                STATE_KEY_PREFIX + state, "1", Duration.ofSeconds(STATE_TTL_SECONDS));
+        } catch (Exception e) {
+            log.error("Redis 장애: OAuth state 저장 실패", e);
+            throw new ServiceUnavailableException(ErrorCode.REDIS_UNAVAILABLE);
+        }
 
         return UriComponentsBuilder.fromUriString(NAVER_AUTH_URL)
             .queryParam("response_type", "code")
@@ -116,7 +122,13 @@ public class NaverOAuthService {
     }
 
     private void validateState(String state) {
-        String value = redisTemplate.opsForValue().getAndDelete(STATE_KEY_PREFIX + state);
+        String value;
+        try {
+            value = redisTemplate.opsForValue().getAndDelete(STATE_KEY_PREFIX + state);
+        } catch (Exception e) {
+            log.error("Redis 장애: OAuth state 검증 실패", e);
+            throw new ServiceUnavailableException(ErrorCode.REDIS_UNAVAILABLE);
+        }
         if (value == null) {
             throw new BadRequestException(ErrorCode.OAUTH_STATE_INVALID);
         }

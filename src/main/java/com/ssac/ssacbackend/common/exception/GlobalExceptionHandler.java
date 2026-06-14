@@ -212,6 +212,31 @@ public class GlobalExceptionHandler {
             ));
     }
 
+    // ── 503 Service Unavailable ────────────────────────────────────────────────
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleServiceUnavailable(
+        ServiceUnavailableException e, HttpServletRequest request) {
+        String traceId = MDC.get("traceId");
+        String userId = MDC.get("userId");
+        log.error("[{}] {} {} | traceId={} | userId={}\n-> {}",
+            e.getErrorCode().getCode(),
+            request.getMethod(),
+            request.getRequestURI(),
+            traceId,
+            userId,
+            e.getMessage());
+        errorLogService.saveError(traceId, e.getErrorCode().getCode(),
+            request.getMethod(), request.getRequestURI(), e.getMessage(), e, userId);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(ErrorResponse.of(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                e.getErrorCode().getCode(),
+                e.getMessage(),
+                traceId
+            ));
+    }
+
     // ── 500 Internal Server Error ──────────────────────────────────────────────
     // 내부 오류 상세 정보(스택 트레이스, 예외 메시지)는 응답에 포함하지 않는다.
 
