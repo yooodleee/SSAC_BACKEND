@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -110,9 +111,14 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
 
     // ── 검색 ───────────────────────────────────────────────────────────────────
 
+    /**
+     * 자동완성용 — COUNT 쿼리 없이 LIMIT만 적용한다 (Slice).
+     */
     @Query("SELECT c FROM Content c WHERE c.isPublished = true AND c.title LIKE %:query%"
         + " ORDER BY c.title ASC, c.notionLastEditedAt DESC")
-    List<Content> findByIsPublishedTrueAndTitleContaining(@Param("query") String query);
+    Slice<Content> findSuggestionsByTitleContaining(
+        @Param("query") String query,
+        Pageable pageable);
 
     @Query("SELECT c FROM Content c WHERE c.isPublished = true AND c.title LIKE %:query%"
         + " ORDER BY c.title ASC, c.notionLastEditedAt DESC")

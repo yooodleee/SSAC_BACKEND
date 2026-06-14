@@ -61,9 +61,9 @@ public class SearchService {
     }
 
     private SearchSuggestionResponse getContentSuggestions(String query) {
-        // DB 레벨 LIMIT로 전체 조회 방지 — Java 스트림 limit() 제거
+        // Slice 사용 — COUNT 쿼리 없이 LIMIT만 적용하여 자동완성 성능 개선
         List<Content> contents = contentRepository
-            .findByIsPublishedTrueAndTitleContainingPaged(query, PageRequest.of(0, SUGGESTION_LIMIT))
+            .findSuggestionsByTitleContaining(query, PageRequest.of(0, SUGGESTION_LIMIT))
             .getContent();
 
         List<SuggestionItem> items = contents.stream()

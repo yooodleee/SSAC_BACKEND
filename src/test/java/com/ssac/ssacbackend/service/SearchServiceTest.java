@@ -27,7 +27,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,8 +51,8 @@ class SearchServiceTest {
     void 검색어_자동완성_가나다순() {
         Content c1 = makeContent(1L, "재테크 기초", "재테크/신용", 100);
         Content c2 = makeContent(2L, "개인연금 가이드", "재테크/신용", 200);
-        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(eq("연"), any(Pageable.class)))
-            .willReturn(new PageImpl<>(List.of(c2, c1)));
+        given(contentRepository.findSuggestionsByTitleContaining(eq("연"), any(Pageable.class)))
+            .willReturn(new SliceImpl<>(List.of(c2, c1), PageRequest.of(0, 10), false));
 
         SearchSuggestionResponse result = searchService.getSuggestions("연");
 
@@ -64,8 +66,8 @@ class SearchServiceTest {
     void 초성_ㄱ_검색() {
         Content c1 = makeContent(1L, "개인연금", "재테크/신용", 100);
         Content c2 = makeContent(2L, "근로장려금", "재테크/신용", 200);
-        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(eq("ㄱ"), any(Pageable.class)))
-            .willReturn(new PageImpl<>(List.of(c1, c2)));
+        given(contentRepository.findSuggestionsByTitleContaining(eq("ㄱ"), any(Pageable.class)))
+            .willReturn(new SliceImpl<>(List.of(c1, c2), PageRequest.of(0, 10), false));
 
         SearchSuggestionResponse result = searchService.getSuggestions("ㄱ");
 
@@ -96,9 +98,9 @@ class SearchServiceTest {
         List<Content> limitedContents = IntStream.rangeClosed(1, 10)
             .mapToObj(i -> makeContent((long) i, "연말정산" + i, "세금/연말정산", i * 10))
             .toList();
-        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(
+        given(contentRepository.findSuggestionsByTitleContaining(
             eq("연말"), any(Pageable.class)))
-            .willReturn(new PageImpl<>(limitedContents));
+            .willReturn(new SliceImpl<>(limitedContents, PageRequest.of(0, 10), false));
 
         SearchSuggestionResponse result = searchService.getSuggestions("연말");
 
