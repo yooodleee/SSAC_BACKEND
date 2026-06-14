@@ -1,1 +1,4 @@
-[2026-06-14 15:17:48]
+[2026-06-14 15:59:51]
+Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && git status --short 2>&1 | grep -v "^warning"
+---
+{'stdout': ' M contract/error-contract.yml\n M logs/agent-capture.log\n M src/main/java/com/ssac/ssacbackend/common/exception/ErrorCode.java\n M src/main/java/com/ssac/ssacbackend/common/exception/GlobalExceptionHandler.java\n M src/main/java/com/ssac/ssacbackend/service/AuthCodeService.java\n M src/main/java/com/ssac/ssacbackend/service/NaverOAuthService.java\n M src/main/java/com/ssac/ssacbackend/service/PendingRegistrationService.java\n?? src/main/java/com/ssac/ssacbackend/common/exception/ServiceUnavailableException.java', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}

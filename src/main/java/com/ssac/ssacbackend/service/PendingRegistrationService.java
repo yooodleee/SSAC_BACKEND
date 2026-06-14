@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.exception.ServiceUnavailableException;
 import com.ssac.ssacbackend.domain.auth.PendingRegistration;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import java.time.Duration;
@@ -52,7 +54,13 @@ public class PendingRegistrationService {
      * tempToken으로 유효한 임시 등록 항목을 조회한다. Redis TTL이 만료된 항목은 존재하지 않으므로 empty를 반환한다.
      */
     public Optional<PendingRegistration> findValid(String tempToken) {
-        String value = redisTemplate.opsForValue().get(KEY_PREFIX + tempToken);
+        String value;
+        try {
+            value = redisTemplate.opsForValue().get(KEY_PREFIX + tempToken);
+        } catch (Exception e) {
+            log.error("Redis 장애: PendingRegistration 조회 실패: tempToken={}", tempToken, e);
+            throw new ServiceUnavailableException(ErrorCode.REDIS_UNAVAILABLE);
+        }
         if (value == null) {
             return Optional.empty();
         }
@@ -74,7 +82,13 @@ public class PendingRegistrationService {
      * @param pending   약관 동의가 완료된 임시 등록 객체
      */
     public void update(String tempToken, PendingRegistration pending) {
-        Long remainingTtl = redisTemplate.getExpire(KEY_PREFIX + tempToken, TimeUnit.SECONDS);
+        Long remainingTtl;
+        try {
+            remainingTtl = redisTemplate.getExpire(KEY_PREFIX + tempToken, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("Redis 장애: PendingRegistration TTL 조회 실패: tempToken={}", tempToken, e);
+            throw new ServiceUnavailableException(ErrorCode.REDIS_UNAVAILABLE);
+        }
         if (remainingTtl == null || remainingTtl <= 0) {
             log.warn("PendingRegistration 업데이트 실패 — 만료됨: tempToken={}", tempToken);
             return;
@@ -87,17 +101,28 @@ public class PendingRegistrationService {
      * 회원 가입 완료 후 tempToken을 즉시 무효화한다.
      */
     public void invalidate(String tempToken) {
-        redisTemplate.delete(KEY_PREFIX + tempToken);
-        log.debug("PendingRegistration 무효화: tempToken={}", tempToken);
+        try {
+            redisTemplate.delete(KEY_PREFIX + tempToken);
+            log.debug("PendingRegistration 무효화: tempToken={}", tempToken);
+        } catch (Exception e) {
+            // 삭제 실패해도 TTL 만료로 자동 소멸되므로 경고 로그만 기록한다
+            log.warn("Redis 장애: PendingRegistration 무효화 실패 (TTL 만료로 자동 소멸): tempToken={}", tempToken, e);
+        }
     }
 
     private void store(String tempToken, PendingRegistration pending, long ttlSeconds) {
+        String value;
         try {
-            String value = serialize(pending);
-            redisTemplate.opsForValue().set(KEY_PREFIX + tempToken, value, Duration.ofSeconds(ttlSeconds));
+            value = serialize(pending);
         } catch (JsonProcessingException e) {
             log.error("PendingRegistration 직렬화 실패: tempToken={}", tempToken, e);
             throw new IllegalStateException("PendingRegistration 저장 실패", e);
+        }
+        try {
+            redisTemplate.opsForValue().set(KEY_PREFIX + tempToken, value, Duration.ofSeconds(ttlSeconds));
+        } catch (Exception e) {
+            log.error("Redis 장애: PendingRegistration 저장 실패: tempToken={}", tempToken, e);
+            throw new ServiceUnavailableException(ErrorCode.REDIS_UNAVAILABLE);
         }
     }
 
