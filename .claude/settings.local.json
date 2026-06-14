@@ -276,7 +276,8 @@
       "Bash(javap -c notion/api/v1/json/GsonSerializer.class)",
       "Bash(javap -c notion/api/v1/model/blocks/NumberedListItemBlock.class)",
       "Bash(javap -p \"notion/api/v1/http/OkHttp4Client.class\")",
-      "Bash(javap -verbose \"/tmp/notion/api/v1/http/OkHttp4Client.class\")"
+      "Bash(javap -verbose \"/tmp/notion/api/v1/http/OkHttp4Client.class\")",
+      "Bash(tasklist:*)"
     ]
   }
 }

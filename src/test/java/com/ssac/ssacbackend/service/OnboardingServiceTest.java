@@ -281,7 +281,7 @@ class OnboardingServiceTest {
     }
 
     @Test
-    @DisplayName("온보딩 미완료 사용자 요청 시 404(ONBOARDING-006) 응답")
+    @DisplayName("온보딩 미완료 사용자 요청 시 404(ONBOARDING-008) 응답")
     void 온보딩_미완료_사용자_요청_시_404_응답() {
         User user = buildUser("test@test.com", UserType.HIGH_SCHOOL, false, false, UserLevel.SEED, 0);
         given(userRepository.findByEmail("test@test.com")).willReturn(Optional.of(user));
@@ -291,7 +291,7 @@ class OnboardingServiceTest {
             .satisfies(ex -> {
                 BusinessException be = (BusinessException) ex;
                 assertThat(be.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
-                assertThat(be.getCode()).isEqualTo("ONBOARDING-006");
+                assertThat(be.getCode()).isEqualTo("ONBOARDING-008");
             });
     }
 

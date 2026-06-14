@@ -9,7 +9,7 @@
 #   삭제/변경 → Major 증가 (1.0.0 -> 2.0.0)
 #
 # 검증: ./gradlew validateErrorContract
-version: "1.2.1"
+version: "1.2.2"
 updatedAt: "2026-06-14"
 errors:
   - code: "COMMON-001"
@@ -270,6 +270,11 @@ errors:
   - code: "ONBOARDING-007"
     status: 400
     message: "관심 도메인은 1개 이상 3개 이하로 선택해주세요."
+    domain: "ONBOARDING"
+
+  - code: "ONBOARDING-008"
+    status: 404
+    message: "온보딩 테스트를 먼저 완료해주세요."
     domain: "ONBOARDING"
 
   - code: "FEEDBACK-001"
