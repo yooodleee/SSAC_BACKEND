@@ -93,9 +93,9 @@ public enum ErrorCode {
     ONBOARDING_INCOMPLETE_ANSWERS("ONBOARDING-003", 400, "모든 문제에 응답해주세요."),
     ONBOARDING_INVALID_QUESTION("ONBOARDING-004", 400, "유효하지 않은 문제입니다."),
     ONBOARDING_QUESTION_TYPE_MISMATCH("ONBOARDING-005", 400, "사용자 유형에 맞지 않는 문제입니다."),
-    ONBOARDING_NOT_COMPLETED("ONBOARDING-006", 404, "온보딩 테스트를 먼저 완료해주세요."),
-    ONBOARDING_INTEREST_INVALID_COUNT("ONBOARDING-007", 400, "관심 도메인은 1개 이상 3개 이하로 선택해주세요."),
     ONBOARDING_RETAKE_CONFLICT("ONBOARDING-006", 409, "완료된 온보딩 테스트가 없습니다."),
+    ONBOARDING_INTEREST_INVALID_COUNT("ONBOARDING-007", 400, "관심 도메인은 1개 이상 3개 이하로 선택해주세요."),
+    ONBOARDING_NOT_COMPLETED("ONBOARDING-008", 404, "온보딩 테스트를 먼저 완료해주세요."),
 
     // ── 피드백 (FEEDBACK) ────────────────────────────────────────────────────
     FEEDBACK_MESSAGE_REQUIRED("FEEDBACK-001", 400, "피드백 내용을 입력해주세요."),
