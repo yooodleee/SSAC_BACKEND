@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -33,6 +34,26 @@ class HomeCacheEvictServiceTest {
     @DisplayName("evict - Redis 연결 실패 시 예외 없이 처리를 계속한다")
     void evict_Redis연결실패_예외무시() {
         doThrow(new RedisConnectionFailureException("연결 실패"))
+            .when(stringRedisTemplate).delete(HomeCacheEvictService.HOME_CACHE_PREFIX + 99L);
+
+        homeCacheEvictService.evict(99L);
+        // 예외가 전파되지 않으면 성공
+    }
+
+    @Test
+    @DisplayName("evict - Redis 타임아웃 시 예외 없이 처리를 계속한다")
+    void evict_Redis타임아웃_예외무시() {
+        doThrow(new QueryTimeoutException("타임아웃"))
+            .when(stringRedisTemplate).delete(HomeCacheEvictService.HOME_CACHE_PREFIX + 99L);
+
+        homeCacheEvictService.evict(99L);
+        // 예외가 전파되지 않으면 성공
+    }
+
+    @Test
+    @DisplayName("evict - 예상치 못한 RuntimeException 발생 시 예외 없이 처리를 계속한다")
+    void evict_RuntimeException_예외무시() {
+        doThrow(new RuntimeException("예상치 못한 오류"))
             .when(stringRedisTemplate).delete(HomeCacheEvictService.HOME_CACHE_PREFIX + 99L);
 
         homeCacheEvictService.evict(99L);
