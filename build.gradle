@@ -37,6 +37,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     // 모니터링: 헬스체크, 메트릭, 구조화 로깅
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // 에러 모니터링: Spring Boot 4 전용 Sentry 스타터 (ADR-XXX)
+    implementation 'io.sentry:sentry-spring-boot-4:8.28.0'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
     // OpenAPI(Swagger) 계약 문서 자동 생성 (docs/decisions/004-swagger-contract.md 참고)
