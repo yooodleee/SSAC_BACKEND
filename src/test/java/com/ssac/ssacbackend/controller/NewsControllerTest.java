@@ -11,7 +11,6 @@ import com.ssac.ssacbackend.common.response.ApiResponse;
 import com.ssac.ssacbackend.dto.request.NewsSortType;
 import com.ssac.ssacbackend.dto.response.NewsListResponse;
 import com.ssac.ssacbackend.service.NewsService;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

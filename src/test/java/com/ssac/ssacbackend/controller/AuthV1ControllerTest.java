@@ -14,7 +14,6 @@ import com.ssac.ssacbackend.dto.request.RegisterV2Request;
 import com.ssac.ssacbackend.dto.response.EmailCheckResponse;
 import com.ssac.ssacbackend.dto.response.RegisterV2Response;
 import com.ssac.ssacbackend.service.RegistrationService;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
