@@ -1,4 +1,4 @@
-[2026-06-15 20:11:40]
-Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew checkstyleTest 2>&1 | grep "ERROR"
+[2026-06-15 22:44:54]
+Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew compileJava 2>&1 | tail -15
 ---
-{'stdout': '[ant:checkstyle] [ERROR] C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\test\\java\\com\\ssac\\ssacbackend\\service\\NaverOAuthServiceTest.java:5:15: Unused import - org.mockito.ArgumentMatchers.any. [UnusedImports]', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+{'stdout': "Execution failed for task ':compileJava'.\r\n> Compilation failed; see the compiler output below.\r\n  C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\main\\java\\com\\ssac\\ssacbackend\\config\\SentryConfig.java:48: error: cannot find symbol\n              Throwable throwable = hint.getThrowable();\n                                        ^\n    symbol:   method getThrowable()\n    location: variable hint of type Hint\r\n  1 error\r\n\r\n* Try:\r\n> Check your code and dependencies to fix the compilation error(s)\r\n> Run with --scan to get full insights from a Build Scan (powered by Develocity).\r\n\r\nBUILD FAILED in 2s\r\n1 actionable task: 1 executed", 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
