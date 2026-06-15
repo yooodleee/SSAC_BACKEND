@@ -15,13 +15,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -45,7 +43,7 @@ public class NaverOAuthService {
     private final SocialAccountRepository socialAccountRepository;
     private final GuestMigrationService guestMigrationService;
     private final PendingRegistrationService pendingRegistrationService;
-    private final RestTemplate restTemplate;
+    private final RestClient naverRestClient;
     private final StringRedisTemplate redisTemplate;
 
     /**
@@ -144,7 +142,10 @@ public class NaverOAuthService {
             .build()
             .toUriString();
 
-        NaverTokenResponse response = restTemplate.getForObject(tokenUrl, NaverTokenResponse.class);
+        NaverTokenResponse response = naverRestClient.get()
+            .uri(tokenUrl)
+            .retrieve()
+            .body(NaverTokenResponse.class);
         if (response == null || response.getAccessToken() == null) {
             String naverError = response != null ? response.getError() : "null_response";
             String naverErrorDesc = response != null ? response.getErrorDescription() : "";
@@ -156,13 +157,11 @@ public class NaverOAuthService {
     }
 
     private NaverProfileResponse.NaverUserDetail fetchNaverProfile(String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        NaverProfileResponse response = restTemplate.exchange(
-            NAVER_PROFILE_URL, HttpMethod.GET, entity, NaverProfileResponse.class
-        ).getBody();
+        NaverProfileResponse response = naverRestClient.get()
+            .uri(NAVER_PROFILE_URL)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .retrieve()
+            .body(NaverProfileResponse.class);
 
         if (response == null || !"00".equals(response.getResultcode())) {
             log.error("네이버 프로필 조회 실패");

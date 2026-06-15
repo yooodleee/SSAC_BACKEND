@@ -2,7 +2,6 @@ package com.ssac.ssacbackend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -32,10 +31,8 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -50,7 +47,15 @@ class NaverOAuthServiceTest {
     @Mock
     private PendingRegistrationService pendingRegistrationService;
     @Mock
-    private RestTemplate restTemplate;
+    private RestClient naverRestClient;
+    @Mock
+    @SuppressWarnings("rawtypes")
+    private RestClient.RequestHeadersUriSpec uriSpec;
+    @Mock
+    @SuppressWarnings("rawtypes")
+    private RestClient.RequestHeadersSpec headersSpec;
+    @Mock
+    private RestClient.ResponseSpec responseSpec;
     @Mock
     private StringRedisTemplate redisTemplate;
     @Mock
@@ -59,11 +64,16 @@ class NaverOAuthServiceTest {
     @InjectMocks
     private NaverOAuthService naverOAuthService;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     void setUp() {
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOps);
         lenient().when(naverOAuthProperties.getClientId()).thenReturn("test-client-id");
         lenient().when(naverOAuthProperties.getRedirectUri()).thenReturn("https://example.com/callback");
+        lenient().when(naverRestClient.get()).thenReturn(uriSpec);
+        lenient().when(uriSpec.uri(anyString())).thenReturn(headersSpec);
+        lenient().when(headersSpec.header(anyString(), anyString())).thenReturn(headersSpec);
+        lenient().when(headersSpec.retrieve()).thenReturn(responseSpec);
     }
 
     @Test
@@ -83,14 +93,14 @@ class NaverOAuthServiceTest {
         private static final String VALID_STATE = "valid-state-uuid";
         private static final String STATE_KEY = "naver:oauth:state:" + VALID_STATE;
 
+        @SuppressWarnings("unchecked")
         @BeforeEach
         void setUpCallback() {
             given(valueOps.getAndDelete(STATE_KEY)).willReturn("1");
-            given(restTemplate.getForObject(anyString(), eq(NaverTokenResponse.class)))
+            given(responseSpec.body(NaverTokenResponse.class))
                 .willReturn(buildTokenResponse("access-token-abc"));
-            given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(),
-                eq(NaverProfileResponse.class)))
-                .willReturn(ResponseEntity.ok(buildProfileResponse("naver-123", "user@naver.com")));
+            given(responseSpec.body(NaverProfileResponse.class))
+                .willReturn(buildProfileResponse("naver-123", "user@naver.com"));
         }
 
         @Test

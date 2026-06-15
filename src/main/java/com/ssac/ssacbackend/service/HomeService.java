@@ -64,7 +64,7 @@ public class HomeService {
     /** DB에서 한 번에 조회하는 콘텐츠 상한. 완료·추천이력 제외 후에도 RECOMMENDED_MAX를 채울 수 있는 여유값. */
     private static final int CONTENT_FETCH_LIMIT = 20;
     private static final String ONBOARDING_REDIRECT = "/onboarding/test";
-    private static final String HOME_CACHE_PREFIX = "home:";
+    private static final String HOME_CACHE_PREFIX = HomeCacheEvictService.HOME_CACHE_PREFIX;
     private static final String REC_HISTORY_PREFIX = "home:rec_history:";
     private static final int LONG_ABSENCE_DAYS = 7;
     private static final long REC_HISTORY_TTL_DAYS = 7L;

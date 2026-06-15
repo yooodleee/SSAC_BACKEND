@@ -13,6 +13,7 @@ import com.ssac.ssacbackend.repository.ContentRepository;
 import com.ssac.ssacbackend.repository.SearchKeywordRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -135,7 +136,9 @@ public class SearchService {
     }
 
     private String buildHighlightedTitle(String title, String query) {
-        return title.replace(query, "**" + query + "**");
+        return Pattern.compile(Pattern.quote(query), Pattern.CASE_INSENSITIVE)
+            .matcher(title)
+            .replaceAll("**$0**");
     }
 
     private String getCategoryEmoji(String categoryName) {

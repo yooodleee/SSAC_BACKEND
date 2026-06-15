@@ -58,9 +58,7 @@ public class SecurityConfig {
         "/api/auth/dev/**",
         "/login/**",
         "/oauth2/**",
-        "/api/news",
         "/api/news/**",
-        "/api/quiz",
         "/api/quiz/**",
         "/api/events/menu-click",
         "/api/ab-test/menu",
@@ -72,7 +70,6 @@ public class SecurityConfig {
         // 인증 상태 확인: 비로그인 사용자도 접근 가능
         "/api/v1/auth/status",
         // 검색: 비로그인 사용자도 접근 가능
-        "/api/v1/search",
         "/api/v1/search/**"
     };
 

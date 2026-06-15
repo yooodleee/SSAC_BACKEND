@@ -1,4 +1,4 @@
-[2026-06-15 14:22:09]
+[2026-06-15 20:11:40]
 Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew checkstyleTest 2>&1 | grep "ERROR"
 ---
-{'stdout': '[ant:checkstyle] [ERROR] C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\test\\java\\com\\ssac\\ssacbackend\\controller\\OnboardingControllerTest.java:16:8: Unused import - com.ssac.ssacbackend.dto.response.RecommendedDomainDto. [UnusedImports]', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+{'stdout': '[ant:checkstyle] [ERROR] C:\\Users\\dhals_zn0ga5j\\python_seed\\SSAC_BACKEND\\ssac-backend\\src\\test\\java\\com\\ssac\\ssacbackend\\service\\NaverOAuthServiceTest.java:5:15: Unused import - org.mockito.ArgumentMatchers.any. [UnusedImports]', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
