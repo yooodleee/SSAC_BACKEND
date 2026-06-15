@@ -154,6 +154,35 @@ class SearchServiceTest {
     }
 
     @Test
+    @DisplayName("검색어 대소문자 달라도 제목에 하이라이트가 적용된다")
+    void 검색어_대소문자_무시_하이라이트() {
+        Content c = makeContent(1L, "Java 기초 완성", "IT/개발", 0);
+        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(eq("java"), any(Pageable.class)))
+            .willReturn(new PageImpl<>(List.of(c)));
+        given(searchKeywordRepository.findByKeyword("java")).willReturn(Optional.empty());
+
+        SearchResultResponse result = searchService.search("java", 1, 20);
+
+        // 원본 대소문자("Java") 보존 + 하이라이트 적용
+        assertThat(result.results().get(0).highlightedTitle())
+            .isEqualTo("**Java** 기초 완성");
+    }
+
+    @Test
+    @DisplayName("검색어에 정규식 특수문자가 포함되어도 하이라이트가 적용된다")
+    void 검색어_특수문자_하이라이트() {
+        Content c = makeContent(2L, "C++ 입문", "IT/개발", 0);
+        given(contentRepository.findByIsPublishedTrueAndTitleContainingPaged(eq("C++"), any(Pageable.class)))
+            .willReturn(new PageImpl<>(List.of(c)));
+        given(searchKeywordRepository.findByKeyword("C++")).willReturn(Optional.empty());
+
+        SearchResultResponse result = searchService.search("C++", 1, 20);
+
+        assertThat(result.results().get(0).highlightedTitle())
+            .isEqualTo("**C++** 입문");
+    }
+
+    @Test
     @DisplayName("빈 검색어 제출 시 400 / SEARCH-001 응답된다")
     void 빈_검색어_400_SEARCH_001() {
         assertThatThrownBy(() -> searchService.search("", 1, 20))

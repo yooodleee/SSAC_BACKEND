@@ -279,7 +279,8 @@
       "Bash(javap -verbose \"/tmp/notion/api/v1/http/OkHttp4Client.class\")",
       "Bash(tasklist:*)",
       "Bash(./gradlew checkstyleTest test jacocoTestReport --rerun-tasks)",
-      "Bash(./gradlew checkstyleMain checkstyleTest compileJava test --tests \"com.ssac.ssacbackend.service.HomeCacheEvictServiceTest\")"
+      "Bash(./gradlew checkstyleMain checkstyleTest compileJava test --tests \"com.ssac.ssacbackend.service.HomeCacheEvictServiceTest\")",
+      "Bash(./gradlew checkstyleMain checkstyleTest test --tests \"com.ssac.ssacbackend.service.SearchServiceTest\")"
     ]
   }
 }
