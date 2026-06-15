@@ -153,6 +153,12 @@ jacocoTestReport {
                     '**/service/ViewCountStore*',
                     '**/service/TokenStore*',
                     '**/service/ReissueResult*',
+                    // CI 도구 (ErrorContractValidator — main 진입점, 런타임 도구)
+                    'com/ssac/tool/**',
+                    // Flyway 마이그레이션 (SQL 실행 래퍼, 로직 없음)
+                    'db/migration/**',
+                    // 상수 클래스 (로직 없음)
+                    '**/common/util/CacheKeys',
                 ])
             })
         )

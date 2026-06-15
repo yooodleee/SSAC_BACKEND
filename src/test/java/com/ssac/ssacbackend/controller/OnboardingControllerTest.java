@@ -7,8 +7,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.domain.user.UserType;
+import com.ssac.ssacbackend.dto.request.OnboardingInterestsRequest;
+import com.ssac.ssacbackend.dto.request.OnboardingSubmitRequest;
 import com.ssac.ssacbackend.dto.response.OnboardingQuestionsResponse;
+import com.ssac.ssacbackend.dto.response.OnboardingResultResponse;
+import com.ssac.ssacbackend.dto.response.OnboardingSkipResponse;
+import com.ssac.ssacbackend.dto.response.OnboardingSubmitResponse;
 import com.ssac.ssacbackend.service.OnboardingService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -139,5 +145,93 @@ class OnboardingControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         verify(onboardingService).getQuestions("user@test.com");
+    }
+
+    // ── submit ────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("온보딩 응답 제출 성공 시 200과 레벨 판정 결과를 반환한다")
+    void 온보딩_응답_제출_성공() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+            "user@test.com", null,
+            List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        OnboardingSubmitRequest request = new OnboardingSubmitRequest(List.of());
+        OnboardingSubmitResponse mockResponse =
+            new OnboardingSubmitResponse(UserLevel.SPROUT, 70, true);
+        given(onboardingService.submit("user@test.com", request)).willReturn(mockResponse);
+
+        ResponseEntity<?> response = controller.submit(auth, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(onboardingService).submit("user@test.com", request);
+    }
+
+    // ── skip ──────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("온보딩 건너뛰기 성공 시 200과 SEED 레벨을 반환한다")
+    void 온보딩_건너뛰기_성공() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+            "user@test.com", null,
+            List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        OnboardingSkipResponse mockResponse =
+            new OnboardingSkipResponse(UserLevel.SEED, true, true);
+        given(onboardingService.skip("user@test.com")).willReturn(mockResponse);
+
+        ResponseEntity<?> response = controller.skip(auth);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(onboardingService).skip("user@test.com");
+    }
+
+    // ── getResult ─────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("온보딩 결과 조회 성공 시 200과 결과를 반환한다")
+    void 온보딩_결과_조회_성공() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+            "user@test.com", null,
+            List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        OnboardingResultResponse mockResponse =
+            new OnboardingResultResponse(
+                "HIGH_SCHOOL", "SPROUT", 70, 100, "새싹", "🌱", "성장 중", false, true, List.of());
+        given(onboardingService.getResult("user@test.com")).willReturn(mockResponse);
+
+        ResponseEntity<?> response = controller.getResult(auth);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(onboardingService).getResult("user@test.com");
+    }
+
+    // ── resetOnboarding ───────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("온보딩 초기화 성공 시 204를 반환한다")
+    void 온보딩_초기화_성공() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+            "user@test.com", null,
+            List.of(new SimpleGrantedAuthority("ROLE_USER")));
+
+        ResponseEntity<Void> response = controller.resetOnboarding(auth);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        verify(onboardingService).resetOnboarding("user@test.com");
+    }
+
+    // ── saveInterests ─────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("관심 도메인 저장 성공 시 204를 반환한다")
+    void 관심_도메인_저장_성공() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+            "user@test.com", null,
+            List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        OnboardingInterestsRequest request =
+            new OnboardingInterestsRequest(List.of("finance", "it"));
+
+        ResponseEntity<Void> response = controller.saveInterests(auth, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        verify(onboardingService).saveInterests("user@test.com", request);
     }
 }
