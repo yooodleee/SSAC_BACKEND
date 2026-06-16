@@ -232,3 +232,18 @@ grep -rn "CREATE TABLE " src/main/resources/db/migration/ | \
 
 □ send-default-pii: true 설정 금지
   → 이메일 / IP 등 개인정보 Sentry 서버 전송 위험 (GDPR / 개인정보보호법 위반)
+
+---
+
+## 🚫 Sentry DSN 관련 금지 규칙
+
+아래 행동은 금지된다:
+
+□ SENTRY_DSN 값을 코드 파일에 하드코딩 금지
+  → application.properties / application-prod.yml /
+     SentryConfig.java 내 직접 기재 금지
+  → 반드시 Railway 환경 변수 ${SENTRY_DSN} 참조만 허용
+
+□ SENTRY_DSN 값을 응답 Body / 로그 / 에러 메시지에 포함 금지
+
+□ SENTRY_DSN 값을 debug-log.md / agent-channel 파일에 기록 금지

@@ -44,6 +44,7 @@ src/main/resources/application-local.properties
 .env.local
 .env.*.local
 *.bak
+application-secret.yml
 
 ### E2E 진단 결과 (민감 데이터 포함 — 커밋 금지) ###
 scripts/e2e-diagnose/output/
