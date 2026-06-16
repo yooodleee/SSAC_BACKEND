@@ -17,6 +17,32 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-16 — 관리자 로그인 불가 (JWT 만료 + admin_codes 무효)
+
+### 증상
+- `POST /api/v1/admin/codes` → 401 (인증 실패)
+- `POST /api/v1/auth/admin/login` → 401 ADMIN-001 (유효하지 않은 관리자 코드)
+- `POST /api/v1/auth/reissue` → 실패 (refreshToken도 만료)
+
+### 원인
+1. **JWT 액세스 토큰 만료**: 2026-05-21 발급 토큰을 약 26일 후에도 사용 → `JwtAuthenticationFilter` 차단
+2. **refreshToken 만료**: 재발급 경로도 차단 → 정상 순환 불가 상태
+3. **admin_codes 테이블 유효 레코드 없음**: 기존 코드 모두 used=true 또는 만료
+4. **1차 DB 삽입 실패 (ADMIN-002)**: `expires_at`을 UTC 기준으로 계산하여 삽입했으나 서버 타임존 기준으로 이미 만료로 판정됨
+   - `isExpired()`: `LocalDateTime.now().isAfter(expiresAt)` — 서버 타임존에 따라 판정 기준 상이
+
+### 해결
+1. Railway MySQL 콘솔에서 직접 코드 삽입
+2. `expires_at = '2026-06-17 15:00:00'` — 어떤 타임존으로도 미래인 값으로 설정하여 타임존 오판 회피
+3. `DELETE FROM admin_codes WHERE used = FALSE` 후 새 코드 삽입
+4. `POST /api/v1/auth/admin/login` 성공 → ADMIN 토큰 재발급
+
+### 재발 방지 권고
+- `AdminCode.isExpired()` 또는 `AdminService`에서 `expires_at` 저장 시 타임존 명시 필요 검토
+- 관리자 토큰 만료 전 갱신 절차 정립 필요 (refreshToken 만료 전 재발급)
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-16 — Sentry 운영 환경 연동 완료
 
 ### 작업 내용
