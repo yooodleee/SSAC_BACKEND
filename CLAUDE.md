@@ -218,3 +218,32 @@ grep -rn "CREATE TABLE " src/main/resources/db/migration/ | \
 → 사용자 요청 없이 구현만 완료하고 빌드/테스트 실행 없이 종료 금지
 → 빌드/테스트 실패 상태에서 "완료"라고 보고 금지
 → 커버리지 70% 미달 상태에서 구현 완료로 간주 금지
+
+---
+
+## 🚫 Sentry 관련 금지 규칙
+
+아래 행동은 금지된다:
+
+□ application.properties의 sentry.enabled=false 제거 금지
+  → 로컬 이벤트가 운영 Sentry에 혼입됨
+
+□ application-prod.yml 외 환경에서 sentry.enabled=true 설정 금지
+
+□ send-default-pii: true 설정 금지
+  → 이메일 / IP 등 개인정보 Sentry 서버 전송 위험 (GDPR / 개인정보보호법 위반)
+
+---
+
+## 🚫 Sentry DSN 관련 금지 규칙
+
+아래 행동은 금지된다:
+
+□ SENTRY_DSN 값을 코드 파일에 하드코딩 금지
+  → application.properties / application-prod.yml /
+     SentryConfig.java 내 직접 기재 금지
+  → 반드시 Railway 환경 변수 ${SENTRY_DSN} 참조만 허용
+
+□ SENTRY_DSN 값을 응답 Body / 로그 / 에러 메시지에 포함 금지
+
+□ SENTRY_DSN 값을 debug-log.md / agent-channel 파일에 기록 금지
