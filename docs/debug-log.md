@@ -17,6 +17,29 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-16 — Sentry 운영 환경 연동 완료
+
+### 작업 내용
+- Sentry 프로젝트(ssac-backend / Spring Boot) 생성 및 DSN 발급
+- Railway Variables에 `SENTRY_DSN` 등록
+- `application-prod.yml`: `dsn: ${SENTRY_DSN}`, `release: ${RAILWAY_GIT_COMMIT_SHA:unknown}` 확인
+- `SentryConfig`: `beforeSendCallback` (4xx 필터링), `mdcEventProcessor` (MDC 태그 연동) 구현 확인
+- CLAUDE.md: Sentry DSN 금지 규칙 추가
+- `.gitignore`: `application-secret.yml` 추가
+- `AdminController`: `/api/v1/admin/sentry-test` 임시 검증 엔드포인트 추가 (검증 후 제거 필요)
+- `self-diagnose.md`: STEP 7 Sentry 연동 점검 항목 추가
+
+### 팀원 직접 수행 필요 항목
+- `/api/v1/admin/sentry-test` 호출 → Sentry 대시보드에서 이벤트 수집 확인
+  - 기대: `environment: production`, `release: {SHA}`, `trace_id`, `user_id`, `http_method`, `request_path` 태그
+- 4xx 미수집 확인 (`GET /api/v1/contents/99999` → 404, `GET /api/v1/users/me` 토큰 없이 → 401)
+- 개인정보 미포함 확인 (이메일/이름 미포함, Authorization 헤더 미노출)
+- 로컬 환경 미전송 확인
+- Sentry 대시보드 Slack Alert Rule 설정 (`#ssac-error-alerts`)
+- 검증 완료 후 `/api/v1/admin/sentry-test` 엔드포인트 코드 제거 및 `./gradlew test` 통과 확인
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-13 — work 시리즈 콘텐츠 heading_4 요소 미출력
 
 ### 증상

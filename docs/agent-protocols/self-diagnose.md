@@ -116,3 +116,25 @@ STEP 5 Redis 캐싱  : ✅/❌/⚠️/해당없음
 - **❌ 존재**: 완료 선언 금지 → 즉시 수정 → `testing.md` → `self-diagnose.md` 재실행 → 모든 ❌ 해소 후 완료 선언
 - **✅/⚠️ 만 존재**: "자가 점검 완료. 구현을 완료합니다." 선언 → Slack 보고
 - **⚠️ 단독**: 의도적 설계인 경우 근거를 출력한 후 완료 선언 가능 / 판단 불확실 시 사용자 확인 후 선언
+
+---
+
+## STEP 7. Sentry 연동 점검
+Sentry 관련 코드 변경이 없으면 건너뜀 ✅
+
+**SENTRY-1. 환경 설정**
+- [ ] `application.properties`: `sentry.enabled=false` 존재 여부 (로컬 비활성화)
+- [ ] `application-prod.yml`: `sentry.enabled=true` / `dsn: ${SENTRY_DSN}` 설정 여부
+- [ ] `send-default-pii: false` 설정 여부 (PII 자동 수집 차단)
+
+**SENTRY-2. DSN 보안**
+- [ ] `grep -r "ingest.sentry.io" src/` → 결과 없음 확인 (하드코딩 금지)
+- [ ] SENTRY_DSN이 코드 / 로그 / 응답 Body에 노출되지 않는가
+
+**SENTRY-3. 예외 필터링**
+- [ ] 4xx 예외 (`BusinessException` 하위)가 `SentryConfig.beforeSendCallback()`에서 필터링되는가
+- [ ] 5xx 및 예상치 못한 런타임 예외만 Sentry에 전송되는가
+
+**SENTRY-4. MDC 태그**
+- [ ] `SentryConfig.mdcEventProcessor()`가 `trace_id` / `user_id` / `http_method` / `request_path` 태그를 추가하는가
+- [ ] 비로그인 요청 시 `user_id` 태그 누락 허용 / 나머지 태그 정상 포함 여부

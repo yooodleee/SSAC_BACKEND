@@ -152,6 +152,21 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
+    // ── [임시] Sentry 연동 검증 — 검증 완료 후 반드시 제거 ────────────────────
+
+    @Operation(
+        summary = "[임시] Sentry 연동 검증",
+        description = "[권한 조건] ADMIN 역할 전용. 의도적 5xx 예외를 발생시켜 Sentry 이벤트 수집을 확인한다."
+            + " 검증 완료 후 반드시 제거한다.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @GetMapping("/sentry-test")
+    public void sentryTest() {
+        throw new RuntimeException("[Sentry 연동 검증] 의도적 5xx 예외");
+    }
+
+    // ── 사용자 관리 ──────────────────────────────────────────────────────────
+
     @Operation(
         summary = "사용자 권한 변경",
         description = "[권한 조건] ADMIN 역할 전용. GUEST 역할 부여 불가.",
