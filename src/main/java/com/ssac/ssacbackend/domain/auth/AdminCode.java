@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -53,7 +54,7 @@ public class AdminCode {
 
     @PrePersist
     private void prePersist() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
     /**
@@ -65,8 +66,10 @@ public class AdminCode {
 
     /**
      * 코드가 만료되었는지 확인한다.
+     *
+     * <p>expiresAt은 KST(Asia/Seoul) 기준으로 저장되므로 현재 시각도 KST로 비교한다.
      */
     public boolean isExpired() {
-        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
+        return expiresAt != null && LocalDateTime.now(ZoneId.of("Asia/Seoul")).isAfter(expiresAt);
     }
 }
