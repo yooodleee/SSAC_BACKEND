@@ -147,8 +147,7 @@ jacocoTestReport {
                     '**/domain/**',
                     // DTO (데이터 운반 객체, 로직 없음)
                     '**/dto/**',
-                    // 컴포넌트 유틸 (단순 위임)
-                    '**/component/**',
+
                     // Spring Boot 진입점
                     '**/*Application*',
                     // 서비스 레이어 인터페이스 / 레코드 (측정 불가)
@@ -196,9 +195,6 @@ jacocoTestCoverageVerification {
                 'com/ssac/ssacbackend/service/TokenStore',
                 // 레코드 (데이터 운반 객체, 로직 없음)
                 'com/ssac/ssacbackend/service/ReissueResult',
-                // 스케줄러 배치 (추후 고도화 대상, C등급)
-                'com/ssac/ssacbackend/service/GuestDataCleanupService',
-                'com/ssac/ssacbackend/service/ErrorLogBatchService',
             ]
             limit {
                 counter = 'LINE'
@@ -207,10 +203,9 @@ jacocoTestCoverageVerification {
             }
         }
 
-        // Rule 3: Controller 레이어 전체 집계 60%
+        // Rule 3: Controller 레이어 전체 집계 90%
         // 이유: Controller는 Service보다 얇은 레이어 (위임 구조).
-        // 현재 22개 미테스트 상태에서 즉시 70% 강제 시 빌드 전면 차단 위험.
-        // 단계적 상향 계획: 1단계 40%/60% → 2단계 50%/70% (docs/debug-log.md 참고)
+        // 2026-06-18 기준 실측 95.7% (312/326) — 모든 Controller 테스트 완비.
         rule {
             enabled = true
             element = 'PACKAGE'
@@ -218,12 +213,13 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'LINE'
                 value   = 'COVEREDRATIO'
-                minimum = 0.60
+                minimum = 0.90
             }
         }
 
-        // Rule 4: Controller 클래스 개별 최소 40%
-        // 실패 시 → "개별 Controller 커버리지 40% 미달: XxxController" → BUILD FAILED
+        // Rule 4: Controller 클래스 개별 최소 70%
+        // 실패 시 → "개별 Controller 커버리지 70% 미달: XxxController" → BUILD FAILED
+        // 2026-06-18 기준 최솟값: TokenController 75%, NaverOAuthController 77.8%
         rule {
             enabled = true
             element = 'CLASS'
@@ -237,7 +233,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'LINE'
                 value   = 'COVEREDRATIO'
-                minimum = 0.40
+                minimum = 0.70
             }
         }
     }

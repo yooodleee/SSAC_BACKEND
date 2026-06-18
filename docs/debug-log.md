@@ -17,6 +17,84 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-18 — ErrorLogBatchService / GuestDataCleanupService 테스트 추가 및 excludes 해제
+
+### 배경
+- 두 클래스가 Rule 2 excludes에 "추후 고도화 대상" 사유로 방치됨
+- ADR 없이 excludes만 등록된 상태로 계획 없이 방치
+
+### 판단
+- 두 클래스 모두 Repository 단일 호출 구조로 Mockito 단위 테스트 충분히 가능
+- 실제 비즈니스 정책(WARN 7일 / ERROR 30일 보존, 비회원 30일 삭제)이 코드에 하드코딩됨 → 테스트로 의도 명시 필요
+
+### 조치 내용
+- `ErrorLogBatchServiceTest.java` 신규 작성 (2개 케이스: WARN/ERROR 레벨별 삭제 호출 검증)
+- `GuestDataCleanupServiceTest.java` 신규 작성 (2개 케이스: 정상 삭제 / 예외 전파 안됨)
+- `build.gradle` Rule 2 excludes에서 두 클래스 제거
+- `testing.md` 제외 목록에서 두 클래스 제거
+
+### 검증
+- `bash scripts/run-tests.sh` → BUILD SUCCESSFUL
+
+---
+
+## ✅ [AUDIT] 2026-06-18 — NotionImageMigrator 테스트 추가 및 component 제외 해제
+
+### 배경
+- `**/component/**` 패턴이 JaCoCo 전역 제외에 등록되어 있어 `NotionImageMigrator` 커버리지 미측정
+- 해당 클래스는 Cloudinary 업로드 / 스킵 / 실패 처리의 핵심 분기 로직을 포함
+- 오늘(2026-06-18) 실제 운영 장애(썸네일 미표시)와 직결된 클래스로 테스트 부재 확인
+
+### 조치 내용
+- `NotionImageMigratorTest.java` 신규 작성 (4개 케이스)
+  - null 입력 → null 반환, Cloudinary 호출 없음
+  - 이미 Cloudinary URL → 그대로 반환, Cloudinary 호출 없음
+  - 업로드 성공 → secure_url 반환
+  - 업로드 실패(예외) → 원본 URL 반환
+- `build.gradle` JaCoCo 전역 제외에서 `**/component/**` 제거
+- `testing.md` 제외 클래스 목록에서 `**/component/**` 제거
+- `testing.md` Rule 3/4 수치 현행화 (60%→90%, 40%→70%)
+
+### 검증
+- `bash scripts/run-tests.sh` → BUILD SUCCESSFUL
+
+---
+
+## ✅ [AUDIT] 2026-06-18 — build.gradle Controller 커버리지 목표 현실화
+
+### 변경 내용
+- Rule 3 (Controller 패키지 집계): `0.60 → 0.90`
+- Rule 4 (Controller 클래스 개별): `0.40 → 0.70`
+- 주석 업데이트: "22개 미테스트" 문구 제거, 실측값(95.7%) 반영
+
+### 근거
+- 2026-06-18 기준 실측: 패키지 95.7% (312/326), 클래스 최솟값 TokenController 75%
+- 모든 Controller(28개)에 테스트 완비 — 구 주석의 "22개 미테스트" 상태 해소됨
+- Rule 4 최솟값 70%: 실측 최솟값(75%) 대비 5% 여유
+
+### 검증
+- `./gradlew jacocoTestCoverageVerification` → BUILD SUCCESSFUL
+
+---
+
+## ✅ [AUDIT] 2026-06-18 — Flyway V11 건너뜀 이력 기록
+
+### 확인 내용
+- V10(`ensure_level_column_final`) → V12(`add_onboarding_questions`) 로 버전이 건너뜀
+- git 이력에 V11 파일 흔적 없음 — 처음부터 생성되지 않은 것으로 확인
+- Railway 운영 DB에는 V12~V30이 이미 적용된 상태
+
+### 조치 내용
+- no-op V11 파일 생성 시도 → Railway 운영 DB에서 `Detected resolved migration not applied` 오류 유발 가능
+- `outOfOrder: true` 설정은 운영 환경에서 권장하지 않음
+- **A안 채택**: 파일 생성 없이 본 기록으로 이력 대체
+
+### 재발 방지
+- 향후 마이그레이션 파일 생성 시 sc-structure-check.md STEP 2 버전 순번 점검 항목 준수
+- 현재 최신 버전: V30. 다음 신규 마이그레이션은 V31부터 사용
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-16 — 관리자 로그인 불가 (JWT 만료 + admin_codes 무효)
 
 ### 증상
