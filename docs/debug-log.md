@@ -17,6 +17,23 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-18 — ARCH-002: RegistrationV2Service 분리 (V1/V2 플로우 혼재 해소)
+
+### 변경 내용
+- `RegistrationService`에서 V2/Email 플로우 메서드를 `RegistrationV2Service`로 추출
+  - 이동: `registerV2()`, `registerWithEmail()`, `checkEmail()` + private 헬퍼 4개
+  - 제거된 의존성: `JwtProperties` (RegistrationService에서 제거됨)
+- `AuthV1Controller`: `RegistrationService` → `RegistrationV2Service` 주입으로 교체
+- 테스트 업데이트: `RegistrationServiceV2Test` @InjectMocks 대상 변경, `AuthV1ControllerTest` mock 대상 변경
+- API 경로 무변경: `/api/v1/auth/register`, `/api/v1/auth/register/email`, `/api/v1/auth/email/check`
+
+### 결과
+- `RegistrationService`: 514줄 → 약 180줄 (V1 전용: saveTerms/register/checkNickname)
+- `RegistrationV2Service`: 신규 생성 (V2/Email 전용)
+- 빌드/테스트/커버리지 검증 통과
+
+---
+
 ## ✅ [AUDIT] 2026-06-19 — ARCH-001: EmailAuthService 분리 (loginWithEmail SRP 위반 해소)
 
 ### 변경 내용

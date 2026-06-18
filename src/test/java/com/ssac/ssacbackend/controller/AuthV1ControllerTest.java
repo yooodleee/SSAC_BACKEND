@@ -14,7 +14,7 @@ import com.ssac.ssacbackend.dto.request.RegisterV2Request;
 import com.ssac.ssacbackend.dto.response.EmailCheckResponse;
 import com.ssac.ssacbackend.dto.response.RegisterV2Response;
 import com.ssac.ssacbackend.service.EmailAuthService;
-import com.ssac.ssacbackend.service.RegistrationService;
+import com.ssac.ssacbackend.service.RegistrationV2Service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,18 +26,18 @@ import org.springframework.mock.web.MockHttpServletResponse;
 @DisplayName("AuthV1Controller")
 class AuthV1ControllerTest {
 
-    private RegistrationService registrationService;
+    private RegistrationV2Service registrationV2Service;
     private EmailAuthService emailAuthService;
     private AuthV1Controller controller;
 
     @BeforeEach
     void setUp() {
-        registrationService = mock(RegistrationService.class);
+        registrationV2Service = mock(RegistrationV2Service.class);
         emailAuthService = mock(EmailAuthService.class);
         CookieProperties cookieProperties = new CookieProperties();
         cookieProperties.setSecure(false);
         cookieProperties.setSameSite("Lax");
-        controller = new AuthV1Controller(registrationService, emailAuthService, cookieProperties);
+        controller = new AuthV1Controller(registrationV2Service, emailAuthService, cookieProperties);
     }
 
     // ── register ───────────────────────────────────────────────────────────────
@@ -52,13 +52,13 @@ class AuthV1ControllerTest {
             RegisterV2Request request = mock(RegisterV2Request.class);
             RegisterV2Response mockResponse = mockRegisterV2Response();
             RegisterV2Result mockResult = new RegisterV2Result("refresh-token", mockResponse);
-            given(registrationService.registerV2(any())).willReturn(mockResult);
+            given(registrationV2Service.registerV2(any())).willReturn(mockResult);
             MockHttpServletResponse httpResponse = new MockHttpServletResponse();
 
             ResponseEntity<?> result = controller.register(request, httpResponse);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-            verify(registrationService).registerV2(request);
+            verify(registrationV2Service).registerV2(request);
         }
 
         @Test
@@ -67,7 +67,7 @@ class AuthV1ControllerTest {
             RegisterV2Request request = mock(RegisterV2Request.class);
             RegisterV2Response mockResponse = mockRegisterV2Response();
             RegisterV2Result mockResult = new RegisterV2Result("my-refresh-token", mockResponse);
-            given(registrationService.registerV2(any())).willReturn(mockResult);
+            given(registrationV2Service.registerV2(any())).willReturn(mockResult);
             MockHttpServletResponse httpResponse = new MockHttpServletResponse();
 
             controller.register(request, httpResponse);
@@ -89,13 +89,13 @@ class AuthV1ControllerTest {
             EmailRegisterRequest request = mock(EmailRegisterRequest.class);
             RegisterV2Response mockResponse = mockRegisterV2Response();
             RegisterV2Result mockResult = new RegisterV2Result("refresh-token", mockResponse);
-            given(registrationService.registerWithEmail(any())).willReturn(mockResult);
+            given(registrationV2Service.registerWithEmail(any())).willReturn(mockResult);
             MockHttpServletResponse httpResponse = new MockHttpServletResponse();
 
             ResponseEntity<?> result = controller.registerWithEmail(request, httpResponse);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-            verify(registrationService).registerWithEmail(request);
+            verify(registrationV2Service).registerWithEmail(request);
         }
     }
 
@@ -145,7 +145,7 @@ class AuthV1ControllerTest {
         @Test
         @DisplayName("사용 가능한 이메일이면 isAvailable: true를 반환한다")
         void checkEmail_사용가능() {
-            given(registrationService.checkEmail("new@test.com"))
+            given(registrationV2Service.checkEmail("new@test.com"))
                 .willReturn(EmailCheckResponse.available());
 
             ResponseEntity<?> result = controller.checkEmail("new@test.com");
@@ -156,13 +156,13 @@ class AuthV1ControllerTest {
         @Test
         @DisplayName("중복 이메일이면 isAvailable: false를 반환한다")
         void checkEmail_중복() {
-            given(registrationService.checkEmail("dup@test.com"))
+            given(registrationV2Service.checkEmail("dup@test.com"))
                 .willReturn(EmailCheckResponse.unavailable());
 
             ResponseEntity<?> result = controller.checkEmail("dup@test.com");
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-            verify(registrationService).checkEmail("dup@test.com");
+            verify(registrationV2Service).checkEmail("dup@test.com");
         }
     }
 
