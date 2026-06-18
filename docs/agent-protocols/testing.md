@@ -100,8 +100,6 @@
 | `**/service/ViewCountStore*` | 인터페이스 / 측정 불가 |
 | `**/service/TokenStore*` | 인터페이스 / 측정 불가 |
 | `**/service/ReissueResult*` | 레코드 (데이터 운반 객체) |
-| `GuestDataCleanupService` | 스케줄러 배치 / 추후 고도화 |
-| `ErrorLogBatchService` | 스케줄러 배치 / 추후 고도화 |
 
 > 위 목록 외 클래스 제외 시 ADR 작성 필수
 

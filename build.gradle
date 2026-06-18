@@ -195,9 +195,6 @@ jacocoTestCoverageVerification {
                 'com/ssac/ssacbackend/service/TokenStore',
                 // 레코드 (데이터 운반 객체, 로직 없음)
                 'com/ssac/ssacbackend/service/ReissueResult',
-                // 스케줄러 배치 (추후 고도화 대상, C등급)
-                'com/ssac/ssacbackend/service/GuestDataCleanupService',
-                'com/ssac/ssacbackend/service/ErrorLogBatchService',
             ]
             limit {
                 counter = 'LINE'

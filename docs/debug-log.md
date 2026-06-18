@@ -17,6 +17,27 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-18 — ErrorLogBatchService / GuestDataCleanupService 테스트 추가 및 excludes 해제
+
+### 배경
+- 두 클래스가 Rule 2 excludes에 "추후 고도화 대상" 사유로 방치됨
+- ADR 없이 excludes만 등록된 상태로 계획 없이 방치
+
+### 판단
+- 두 클래스 모두 Repository 단일 호출 구조로 Mockito 단위 테스트 충분히 가능
+- 실제 비즈니스 정책(WARN 7일 / ERROR 30일 보존, 비회원 30일 삭제)이 코드에 하드코딩됨 → 테스트로 의도 명시 필요
+
+### 조치 내용
+- `ErrorLogBatchServiceTest.java` 신규 작성 (2개 케이스: WARN/ERROR 레벨별 삭제 호출 검증)
+- `GuestDataCleanupServiceTest.java` 신규 작성 (2개 케이스: 정상 삭제 / 예외 전파 안됨)
+- `build.gradle` Rule 2 excludes에서 두 클래스 제거
+- `testing.md` 제외 목록에서 두 클래스 제거
+
+### 검증
+- `bash scripts/run-tests.sh` → BUILD SUCCESSFUL
+
+---
+
 ## ✅ [AUDIT] 2026-06-18 — NotionImageMigrator 테스트 추가 및 component 제외 해제
 
 ### 배경
