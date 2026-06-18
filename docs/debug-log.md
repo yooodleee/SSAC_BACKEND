@@ -17,6 +17,24 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-18 — Flyway V11 건너뜀 이력 기록
+
+### 확인 내용
+- V10(`ensure_level_column_final`) → V12(`add_onboarding_questions`) 로 버전이 건너뜀
+- git 이력에 V11 파일 흔적 없음 — 처음부터 생성되지 않은 것으로 확인
+- Railway 운영 DB에는 V12~V30이 이미 적용된 상태
+
+### 조치 내용
+- no-op V11 파일 생성 시도 → Railway 운영 DB에서 `Detected resolved migration not applied` 오류 유발 가능
+- `outOfOrder: true` 설정은 운영 환경에서 권장하지 않음
+- **A안 채택**: 파일 생성 없이 본 기록으로 이력 대체
+
+### 재발 방지
+- 향후 마이그레이션 파일 생성 시 sc-structure-check.md STEP 2 버전 순번 점검 항목 준수
+- 현재 최신 버전: V30. 다음 신규 마이그레이션은 V31부터 사용
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-16 — 관리자 로그인 불가 (JWT 만료 + admin_codes 무효)
 
 ### 증상
