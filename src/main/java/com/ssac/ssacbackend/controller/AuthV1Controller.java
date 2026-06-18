@@ -8,6 +8,7 @@ import com.ssac.ssacbackend.dto.request.EmailLoginRequest;
 import com.ssac.ssacbackend.dto.request.EmailRegisterRequest;
 import com.ssac.ssacbackend.dto.request.RegisterV2Request;
 import com.ssac.ssacbackend.dto.response.EmailCheckResponse;
+import com.ssac.ssacbackend.service.EmailAuthService;
 import com.ssac.ssacbackend.service.RegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthV1Controller {
 
     private final RegistrationService registrationService;
+    private final EmailAuthService emailAuthService;
     private final CookieProperties cookieProperties;
 
     @PostMapping("/register")
@@ -120,7 +122,7 @@ public class AuthV1Controller {
         @RequestBody @Valid EmailLoginRequest request,
         HttpServletResponse httpResponse
     ) {
-        RegisterV2Result result = registrationService.loginWithEmail(request);
+        RegisterV2Result result = emailAuthService.loginWithEmail(request);
         CookieUtils.addRefreshTokenCookie(httpResponse, result.refreshToken(), cookieProperties);
         return ResponseEntity.ok(ApiResponse.success(result.response()));
     }

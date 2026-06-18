@@ -17,6 +17,24 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-19 — ARCH-001: EmailAuthService 분리 (loginWithEmail SRP 위반 해소)
+
+### 변경 내용
+- `EmailAuthService` 신규 생성 — 이메일+비밀번호 로그인 로직 이동
+- `RegistrationService.loginWithEmail()` 제거 + `EmailLoginRequest` import 정리
+- `AuthV1Controller` — `EmailAuthService` 주입 추가, 호출 경로 변경
+- `AuthV1ControllerTest` — `emailAuthService` mock으로 변경
+- `EmailAuthServiceTest` 신규 작성 (4개 케이스: 성공 / 이메일 미존재 / 비밀번호 불일치 / 소셜 계정)
+- `RegistrationServiceNicknameTest` — `EmailAuthService` 대상으로 마이그레이션
+
+### API 경로 변경 없음
+- `POST /api/v1/auth/login/email` — 동일 경로, 동일 동작 유지
+
+### 검증
+- `bash scripts/run-tests.sh` → BUILD SUCCESSFUL
+
+---
+
 ## ✅ [AUDIT] 2026-06-18 — ErrorLogBatchService / GuestDataCleanupService 테스트 추가 및 excludes 해제
 
 ### 배경

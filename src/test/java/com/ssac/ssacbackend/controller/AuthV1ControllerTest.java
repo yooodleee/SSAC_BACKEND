@@ -13,6 +13,7 @@ import com.ssac.ssacbackend.dto.request.EmailRegisterRequest;
 import com.ssac.ssacbackend.dto.request.RegisterV2Request;
 import com.ssac.ssacbackend.dto.response.EmailCheckResponse;
 import com.ssac.ssacbackend.dto.response.RegisterV2Response;
+import com.ssac.ssacbackend.service.EmailAuthService;
 import com.ssac.ssacbackend.service.RegistrationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,15 +27,17 @@ import org.springframework.mock.web.MockHttpServletResponse;
 class AuthV1ControllerTest {
 
     private RegistrationService registrationService;
+    private EmailAuthService emailAuthService;
     private AuthV1Controller controller;
 
     @BeforeEach
     void setUp() {
         registrationService = mock(RegistrationService.class);
+        emailAuthService = mock(EmailAuthService.class);
         CookieProperties cookieProperties = new CookieProperties();
         cookieProperties.setSecure(false);
         cookieProperties.setSameSite("Lax");
-        controller = new AuthV1Controller(registrationService, cookieProperties);
+        controller = new AuthV1Controller(registrationService, emailAuthService, cookieProperties);
     }
 
     // ── register ───────────────────────────────────────────────────────────────
@@ -108,13 +111,13 @@ class AuthV1ControllerTest {
             EmailLoginRequest request = new EmailLoginRequest("user@test.com", "password123");
             RegisterV2Response mockResponse = mockRegisterV2Response();
             RegisterV2Result mockResult = new RegisterV2Result("refresh-token", mockResponse);
-            given(registrationService.loginWithEmail(any())).willReturn(mockResult);
+            given(emailAuthService.loginWithEmail(any())).willReturn(mockResult);
             MockHttpServletResponse httpResponse = new MockHttpServletResponse();
 
             ResponseEntity<?> result = controller.loginWithEmail(request, httpResponse);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-            verify(registrationService).loginWithEmail(request);
+            verify(emailAuthService).loginWithEmail(request);
         }
 
         @Test
@@ -123,7 +126,7 @@ class AuthV1ControllerTest {
             EmailLoginRequest request = new EmailLoginRequest("user@test.com", "password123");
             RegisterV2Response mockResponse = mockRegisterV2Response();
             RegisterV2Result mockResult = new RegisterV2Result("login-refresh-token", mockResponse);
-            given(registrationService.loginWithEmail(any())).willReturn(mockResult);
+            given(emailAuthService.loginWithEmail(any())).willReturn(mockResult);
             MockHttpServletResponse httpResponse = new MockHttpServletResponse();
 
             controller.loginWithEmail(request, httpResponse);

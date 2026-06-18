@@ -12,7 +12,7 @@ import com.ssac.ssacbackend.domain.user.Gender;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.RegisterV2Result;
 import com.ssac.ssacbackend.dto.TokenPair;
-import com.ssac.ssacbackend.dto.request.EmailLoginRequest;
+
 import com.ssac.ssacbackend.dto.request.EmailRegisterRequest;
 import com.ssac.ssacbackend.dto.request.RegisterRequest;
 import com.ssac.ssacbackend.dto.request.RegisterV2Request;
@@ -356,44 +356,6 @@ public class RegistrationService {
         // 8. 토큰 발급
         TokenPair tokenPair = tokenService.issueTokens(user);
         log.info("이메일 회원가입 완료: userId={}", user.getId());
-
-        RegisterV2Response response = new RegisterV2Response(
-            tokenPair.accessToken(),
-            "Bearer",
-            jwtProperties.getExpirationMs(),
-            new RegisterV2Response.UserInfo(
-                String.valueOf(user.getId()),
-                user.getDisplayNickname(),
-                user.getName(),
-                user.getEmail(),
-                user.getUserType(),
-                user.getLevel(),
-                user.isOnboardingCompleted()
-            )
-        );
-        return new RegisterV2Result(tokenPair.refreshToken(), response);
-    }
-
-    /**
-     * 이메일+비밀번호 로그인 (POST /api/v1/auth/login/email).
-     *
-     * <p>이메일로 사용자를 조회하고 BCrypt 비밀번호를 검증한다.
-     * 보안상 이메일 미존재와 비밀번호 불일치를 동일한 오류로 응답한다.
-     *
-     * @throws UnauthorizedException 이메일 미존재 또는 비밀번호 불일치 (AUTH-011)
-     */
-    @Transactional(readOnly = true)
-    public RegisterV2Result loginWithEmail(EmailLoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
-            .orElseThrow(() -> new UnauthorizedException(ErrorCode.EMAIL_OR_PASSWORD_INVALID));
-
-        if (user.getPassword() == null
-            || !passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new UnauthorizedException(ErrorCode.EMAIL_OR_PASSWORD_INVALID);
-        }
-
-        TokenPair tokenPair = tokenService.issueTokens(user);
-        log.info("이메일 로그인 완료: userId={}", user.getId());
 
         RegisterV2Response response = new RegisterV2Response(
             tokenPair.accessToken(),
