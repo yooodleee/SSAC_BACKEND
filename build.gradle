@@ -147,8 +147,7 @@ jacocoTestReport {
                     '**/domain/**',
                     // DTO (데이터 운반 객체, 로직 없음)
                     '**/dto/**',
-                    // 컴포넌트 유틸 (단순 위임)
-                    '**/component/**',
+
                     // Spring Boot 진입점
                     '**/*Application*',
                     // 서비스 레이어 인터페이스 / 레코드 (측정 불가)

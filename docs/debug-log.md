@@ -17,6 +17,28 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-18 — NotionImageMigrator 테스트 추가 및 component 제외 해제
+
+### 배경
+- `**/component/**` 패턴이 JaCoCo 전역 제외에 등록되어 있어 `NotionImageMigrator` 커버리지 미측정
+- 해당 클래스는 Cloudinary 업로드 / 스킵 / 실패 처리의 핵심 분기 로직을 포함
+- 오늘(2026-06-18) 실제 운영 장애(썸네일 미표시)와 직결된 클래스로 테스트 부재 확인
+
+### 조치 내용
+- `NotionImageMigratorTest.java` 신규 작성 (4개 케이스)
+  - null 입력 → null 반환, Cloudinary 호출 없음
+  - 이미 Cloudinary URL → 그대로 반환, Cloudinary 호출 없음
+  - 업로드 성공 → secure_url 반환
+  - 업로드 실패(예외) → 원본 URL 반환
+- `build.gradle` JaCoCo 전역 제외에서 `**/component/**` 제거
+- `testing.md` 제외 클래스 목록에서 `**/component/**` 제거
+- `testing.md` Rule 3/4 수치 현행화 (60%→90%, 40%→70%)
+
+### 검증
+- `bash scripts/run-tests.sh` → BUILD SUCCESSFUL
+
+---
+
 ## ✅ [AUDIT] 2026-06-18 — build.gradle Controller 커버리지 목표 현실화
 
 ### 변경 내용

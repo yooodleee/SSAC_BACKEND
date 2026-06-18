@@ -72,8 +72,8 @@
 |------|------|------|
 | Rule 1 | 서비스 레이어 전체 (`com/ssac/*/service`) | Line ≥ 70% |
 | Rule 2 | 개별 서비스 클래스 | Line ≥ 50% |
-| Rule 3 | Controller 레이어 전체 (`com/ssac/*/controller`) | Line ≥ 60% |
-| Rule 4 | 개별 Controller 클래스 | Line ≥ 40% |
+| Rule 3 | Controller 레이어 전체 (`com/ssac/*/controller`) | Line ≥ 90% |
+| Rule 4 | 개별 Controller 클래스 | Line ≥ 70% |
 
 ### Rule 실패 시 조치
 
@@ -95,7 +95,7 @@
 | `**/common/exception/**` | 예외 정의 / 로직 없음 |
 | `**/domain/**` | JPA 엔티티·Enum / Getter·Setter 자동 생성 |
 | `**/dto/**` | 데이터 운반 객체 / 로직 없음 |
-| `**/component/**` | 단순 위임 컴포넌트 |
+
 | `**/*Application*` | Spring Boot 진입점 |
 | `**/service/ViewCountStore*` | 인터페이스 / 측정 불가 |
 | `**/service/TokenStore*` | 인터페이스 / 측정 불가 |
