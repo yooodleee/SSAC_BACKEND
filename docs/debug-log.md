@@ -17,6 +17,23 @@
 
 ---
 
+## ✅ [AUDIT] 2026-06-18 — build.gradle Controller 커버리지 목표 현실화
+
+### 변경 내용
+- Rule 3 (Controller 패키지 집계): `0.60 → 0.90`
+- Rule 4 (Controller 클래스 개별): `0.40 → 0.70`
+- 주석 업데이트: "22개 미테스트" 문구 제거, 실측값(95.7%) 반영
+
+### 근거
+- 2026-06-18 기준 실측: 패키지 95.7% (312/326), 클래스 최솟값 TokenController 75%
+- 모든 Controller(28개)에 테스트 완비 — 구 주석의 "22개 미테스트" 상태 해소됨
+- Rule 4 최솟값 70%: 실측 최솟값(75%) 대비 5% 여유
+
+### 검증
+- `./gradlew jacocoTestCoverageVerification` → BUILD SUCCESSFUL
+
+---
+
 ## ✅ [AUDIT] 2026-06-18 — Flyway V11 건너뜀 이력 기록
 
 ### 확인 내용
