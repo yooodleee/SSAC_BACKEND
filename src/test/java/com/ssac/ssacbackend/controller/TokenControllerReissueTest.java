@@ -83,6 +83,19 @@ class TokenControllerReissueTest {
     }
 
     @Test
+    @DisplayName("재발급 성공 시 응답에 X-Reissued: true 헤더가 포함된다")
+    void reissue_성공_시_X_Reissued_헤더_포함() {
+        User user = mockUser(1L, "test@test.com", "닉네임123", null, null, false);
+        ReissueResult result = new ReissueResult(new TokenPair("new-access", "new-refresh"), user);
+        given(tokenService.reissueWithUser(anyString())).willReturn(result);
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        ResponseEntity<ApiResponse<ReissueResponse>> entity = controller.reissue("valid-refresh", response);
+
+        assertThat(entity.getHeaders().getFirst("X-Reissued")).isEqualTo("true");
+    }
+
+    @Test
     @DisplayName("refreshToken 쿠키가 없으면 BadRequestException(AUTH-005)을 던진다")
     void reissue_토큰_없으면_예외() {
         MockHttpServletResponse response = new MockHttpServletResponse();

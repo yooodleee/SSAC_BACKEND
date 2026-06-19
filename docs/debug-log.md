@@ -17,6 +17,35 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-19 — 장애 패턴 감사 기반 인증 레이어 수정 (1번 스프린트)
+
+### 배경
+- 장애 패턴 감사 결과 인증/토큰 카테고리 5건 중 🔴 2건 미해결 확인
+- `2026-06-04` debug-log에 `isAfter → !isBefore` 조치 완료로 기록됐으나 **실제 코드 미반영** 확인
+- FE 미해결 2건 지원을 위한 `X-Reissued` 헤더 추가
+
+### 수정 내용 (BE)
+
+**1. `JwtAuthenticationFilter.isTokenStillValid()` 트레이드오프 문서화 (코드 유지)**
+- `isAfter(>)` 정책 유지 — `!isBefore(>=)` 변경은 로그아웃 차단 보안을 깨는 잘못된 픽스로 판정
+- 근거: JWT iat와 invalidatedBefore 모두 초 단위 정밀도이므로 `>=` 적용 시 로그아웃 직후 구 AT가 차단되지 않음
+- 동일 초 재발급 AT 차단은 FE retry로 대응 (X-Reissued 헤더 활용)
+- Javadoc에 트레이드오프 명시 추가
+
+**2. `TokenController.reissue()` 응답 헤더 추가**
+- 변경: `POST /api/v1/auth/reissue` 성공 응답에 `X-Reissued: true` 헤더 포함
+- 효과: FE가 reissue 루프 감지 가능 — startup reissue가 이미 완료됐음을 헤더로 판단 가능
+- 테스트: `reissue_성공_시_X_Reissued_헤더_포함` 추가
+
+### FE 미조치 항목 (🔴 → FE 팀 전달 필요)
+- `/home/account-settings` 리다이렉트: FE가 reissue 완료 후 `originalUrl`로 retry할 것
+- 재로그인 후 reissue 루프: `X-Reissued: true` 헤더 감지 시 startup reissue 재실행 방지 로직 추가
+
+### 검증
+- `bash scripts/run-tests.sh` → BUILD SUCCESSFUL
+
+---
+
 ## ✅ [AUDIT] 2026-06-18 — ARCH-002: RegistrationV2Service 분리 (V1/V2 플로우 혼재 해소)
 
 ### 변경 내용

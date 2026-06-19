@@ -83,6 +83,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * issuedAt > invalidatedBefore (strictly after) 이면 유효한 토큰으로 판단한다.
      * 로그아웃 시 invalidatedBefore를 현재 초로 설정하므로, 해당 초 이전에 발급된 토큰과
      * 동일 초에 발급된 토큰은 모두 차단된다. 재발급은 이후 요청에서 발생하므로 허용된다.
+     *
+     * <p>트레이드오프: 로그아웃과 재로그인이 동일 초에 발생하면 새 AT가 일시적으로 차단될 수 있다.
+     * FE는 이 경우 reissue 재시도로 대응해야 한다. X-Reissued 헤더를 활용할 것.
      */
     private boolean isTokenStillValid(User user, LocalDateTime issuedAt) {
         LocalDateTime invalidatedBefore = user.getInvalidatedBefore();

@@ -154,6 +154,7 @@ class JwtAuthenticationFilterTest {
         User mockUser = mock(User.class);
         when(mockUser.getRole()).thenReturn(UserRole.USER);
         // 토큰 발급과 같은 초를 invalidatedBefore로 설정 → isAfter(T, T) = false 이므로 차단
+        // 트레이드오프: 동일 초 재발급 AT도 차단됨. FE가 reissue retry로 대응해야 함.
         LocalDateTime sameSecond = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         when(mockUser.getInvalidatedBefore()).thenReturn(sameSecond);
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
