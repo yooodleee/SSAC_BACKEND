@@ -22,6 +22,7 @@ import com.ssac.ssacbackend.repository.QuizAttemptRepository;
 import com.ssac.ssacbackend.repository.QuizRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
@@ -307,6 +308,47 @@ public class QuizAttemptService {
 
         return new PeriodStatResponse(label, attemptCount, totalScore, avgScore, accuracy);
     }
+
+    // ── 마이페이지 위임 메서드 ─────────────────────────────────────────────────
+
+    /**
+     * 마이페이지용 퀴즈 누적 통계를 반환한다.
+     *
+     * <p>{@link com.ssac.ssacbackend.service.UserService}의 마이페이지에서 위임받는다.
+     * 퀴즈 응시 이력이 없으면 0으로 초기화된 통계를 반환한다.
+     */
+    @Transactional(readOnly = true)
+    public MyPageQuizStats getMyPageQuizStats(String email) {
+        List<Object[]> rows = quizAttemptRepository.aggregateOverallStats(email);
+        if (rows.isEmpty() || rows.get(0) == null || rows.get(0)[0] == null) {
+            return new MyPageQuizStats(0L, 0);
+        }
+        Object[] row = rows.get(0);
+        long totalCorrect = toLong(row[2]);
+        long totalQuestions = toLong(row[3]);
+        long totalCompleted = toLong(row[1]);
+        int correctRate = totalQuestions > 0
+            ? (int) Math.round((double) totalCorrect / totalQuestions * 100) : 0;
+        return new MyPageQuizStats(totalCompleted, correctRate);
+    }
+
+    /**
+     * 사용자의 퀴즈 응시 활동 일시 목록을 반환한다.
+     *
+     * <p>연속 학습일 계산 시 {@link com.ssac.ssacbackend.service.UserService}에서 위임받는다.
+     */
+    @Transactional(readOnly = true)
+    public List<LocalDateTime> findActivityTimestamps(String email) {
+        return quizAttemptRepository.findActivityTimestampsByUserEmail(email);
+    }
+
+    /**
+     * 마이페이지 퀴즈 통계 집계 결과.
+     *
+     * @param totalCompleted 총 완료 퀴즈 수
+     * @param correctRate    정답률 (0~100)
+     */
+    public record MyPageQuizStats(long totalCompleted, int correctRate) {}
 
     private long toLong(Object value) {
         return value == null ? 0L : ((Number) value).longValue();

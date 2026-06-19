@@ -3,6 +3,7 @@ package com.ssac.ssacbackend.service;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.content.Content;
+import com.ssac.ssacbackend.domain.content.ContentCategory;
 import com.ssac.ssacbackend.domain.content.ContentProgress;
 import com.ssac.ssacbackend.domain.content.ContentViewHistory;
 import com.ssac.ssacbackend.domain.user.User;
@@ -11,6 +12,8 @@ import com.ssac.ssacbackend.dto.response.ContentDetailResponse;
 import com.ssac.ssacbackend.dto.response.ContentItemDto;
 import com.ssac.ssacbackend.dto.response.ContentListResponse;
 import com.ssac.ssacbackend.dto.response.LevelUpResult;
+import com.ssac.ssacbackend.dto.response.ViewedContentsResponse;
+import java.time.LocalDateTime;
 import com.ssac.ssacbackend.repository.ContentProgressRepository;
 import com.ssac.ssacbackend.repository.ContentRepository;
 import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
@@ -176,6 +179,60 @@ public class ContentService {
         ContentViewHistory history = ContentViewHistory.of(user.getId(), contentId);
         contentViewHistoryRepository.save(history);
         log.debug("콘텐츠 조회 이력 저장: userId={}, contentId={}", user.getId(), contentId);
+    }
+
+    // ── 마이페이지 위임 메서드 ─────────────────────────────────────────────────
+
+    /**
+     * 사용자의 완료 콘텐츠 수를 반환한다 (진행률 100% 기준).
+     *
+     * <p>{@link com.ssac.ssacbackend.service.UserService}의 마이페이지 통계에서 위임받는다.
+     */
+    @Transactional(readOnly = true)
+    public long countCompletedContents(String email) {
+        return contentProgressRepository.countByUserEmailAndProgressRateGreaterThanEqual(email, 100);
+    }
+
+    /**
+     * 사용자의 콘텐츠 학습 활동 일시 목록을 반환한다.
+     *
+     * <p>연속 학습일 계산 시 {@link com.ssac.ssacbackend.service.UserService}에서 위임받는다.
+     */
+    @Transactional(readOnly = true)
+    public List<LocalDateTime> findActivityTimestamps(String email) {
+        return contentProgressRepository.findActivityTimestampsByUserEmail(email);
+    }
+
+    /**
+     * 사용자가 조회한 콘텐츠 목록을 최신 순으로 반환한다.
+     *
+     * <p>{@link com.ssac.ssacbackend.service.UserService#getViewedContents}에서 위임받는다.
+     * 삭제된 콘텐츠는 목록에서 제외한다.
+     */
+    @Transactional(readOnly = true)
+    public List<ViewedContentsResponse.ViewedContentDto> getViewedContentsByUser(Long userId) {
+        return contentViewHistoryRepository.findByUserIdOrderByViewedAtDesc(userId)
+            .stream()
+            .map(h -> {
+                Content content = contentRepository.findById(h.getContentId()).orElse(null);
+                if (content == null) {
+                    return null;
+                }
+                String category = content.getFirstCategory();
+                String emoji = ContentCategory.findById(category)
+                    .map(ContentCategory::getEmoji).orElse("");
+                return new ViewedContentsResponse.ViewedContentDto(
+                    String.valueOf(content.getId()),
+                    content.getTitle(),
+                    category,
+                    emoji,
+                    content.getDifficulty() != null ? content.getDifficulty().name() : null,
+                    h.getViewedAt(),
+                    h.isCompleted()
+                );
+            })
+            .filter(d -> d != null)
+            .toList();
     }
 
     private boolean isAuthenticated(Authentication auth) {

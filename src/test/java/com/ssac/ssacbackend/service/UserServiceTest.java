@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -19,15 +20,11 @@ import com.ssac.ssacbackend.dto.request.UpdateProfileRequest;
 import com.ssac.ssacbackend.dto.response.MyPageResponse;
 import com.ssac.ssacbackend.dto.response.UpdateProfileResponse;
 import com.ssac.ssacbackend.dto.response.ViewedContentsResponse;
-import com.ssac.ssacbackend.repository.ContentProgressRepository;
-import com.ssac.ssacbackend.repository.ContentRepository;
-import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
-import com.ssac.ssacbackend.repository.QuizAttemptRepository;
 import com.ssac.ssacbackend.repository.UserInterestRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import com.ssac.ssacbackend.service.QuizAttemptService.MyPageQuizStats;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -46,27 +43,16 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private UserInterestRepository userInterestRepository;
-
-    @Mock
-    private ContentProgressRepository contentProgressRepository;
-
-    @Mock
-    private QuizAttemptRepository quizAttemptRepository;
-
     @Mock
     private HomeCacheEvictService homeCacheEvictService;
-
-    @Mock
-    private ContentViewHistoryRepository contentViewHistoryRepository;
-
-    @Mock
-    private ContentRepository contentRepository;
-
     @Mock
     private TokenService tokenService;
+    @Mock
+    private ContentService contentService;
+    @Mock
+    private QuizAttemptService quizAttemptService;
 
     @InjectMocks
     private UserService userService;
@@ -104,13 +90,12 @@ class UserServiceTest {
 
         given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
         given(userInterestRepository.findDomainIdsByUserId(any())).willReturn(List.of("finance", "tax"));
-        given(contentProgressRepository.countByUserEmailAndProgressRateGreaterThanEqual(
-            "test@example.com", 100)).willReturn(3L);
-        given(quizAttemptRepository.aggregateOverallStats("test@example.com"))
-            .willReturn(Collections.singletonList(new Object[]{100L, 5L, 20L, 25L}));
-        given(contentProgressRepository.findActivityTimestampsByUserEmail("test@example.com"))
+        given(contentService.countCompletedContents("test@example.com")).willReturn(3L);
+        given(quizAttemptService.getMyPageQuizStats("test@example.com"))
+            .willReturn(new MyPageQuizStats(5L, 80));
+        given(contentService.findActivityTimestamps("test@example.com"))
             .willReturn(List.of(LocalDateTime.now()));
-        given(quizAttemptRepository.findActivityTimestampsByUserEmail("test@example.com"))
+        given(quizAttemptService.findActivityTimestamps("test@example.com"))
             .willReturn(List.of());
 
         MyPageResponse response = userService.getMyPage("test@example.com");
@@ -121,6 +106,7 @@ class UserServiceTest {
         assertThat(response.interests()).containsExactly("finance", "tax");
         assertThat(response.stats().totalContentsCompleted()).isEqualTo(3L);
         assertThat(response.stats().totalQuizCompleted()).isEqualTo(5L);
+        assertThat(response.stats().correctRate()).isEqualTo(80);
     }
 
     @Test
@@ -130,10 +116,10 @@ class UserServiceTest {
 
         given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
         given(userInterestRepository.findDomainIdsByUserId(any())).willReturn(List.of());
-        given(contentProgressRepository.countByUserEmailAndProgressRateGreaterThanEqual(any(), anyInt())).willReturn(0L);
-        given(quizAttemptRepository.aggregateOverallStats(any())).willReturn(List.of());
-        given(contentProgressRepository.findActivityTimestampsByUserEmail(any())).willReturn(List.of());
-        given(quizAttemptRepository.findActivityTimestampsByUserEmail(any())).willReturn(List.of());
+        given(contentService.countCompletedContents(any())).willReturn(0L);
+        given(quizAttemptService.getMyPageQuizStats(any())).willReturn(new MyPageQuizStats(0L, 0));
+        given(contentService.findActivityTimestamps(any())).willReturn(List.of());
+        given(quizAttemptService.findActivityTimestamps(any())).willReturn(List.of());
 
         MyPageResponse response = userService.getMyPage("test@example.com");
 
@@ -239,7 +225,7 @@ class UserServiceTest {
     void getViewedContents_emptyList() {
         User user = buildUserWithProfile();
         given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
-        given(contentViewHistoryRepository.findByUserIdOrderByViewedAtDesc(any())).willReturn(List.of());
+        given(contentService.getViewedContentsByUser(any())).willReturn(List.of());
 
         ViewedContentsResponse response = userService.getViewedContents("test@example.com");
 
