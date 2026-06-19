@@ -72,13 +72,13 @@ public class TokenController {
         ReissueResult result = tokenService.reissueWithUser(refreshToken);
         CookieUtils.addRefreshTokenCookie(response, result.tokens().refreshToken(), cookieProperties);
 
-        return ResponseEntity.ok(
-            ApiResponse.success(ReissueResponse.of(
+        return ResponseEntity.ok()
+            .header("X-Reissued", "true")
+            .body(ApiResponse.success(ReissueResponse.of(
                 result.tokens().accessToken(),
                 result.tokens().refreshToken(),
                 result.user()
-            ))
-        );
+            )));
     }
 
     /**
