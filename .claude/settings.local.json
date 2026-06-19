@@ -290,7 +290,11 @@
       "Bash(HomeQuizAssembler)",
       "Bash(HomeService)",
       "Bash(HomeContentAssemblerTest)",
-      "Bash(HomeQuizAssemblerTest)"
+      "Bash(HomeQuizAssemblerTest)",
+      "Bash(NotionContentLoader)",
+      "Bash(ContentService)",
+      "Bash(ContentServiceTest)",
+      "Bash(NotionContentLoaderTest)"
     ]
   }
 }

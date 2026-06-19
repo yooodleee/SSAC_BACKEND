@@ -61,9 +61,7 @@ class ContentServiceTest {
     @Mock
     private ContentViewHistoryRepository contentViewHistoryRepository;
     @Mock
-    private NotionSyncService notionSyncService;
-    @Mock
-    private NotionBlockFetchService notionBlockFetchService;
+    private NotionContentLoader notionContentLoader;
 
     @InjectMocks
     private ContentService contentService;
@@ -94,7 +92,7 @@ class ContentServiceTest {
         @DisplayName("비로그인 사용자는 완료 여부 조회 없이 콘텐츠 목록을 반환한다")
         void getContents_비로그인() {
             ContentItemDto item = buildContentItemDto("10", false);
-            given(notionSyncService.getPublishedContentItems(any(), any(), any()))
+            given(notionContentLoader.getPublishedContentItems(any(), any(), any()))
                 .willReturn(List.of(item));
 
             ContentListResponse result = contentService.getContents(null, null, null, null);
@@ -110,7 +108,7 @@ class ContentServiceTest {
             AnonymousAuthenticationToken anonAuth = mock(AnonymousAuthenticationToken.class);
             given(anonAuth.isAuthenticated()).willReturn(true);
             ContentItemDto item = buildContentItemDto("10", false);
-            given(notionSyncService.getPublishedContentItems(any(), any(), any()))
+            given(notionContentLoader.getPublishedContentItems(any(), any(), any()))
                 .willReturn(List.of(item));
 
             ContentListResponse result = contentService.getContents(anonAuth, null, null, null);
@@ -127,7 +125,7 @@ class ContentServiceTest {
             given(auth.getName()).willReturn("user@test.com");
 
             ContentItemDto item = buildContentItemDto("10", false);
-            given(notionSyncService.getPublishedContentItems(any(), any(), any()))
+            given(notionContentLoader.getPublishedContentItems(any(), any(), any()))
                 .willReturn(List.of(item));
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("user@test.com"))
                 .willReturn(List.of(10L));
@@ -143,7 +141,7 @@ class ContentServiceTest {
             Authentication auth = mock(Authentication.class);
             given(auth.isAuthenticated()).willReturn(true);
             given(auth.getName()).willReturn("user@test.com");
-            given(notionSyncService.getPublishedContentItems(
+            given(notionContentLoader.getPublishedContentItems(
                 eq(List.of("AI", "CS")), any(), any()))
                 .willReturn(List.of());
             given(contentProgressRepository.findCompletedContentIdsByUserEmail(anyString()))
@@ -151,7 +149,7 @@ class ContentServiceTest {
 
             contentService.getContents(auth, "AI,CS", null, null);
 
-            verify(notionSyncService).getPublishedContentItems(
+            verify(notionContentLoader).getPublishedContentItems(
                 eq(List.of("AI", "CS")), any(), any());
         }
     }
@@ -161,16 +159,19 @@ class ContentServiceTest {
     class GetContent {
 
         @Test
-        @DisplayName("NotionBlockFetchService에 블록 조회를 위임하고 결과를 반환한다")
+        @DisplayName("NotionContentLoader에 상세 조회를 위임하고 결과를 반환한다")
         void getContent_블록조회위임() {
+            ContentDetailResponse fakeDetail = new ContentDetailResponse(
+                "10", "page-abc", "테스트 콘텐츠", null,
+                List.of("AI"), List.of(), null, "", null, null, List.of());
             given(contentRepository.findById(10L)).willReturn(Optional.of(mockContent));
-            given(notionBlockFetchService.fetchBlocks("page-abc")).willReturn(List.of());
+            given(notionContentLoader.buildContentDetail(mockContent)).willReturn(fakeDetail);
 
             ContentDetailResponse result = contentService.getContent(10L, null);
 
             assertThat(result.id()).isEqualTo("10");
             assertThat(result.title()).isEqualTo("테스트 콘텐츠");
-            verify(notionBlockFetchService).fetchBlocks("page-abc");
+            verify(notionContentLoader).buildContentDetail(mockContent);
         }
 
         @Test

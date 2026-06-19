@@ -21,7 +21,6 @@ import com.ssac.ssacbackend.repository.UserRepository;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 콘텐츠 목록 조회, 상세 조회, 완료 처리, 조회 이력 저장 서비스.
  *
- * <p>Notion 블록 조회는 {@link NotionBlockFetchService}에 위임한다.
+ * <p>Notion 인프라 조회는 {@link NotionContentLoader}에 위임한다.
  */
 @Slf4j
 @Service
@@ -47,8 +46,7 @@ public class ContentService {
     private final LevelUpService levelUpService;
     private final HomeCacheEvictService homeCacheEvictService;
     private final ContentViewHistoryRepository contentViewHistoryRepository;
-    private final NotionSyncService notionSyncService;
-    private final NotionBlockFetchService notionBlockFetchService;
+    private final NotionContentLoader notionContentLoader;
 
     /**
      * 게시된 콘텐츠 목록을 반환한다. 비로그인 사용자도 조회 가능하다.
@@ -67,7 +65,7 @@ public class ContentService {
             : null;
 
         List<ContentItemDto> cachedItems =
-            notionSyncService.getPublishedContentItems(categories, difficulty, domain);
+            notionContentLoader.getPublishedContentItems(categories, difficulty, domain);
 
         if (!isAuthenticated(auth)) {
             return new ContentListResponse(cachedItems.size(), cachedItems);
@@ -101,22 +99,7 @@ public class ContentService {
             .filter(Content::isPublished)
             .orElseThrow(() -> new NotFoundException(ErrorCode.CONTENT_NOT_FOUND));
 
-        List<Map<String, Object>> blocks =
-            notionBlockFetchService.fetchBlocks(content.getNotionPageId());
-
-        return new ContentDetailResponse(
-            String.valueOf(content.getId()),
-            content.getNotionPageId(),
-            content.getTitle(),
-            content.getThumbnailUrl(),
-            List.copyOf(content.getCategories()),
-            List.copyOf(content.getDomains()),
-            content.getDifficulty() != null ? content.getDifficulty().name() : null,
-            NotionSyncService.difficultyLabel(content.getDifficulty()),
-            content.getNotionCreatedAt(),
-            content.getNotionLastEditedAt(),
-            blocks
-        );
+        return notionContentLoader.buildContentDetail(content);
     }
 
     /**
