@@ -285,7 +285,12 @@
       "Bash(io.sentry:sentry-spring-boot-4:8.28.0)",
       "Bash(ls src/main/resources/db/migration/V*.sql)",
       "Bash(head -3 grep -l \"MysqlViewCount\" src/test/java/com/ssac/ssacbackend/service/*.java)",
-      "Bash(xargs -I{} basename {} .java)"
+      "Bash(xargs -I{} basename {} .java)",
+      "Bash(HomeContentAssembler)",
+      "Bash(HomeQuizAssembler)",
+      "Bash(HomeService)",
+      "Bash(HomeContentAssemblerTest)",
+      "Bash(HomeQuizAssemblerTest)"
     ]
   }
 }
