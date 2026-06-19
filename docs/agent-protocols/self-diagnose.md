@@ -5,7 +5,7 @@
 트리거: `testing.md` 실행 성공 완료 직후 자동 실행
 
 ## 실행 순서
-STEP 1(레이어 책임) → 2(인증/보안) → 3(응답 구조) → 4(Contract 갱신) → 5(Redis 캐싱) → 6(결과 출력)
+STEP 1(레이어 책임) → 2(인증/보안) → 3(응답 구조) → 4(Contract 갱신) → 5(Redis 캐싱) → 6(결과 출력) → 7(Sentry) → 8(동시성/타임존/방어)
 
 ---
 
@@ -36,6 +36,16 @@ STEP 1(레이어 책임) → 2(인증/보안) → 3(응답 구조) → 4(Contrac
 **입력 검증**
 - [ ] `@RequestBody` 파라미터에 `@Valid` 선언 여부
 - [ ] Request DTO 필수 필드에 `@NotBlank` / `@NotNull` 등 Bean Validation 적용 여부
+
+**CORS / 응답 헤더**
+- [ ] FE가 읽어야 하는 커스텀 응답 헤더(`X-Reissued` 등)가 `SecurityConfig.corsConfigurationSource()`의 `exposedHeaders`에 등록되어 있는가
+  - 누락 시 브라우저가 헤더를 읽지 못해 FE 로직 오작동 (CORS preflight 통과 후에도 헤더 접근 불가)
+
+**토큰 시각 정밀도**
+- [ ] JWT `iat`(초 단위) vs DB `LocalDateTime`(나노초) 비교 시 의도한 정밀도를 사용하는가
+  - 로그아웃 보안 기준: `isAfter(>)` — 같은 초에 발급된 AT는 차단 (보안 우선)
+  - 재로그인 허용 기준: `!isBefore(>=)` — 같은 초 허용 시 XSS 위험, 사용 금지
+  - 트레이드오프 선택이 Javadoc에 명시되어 있는가
 
 ---
 
@@ -105,11 +115,13 @@ return repository.findById(id); // fallback
 점검 결과를 아래 형식으로 출력한다:
 ```
 [자가 점검 결과]
-STEP 1 레이어 책임 : ✅/❌ {설명}
-STEP 2 인증/보안   : ✅/❌/⚠️ {설명}
-STEP 3 응답 구조   : ✅/❌ {설명}
-STEP 4 Contract    : ✅/❌/해당없음
-STEP 5 Redis 캐싱  : ✅/❌/⚠️/해당없음
+STEP 1 레이어 책임       : ✅/❌ {설명}
+STEP 2 인증/보안         : ✅/❌/⚠️ {설명}
+STEP 3 응답 구조         : ✅/❌ {설명}
+STEP 4 Contract          : ✅/❌/해당없음
+STEP 5 Redis 캐싱        : ✅/❌/⚠️/해당없음
+STEP 7 Sentry            : ✅/❌/해당없음
+STEP 8 동시성/타임존/방어 : ✅/❌/해당없음
 ```
 
 **완료 판단 규칙**
@@ -138,3 +150,26 @@ Sentry 관련 코드 변경이 없으면 건너뜀 ✅
 **SENTRY-4. MDC 태그**
 - [ ] `SentryConfig.mdcEventProcessor()`가 `trace_id` / `user_id` / `http_method` / `request_path` 태그를 추가하는가
 - [ ] 비로그인 요청 시 `user_id` 태그 누락 허용 / 나머지 태그 정상 포함 여부
+
+---
+
+## STEP 8. 동시성 / 타임존 / 방어 레이어 점검
+
+해당 구현이 없으면 건너뜀 ✅
+
+**CONC — 동시성**
+- [ ] `findX() + updateX()` 비원자적 2-Step이 동시 요청에 노출되는가
+  → `@Modifying @Query int method()` 원자적 UPDATE로 교체, affected row count(0/1)로 성공 판단
+- [ ] 단일 엔티티를 여러 트랜잭션이 동시 업데이트하는 경우 낙관적/비관적 락 필요 여부
+
+**TZ — 타임존**
+- [ ] API DTO 필드에 `LocalDateTime` 단독 사용 금지 → `OffsetDateTime` 사용
+  DB 저장 시: `offsetDateTime.atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()`
+- [ ] 변환 방향 일관성: 입력(`OffsetDateTime`) → KST `LocalDateTime` → DB / DB → KST `OffsetDateTime` → 응답
+- [ ] `@PrePersist` / `@CreatedDate` 에서 `LocalDateTime.now(ZoneId.of("Asia/Seoul"))` 사용
+  (`LocalDateTime.now()` 단독 시 Railway UTC 서버에서 9시간 오차)
+
+**GUARD — 방어 레이어**
+- [ ] 외부 API 재귀 호출에 `int depth` 파라미터 + `MAX_DEPTH` 상수 존재, 초과 시 `log.warn` + 빈 결과 반환
+- [ ] HTTP 응답 body `null/blank` 체크 후 조기 반환 (NPE 방지)
+- [ ] 재귀 각 단계에서 `try-catch` + fallback, 예외가 상위 레이어로 전파되지 않는가
