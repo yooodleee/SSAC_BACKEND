@@ -14,6 +14,8 @@ import com.ssac.ssacbackend.repository.AdminCodeRepository;
 import com.ssac.ssacbackend.repository.FeedbackRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +65,10 @@ public class AdminService {
      * @param adminUserId 코드와 연결할 관리자 사용자 ID (ADMIN 역할이어야 함)
      * @param expiresAt   만료 일시 (null이면 무기한)
      */
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
     @Transactional
-    public AdminCodeCreateResponse createAdminCode(Long adminUserId, LocalDateTime expiresAt) {
+    public AdminCodeCreateResponse createAdminCode(Long adminUserId, OffsetDateTime expiresAt) {
         User targetUser = userRepository.findById(adminUserId)
             .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
@@ -72,23 +76,27 @@ public class AdminService {
             throw new BadRequestException(ErrorCode.ROLE_ASSIGNMENT_INVALID);
         }
 
+        LocalDateTime expiresAtKst = expiresAt != null
+            ? expiresAt.atZoneSameInstant(KST).toLocalDateTime()
+            : null;
+
         String rawCode = UUID.randomUUID().toString();
         String codeHash = AdminLoginService.sha256(rawCode);
 
         AdminCode adminCode = AdminCode.builder()
             .codeHash(codeHash)
             .adminUserId(adminUserId)
-            .expiresAt(expiresAt)
+            .expiresAt(expiresAtKst)
             .build();
 
         AdminCode saved = adminCodeRepository.save(adminCode);
         log.info("관리자 코드 발급: adminUserId={}, codeId={}", adminUserId, saved.getId());
 
-        return new AdminCodeCreateResponse(
+        return AdminCodeCreateResponse.of(
             String.valueOf(saved.getId()),
             rawCode,
             adminUserId,
-            expiresAt,
+            expiresAtKst,
             saved.getCreatedAt()
         );
     }

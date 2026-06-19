@@ -17,6 +17,30 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-19 — AdminCode expiresAt 타임존 버그 수정 (2번 스프린트)
+
+### 배경
+- 2026-06-16 장애: `expires_at`을 UTC 기준으로 삽입했으나 KST 기준으로 이미 만료로 판정
+- 근본 원인: `AdminCodeCreateRequest.expiresAt`이 `LocalDateTime`(타임존 없음)으로 수신 → 호출자가 UTC로 입력해도 강제 수단 없음
+
+### 수정 내용
+- `AdminCodeCreateRequest.expiresAt`: `LocalDateTime` → `OffsetDateTime`
+  - API 호출 시 `+09:00`(KST) 또는 `Z`(UTC) 어떤 타임존으로 입력해도 올바르게 변환
+- `AdminService.createAdminCode()`: `OffsetDateTime` 수신 → `atZoneSameInstant(KST).toLocalDateTime()`으로 변환 후 저장
+- `AdminCodeCreateResponse.expiresAt`, `createdAt`: `LocalDateTime` → `OffsetDateTime(KST +09:00)` 반환
+  - 응답 소비자가 타임존을 명확히 인식 가능
+
+### DB 변경 없음
+- `admin_codes.expires_at` 컬럼은 그대로 `DATETIME`(KST 값 저장) 유지
+
+### 테스트 추가
+- UTC → KST 변환 검증 (UTC 14:00 = KST 23:00)
+- KST 입력 시 동일값 저장 검증
+- null 입력 시 무기한 저장 검증
+- 전체 테스트 BUILD SUCCESSFUL
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-19 — 장애 패턴 감사 기반 인증 레이어 수정 (1번 스프린트)
 
 ### 배경

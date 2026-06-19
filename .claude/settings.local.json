@@ -294,7 +294,8 @@
       "Bash(NotionContentLoader)",
       "Bash(ContentService)",
       "Bash(ContentServiceTest)",
-      "Bash(NotionContentLoaderTest)"
+      "Bash(NotionContentLoaderTest)",
+      "Bash(./gradlew compileJava compileTestJava --no-daemon)"
     ]
   }
 }
