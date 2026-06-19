@@ -26,10 +26,11 @@
 
 ### 수정 내용 (BE)
 
-**1. `JwtAuthenticationFilter.isTokenStillValid()` 경계값 수정**
-- 변경: `issuedAt.isAfter(invalidatedBefore)` → `!issuedAt.isBefore(invalidatedBefore)`
-- 효과: 로그아웃과 재발급이 동일 초에 발생해도 재발급 토큰이 차단되지 않음
-- 테스트: `IsRejected` → `IsAccepted` 로 기대값 수정
+**1. `JwtAuthenticationFilter.isTokenStillValid()` 트레이드오프 문서화 (코드 유지)**
+- `isAfter(>)` 정책 유지 — `!isBefore(>=)` 변경은 로그아웃 차단 보안을 깨는 잘못된 픽스로 판정
+- 근거: JWT iat와 invalidatedBefore 모두 초 단위 정밀도이므로 `>=` 적용 시 로그아웃 직후 구 AT가 차단되지 않음
+- 동일 초 재발급 AT 차단은 FE retry로 대응 (X-Reissued 헤더 활용)
+- Javadoc에 트레이드오프 명시 추가
 
 **2. `TokenController.reissue()` 응답 헤더 추가**
 - 변경: `POST /api/v1/auth/reissue` 성공 응답에 `X-Reissued: true` 헤더 포함
