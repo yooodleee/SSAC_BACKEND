@@ -17,6 +17,70 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-19 — Notion 블록 재귀 방어 레이어 강화 (4번 스프린트)
+
+**증상:** Notion 페이지에 깊이 중첩된 has_children 블록이 있을 경우 재귀 호출 무한 반복 → StackOverflowError 가능
+
+**원인:**
+- `serializeBlock → fetchChildBlocks → fetchPaginatedBlocks → processBlockList → serializeBlock` 재귀 경로에 깊이 제한 없음
+- `fetchRawBlock()` 에서 HTTP 응답 body null 체크 없음 → NPE 가능
+
+**수정:**
+- `MAX_BLOCK_DEPTH = 10` 상수 추가
+- `fetchChildBlocks(String blockId, int depth)` private 오버로드 추가 — depth > MAX_BLOCK_DEPTH 시 경고 로그 + `List.of()` 반환
+- `fetchPaginatedBlocks`, `processBlockList`, `serializeBlock` 모두 depth 파라미터 전파
+- `fetchRawBlock()` body null/blank 체크 추가
+
+**결과:** 재귀 10단계 초과 시 자식 블록 조회 중단, StackOverflowError 방지
+**테스트:** `fetchChildBlocks_최대깊이_초과_빈리스트_반환` 추가, 커버리지 70% 유지
+
+---
+
+## ✅ [DIAGNOSE] 2026-06-19 — Reissue 경쟁 조건 원자적 방어 (3번 스프린트)
+
+**증상:** 동시 reissue 요청 2건이 동일한 Refresh Token으로 모두 성공하여 토큰 쌍이 2개 발급됨
+
+**원인:**
+- `findUserIdByHash(read)` + `revoke(write)` 2-Step이 비원자적
+- 첫 번째 요청이 revoke 전에 두 번째 요청이 read를 통과하면 둘 다 성공
+- grace period(`findUserIdByHashIncludingRevoked`) 로직이 취약점 확대: revoked 토큰도 재발급 허용
+
+**수정:**
+- `RefreshTokenRepository.revokeIfActive`: `UPDATE ... WHERE revoked=false AND expiresAt > CURRENT_TIMESTAMP` — DB 레벨 원자적 UPDATE, 영향 행 수 반환
+- `TokenStore.revokeAndGetUserId`: 신규 인터페이스 메서드 (원자적 무효화 + userId 반환)
+- `JpaTokenStore.revokeAndGetUserId`: `revokeIfActive` 0행이면 empty 반환, 1행이면 `findByTokenHash`로 userId 조회
+- `TokenService.reissueWithUser`: 2-Step + grace period 경로 제거 → `revokeAndGetUserId` 단일 호출
+- 제거: `TokenStore.findUserIdByHashIncludingRevoked`, `TokenStore.revoke`, `JpaTokenStore` 관련 구현
+
+**결과:** 동시 요청 중 DB UPDATE를 먼저 실행한 1건만 성공, 나머지는 400(TOKEN_INVALID) 반환
+**테스트:** `TokenServiceTest`, `JpaTokenStoreTest` 업데이트 완료, 커버리지 70% 유지
+
+---
+
+## ✅ [DIAGNOSE] 2026-06-19 — AdminCode expiresAt 타임존 버그 수정 (2번 스프린트)
+
+### 배경
+- 2026-06-16 장애: `expires_at`을 UTC 기준으로 삽입했으나 KST 기준으로 이미 만료로 판정
+- 근본 원인: `AdminCodeCreateRequest.expiresAt`이 `LocalDateTime`(타임존 없음)으로 수신 → 호출자가 UTC로 입력해도 강제 수단 없음
+
+### 수정 내용
+- `AdminCodeCreateRequest.expiresAt`: `LocalDateTime` → `OffsetDateTime`
+  - API 호출 시 `+09:00`(KST) 또는 `Z`(UTC) 어떤 타임존으로 입력해도 올바르게 변환
+- `AdminService.createAdminCode()`: `OffsetDateTime` 수신 → `atZoneSameInstant(KST).toLocalDateTime()`으로 변환 후 저장
+- `AdminCodeCreateResponse.expiresAt`, `createdAt`: `LocalDateTime` → `OffsetDateTime(KST +09:00)` 반환
+  - 응답 소비자가 타임존을 명확히 인식 가능
+
+### DB 변경 없음
+- `admin_codes.expires_at` 컬럼은 그대로 `DATETIME`(KST 값 저장) 유지
+
+### 테스트 추가
+- UTC → KST 변환 검증 (UTC 14:00 = KST 23:00)
+- KST 입력 시 동일값 저장 검증
+- null 입력 시 무기한 저장 검증
+- 전체 테스트 BUILD SUCCESSFUL
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-19 — 장애 패턴 감사 기반 인증 레이어 수정 (1번 스프린트)
 
 ### 배경

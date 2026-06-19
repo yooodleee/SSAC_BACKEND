@@ -16,7 +16,7 @@ import com.ssac.ssacbackend.dto.response.AdminCodeCreateResponse;
 import com.ssac.ssacbackend.dto.response.AdminHomeResponse;
 import com.ssac.ssacbackend.service.AdminFeedbackService;
 import com.ssac.ssacbackend.service.AdminService;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +44,7 @@ class AdminControllerTest {
     void createAdminCode_정상() {
         AdminCodeCreateRequest request = new AdminCodeCreateRequest(1L, null);
         AdminCodeCreateResponse mockResponse = new AdminCodeCreateResponse(
-            "code-id-001", "raw-code-abc", 1L, null, LocalDateTime.now());
+            "code-id-001", "raw-code-abc", 1L, null, OffsetDateTime.now());
         given(adminService.createAdminCode(1L, null)).willReturn(mockResponse);
 
         ResponseEntity<?> result = controller.createAdminCode(request);

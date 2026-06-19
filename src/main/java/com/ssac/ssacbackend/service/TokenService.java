@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -103,26 +102,10 @@ public class TokenService {
     public ReissueResult reissueWithUser(String rawRefreshToken) {
         String tokenHash = hashToken(rawRefreshToken);
 
-        Optional<Long> userIdOpt = tokenStore.findUserIdByHash(tokenHash);
-        boolean alreadyRevoked = false;
+        // DB 레벨 원자적 UPDATE: 유효한 토큰 하나만 무효화하여 동시 재발급 경쟁 조건을 방어한다
+        Long userId = tokenStore.revokeAndGetUserId(tokenHash)
+            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-        if (userIdOpt.isEmpty()) {
-            // Token Rotation 경쟁 조건: 동시 reissue 요청으로 이미 교체된 토큰
-            // 만료 전이면 userId를 조회하여 새 토큰 발급을 허용한다
-            userIdOpt = tokenStore.findUserIdByHashIncludingRevoked(tokenHash);
-            if (userIdOpt.isEmpty()) {
-                throw new BadRequestException(ErrorCode.TOKEN_INVALID);
-            }
-            alreadyRevoked = true;
-            tokenStore.deleteToken(tokenHash);
-            log.info("토큰 로테이션 경쟁 조건 감지 — 재발급 진행: userId={}", userIdOpt.get());
-        }
-
-        if (!alreadyRevoked) {
-            tokenStore.revoke(tokenHash);
-        }
-
-        Long userId = userIdOpt.get();
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 

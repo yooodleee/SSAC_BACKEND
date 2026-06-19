@@ -45,6 +45,8 @@ public class NotionBlockFetchService {
         .create();
     private static final String NOTION_API_BASE = "https://api.notion.com/v1";
     private static final String NOTION_VERSION = "2022-06-28";
+    /** 블록 재귀 최대 깊이. 초과 시 자식 조회를 중단하여 StackOverflowError를 방지한다. */
+    private static final int MAX_BLOCK_DEPTH = 10;
 
     private final NotionClient notionClient;
     private final NotionProperties notionProperties;
@@ -77,7 +79,7 @@ public class NotionBlockFetchService {
             }
         }
         try {
-            List<Map<String, Object>> result = fetchPaginatedBlocks(notionPageId);
+            List<Map<String, Object>> result = fetchPaginatedBlocks(notionPageId, 0);
             try {
                 String json = OBJECT_MAPPER.writeValueAsString(result);
                 stringRedisTemplate.opsForValue()
@@ -97,13 +99,22 @@ public class NotionBlockFetchService {
      *
      * <p>has_children이 true인 블록은 재귀적으로 자식을 조회하여 포함한다.
      * Image 블록 URL은 Cloudinary로 이전한다.
+     * 재귀 깊이는 내부적으로 {@value #MAX_BLOCK_DEPTH}로 제한된다.
      */
     List<Map<String, Object>> fetchChildBlocks(String blockId) {
+        return fetchChildBlocks(blockId, 1);
+    }
+
+    private List<Map<String, Object>> fetchChildBlocks(String blockId, int depth) {
         if (blockId == null || blockId.isBlank()) {
             return List.of();
         }
+        if (depth > MAX_BLOCK_DEPTH) {
+            log.warn("블록 재귀 깊이 초과, 자식 조회 중단: blockId={}, depth={}", blockId, depth);
+            return List.of();
+        }
         try {
-            return fetchPaginatedBlocks(blockId);
+            return fetchPaginatedBlocks(blockId, depth);
         } catch (Exception e) {
             log.warn("자식 블록 조회 실패: blockId={}", blockId, e);
             return List.of();
@@ -116,15 +127,16 @@ public class NotionBlockFetchService {
      * <p>hasMore가 true인 동안 nextCursor로 연속 조회한다.
      * {@link #fetchBlocks}와 {@link #fetchChildBlocks}의 공통 루프를 추출한 메서드다.
      *
-     * @param id 조회 대상 페이지 또는 블록 ID
+     * @param id    조회 대상 페이지 또는 블록 ID
+     * @param depth 현재 재귀 깊이 (자식 블록 조회 시 전파됨)
      * @return 직렬화된 블록 목록
      */
-    private List<Map<String, Object>> fetchPaginatedBlocks(String id) {
+    private List<Map<String, Object>> fetchPaginatedBlocks(String id, int depth) {
         List<Map<String, Object>> result = new ArrayList<>();
         String startCursor = null;
         do {
             Blocks blocks = notionClient.retrieveBlockChildren(id, startCursor, 100);
-            result.addAll(processBlockList(blocks.getResults()));
+            result.addAll(processBlockList(blocks.getResults(), depth));
             startCursor = Boolean.TRUE.equals(blocks.getHasMore()) ? blocks.getNextCursor() : null;
         } while (startCursor != null);
         return result;
@@ -137,14 +149,14 @@ public class NotionBlockFetchService {
      * numbered_list_item 블록은 연속 순서대로 number 필드(1부터)를 주입한다.
      * Notion API는 번호 매기기 목록의 순번을 제공하지 않으므로 백엔드에서 직접 부여한다.
      */
-    private List<Map<String, Object>> processBlockList(List<? extends Block> blocks) {
+    private List<Map<String, Object>> processBlockList(List<? extends Block> blocks, int depth) {
         List<Map<String, Object>> result = new ArrayList<>();
         int numberedListCounter = 0;
         for (Block block : blocks) {
             if (block == null) {
                 continue;
             }
-            Map<String, Object> map = serializeBlock(block);
+            Map<String, Object> map = serializeBlock(block, depth);
             if (map == null) {
                 continue;
             }
@@ -176,10 +188,10 @@ public class NotionBlockFetchService {
      * <p>SDK가 인식하지 못한 UnsupportedBlock은 Notion API에 직접 HTTP 요청하여 원본 타입과 콘텐츠를 복원한다.
      * GSON으로 직렬화한 뒤 ObjectMapper로 역직렬화한다.
      * BlockType enum은 Notion API 값(snake_case)으로 교체한다.
-     * has_children이 true이면 자식 블록을 재귀적으로 포함한다.
+     * has_children이 true이면 자식 블록을 재귀적으로 포함한다(최대 깊이 {@value #MAX_BLOCK_DEPTH}).
      */
     @SuppressWarnings("unchecked")
-    private Map<String, Object> serializeBlock(Block block) {
+    private Map<String, Object> serializeBlock(Block block, int depth) {
         try {
             if (block instanceof UnsupportedBlock) {
                 Map<String, Object> raw = fetchRawBlock(block.getId());
@@ -187,7 +199,7 @@ public class NotionBlockFetchService {
                     migrateImageUrl(raw);
                     if (Boolean.TRUE.equals(raw.get("has_children"))) {
                         String childId = (String) raw.get("id");
-                        raw.put("children", fetchChildBlocks(childId));
+                        raw.put("children", fetchChildBlocks(childId, depth + 1));
                     }
                     return raw;
                 }
@@ -206,7 +218,7 @@ public class NotionBlockFetchService {
             migrateImageUrl(map);
             if (Boolean.TRUE.equals(map.get("has_children"))) {
                 String childId = (String) map.get("id");
-                map.put("children", fetchChildBlocks(childId));
+                map.put("children", fetchChildBlocks(childId, depth + 1));
             }
             return map;
         } catch (Exception e) {
@@ -239,8 +251,12 @@ public class NotionBlockFetchService {
             HttpResponse<String> response =
                 httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 200) {
-                return OBJECT_MAPPER.readValue(
-                    response.body(), new TypeReference<Map<String, Object>>() {});
+                String body = response.body();
+                if (body == null || body.isBlank()) {
+                    log.warn("Unsupported 블록 원본 조회 응답 비어있음: blockId={}", blockId);
+                    return null;
+                }
+                return OBJECT_MAPPER.readValue(body, new TypeReference<Map<String, Object>>() {});
             }
             log.warn("Unsupported 블록 원본 조회 실패: blockId={}, status={}",
                 blockId, response.statusCode());

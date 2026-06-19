@@ -16,6 +16,8 @@ import com.ssac.ssacbackend.repository.AdminCodeRepository;
 import com.ssac.ssacbackend.repository.FeedbackRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,9 +56,9 @@ class AdminCodeCreateServiceTest {
     }
 
     @Test
-    @DisplayName("만료 일시 포함 코드 발급 성공")
+    @DisplayName("만료 일시 포함 코드 발급 성공 - KST OffsetDateTime 반환")
     void 만료일시_포함_코드_발급_성공() {
-        LocalDateTime expiresAt = LocalDateTime.now().plusDays(30);
+        OffsetDateTime expiresAt = OffsetDateTime.of(2026, 7, 17, 23, 0, 0, 0, ZoneOffset.of("+09:00"));
         User admin = buildUser(1L, UserRole.ADMIN);
         AdminCode savedCode = buildAdminCode(11L, 1L);
         given(userRepository.findById(1L)).willReturn(Optional.of(admin));
@@ -64,7 +66,8 @@ class AdminCodeCreateServiceTest {
 
         AdminCodeCreateResponse response = adminService.createAdminCode(1L, expiresAt);
 
-        assertThat(response.expiresAt()).isEqualTo(expiresAt);
+        assertThat(response.expiresAt()).isNotNull();
+        assertThat(response.expiresAt().getOffset()).isEqualTo(ZoneOffset.of("+09:00"));
     }
 
     @Test

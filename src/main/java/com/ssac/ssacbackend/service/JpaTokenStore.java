@@ -60,27 +60,18 @@ public class JpaTokenStore implements TokenStore {
     /**
      * {@inheritDoc}
      *
-     * <p>Token Rotation 경쟁 조건 처리를 위해 revoked=true인 토큰도 조회한다.
-     * 만료되지 않았으면 userId를 반환하여 새 토큰 발급을 허용한다.
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<Long> findUserIdByHashIncludingRevoked(String hash) {
-        return refreshTokenRepository.findByTokenHash(hash)
-            .filter(token -> !token.isExpired())
-            .map(RefreshToken::getUserId);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>레코드를 revoked 상태로 표시하여 유지한다(Token Rotation 경쟁 조건 grace period 지원).
+     * <p>DB 레벨 원자적 UPDATE로 유효한 토큰을 무효화하고 소유자 ID를 반환한다.
+     * UPDATE 영향 행이 0이면 토큰이 없거나 이미 무효화·만료된 것으로 빈 Optional을 반환한다.
      */
     @Override
     @Transactional
-    public void revoke(String hash) {
-        refreshTokenRepository.findByTokenHashAndRevokedFalse(hash)
-            .ifPresent(RefreshToken::revoke);
+    public Optional<Long> revokeAndGetUserId(String hash) {
+        int affected = refreshTokenRepository.revokeIfActive(hash);
+        if (affected == 0) {
+            return Optional.empty();
+        }
+        return refreshTokenRepository.findByTokenHash(hash)
+            .map(RefreshToken::getUserId);
     }
 
     /**

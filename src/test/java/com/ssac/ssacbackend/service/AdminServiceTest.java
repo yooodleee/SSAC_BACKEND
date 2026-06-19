@@ -7,15 +7,23 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
 import com.ssac.ssacbackend.common.exception.BusinessException;
+import com.ssac.ssacbackend.domain.auth.AdminCode;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserRole;
+import com.ssac.ssacbackend.dto.response.AdminCodeCreateResponse;
 import com.ssac.ssacbackend.dto.response.UserSummaryResponse;
+import com.ssac.ssacbackend.repository.AdminCodeRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,8 +39,96 @@ class AdminServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AdminCodeRepository adminCodeRepository;
+
     @InjectMocks
     private AdminService adminService;
+
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
+    // ── 관리자 코드 발급 ──────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("UTC OffsetDateTime으로 expiresAt을 전달하면 KST LocalDateTime으로 변환하여 저장한다")
+    void createAdminCode_UTC_입력_시_KST로_변환_저장() {
+        User admin = mockAdminUser();
+        given(userRepository.findById(1L)).willReturn(Optional.of(admin));
+
+        // UTC 14:00 = KST 23:00
+        OffsetDateTime utcInput = OffsetDateTime.of(2026, 6, 17, 14, 0, 0, 0, ZoneOffset.UTC);
+        LocalDateTime expectedKst = LocalDateTime.of(2026, 6, 17, 23, 0, 0);
+
+        AdminCode savedCode = mockSavedAdminCode();
+        ArgumentCaptor<AdminCode> captor = ArgumentCaptor.forClass(AdminCode.class);
+        given(adminCodeRepository.save(captor.capture())).willReturn(savedCode);
+
+        AdminCodeCreateResponse response = adminService.createAdminCode(1L, utcInput);
+
+        assertThat(captor.getValue().getExpiresAt()).isEqualTo(expectedKst);
+        assertThat(response.expiresAt().toLocalDateTime()).isEqualTo(expectedKst);
+        assertThat(response.expiresAt().getOffset()).isEqualTo(ZoneOffset.of("+09:00"));
+    }
+
+    @Test
+    @DisplayName("KST OffsetDateTime으로 expiresAt을 전달하면 동일한 KST LocalDateTime으로 저장한다")
+    void createAdminCode_KST_입력_시_동일값_저장() {
+        User admin = mockAdminUser();
+        given(userRepository.findById(1L)).willReturn(Optional.of(admin));
+
+        OffsetDateTime kstInput = OffsetDateTime.of(2026, 6, 17, 23, 0, 0, 0, ZoneOffset.of("+09:00"));
+        LocalDateTime expectedKst = LocalDateTime.of(2026, 6, 17, 23, 0, 0);
+
+        AdminCode savedCode = mockSavedAdminCode();
+        ArgumentCaptor<AdminCode> captor = ArgumentCaptor.forClass(AdminCode.class);
+        given(adminCodeRepository.save(captor.capture())).willReturn(savedCode);
+
+        adminService.createAdminCode(1L, kstInput);
+
+        assertThat(captor.getValue().getExpiresAt()).isEqualTo(expectedKst);
+    }
+
+    @Test
+    @DisplayName("expiresAt이 null이면 무기한 코드로 저장한다")
+    void createAdminCode_expiresAt_null_무기한_저장() {
+        User admin = mockAdminUser();
+        given(userRepository.findById(1L)).willReturn(Optional.of(admin));
+
+        AdminCode savedCode = mockSavedAdminCode();
+        ArgumentCaptor<AdminCode> captor = ArgumentCaptor.forClass(AdminCode.class);
+        given(adminCodeRepository.save(captor.capture())).willReturn(savedCode);
+
+        AdminCodeCreateResponse response = adminService.createAdminCode(1L, null);
+
+        assertThat(captor.getValue().getExpiresAt()).isNull();
+        assertThat(response.expiresAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("대상 사용자가 ADMIN 역할이 아니면 예외가 발생한다")
+    void createAdminCode_ADMIN_아닌_사용자_예외() {
+        User user = mock(User.class);
+        given(user.getRole()).willReturn(UserRole.USER);
+        given(userRepository.findById(2L)).willReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> adminService.createAdminCode(2L, null))
+            .isInstanceOf(BusinessException.class)
+            .satisfies(ex -> assertThat(((BusinessException) ex).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST));
+    }
+
+    private User mockAdminUser() {
+        User admin = mock(User.class);
+        given(admin.getRole()).willReturn(UserRole.ADMIN);
+        return admin;
+    }
+
+    private AdminCode mockSavedAdminCode() {
+        AdminCode savedCode = mock(AdminCode.class);
+        given(savedCode.getId()).willReturn(1L);
+        given(savedCode.getCreatedAt()).willReturn(LocalDateTime.now(KST));
+        return savedCode;
+    }
 
     // ── 사용자 목록 조회 ──────────────────────────────────────────────────────
 

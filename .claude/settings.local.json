@@ -294,7 +294,12 @@
       "Bash(NotionContentLoader)",
       "Bash(ContentService)",
       "Bash(ContentServiceTest)",
-      "Bash(NotionContentLoaderTest)"
+      "Bash(NotionContentLoaderTest)",
+      "Bash(./gradlew compileJava compileTestJava --no-daemon)",
+      "Bash(RefreshTokenRepository.revokeIfActive)",
+      "Bash(WHERE revoked=false AND expiresAt)",
+      "Bash(TokenStore.revokeAndGetUserId)",
+      "Bash(TokenService.reissueWithUser)"
     ]
   }
 }
