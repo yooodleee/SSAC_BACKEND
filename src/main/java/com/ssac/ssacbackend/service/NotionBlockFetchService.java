@@ -77,13 +77,7 @@ public class NotionBlockFetchService {
             }
         }
         try {
-            List<Map<String, Object>> result = new ArrayList<>();
-            String startCursor = null;
-            do {
-                Blocks blocks = notionClient.retrieveBlockChildren(notionPageId, startCursor, 100);
-                result.addAll(processBlockList(blocks.getResults()));
-                startCursor = Boolean.TRUE.equals(blocks.getHasMore()) ? blocks.getNextCursor() : null;
-            } while (startCursor != null);
+            List<Map<String, Object>> result = fetchPaginatedBlocks(notionPageId);
             try {
                 String json = OBJECT_MAPPER.writeValueAsString(result);
                 stringRedisTemplate.opsForValue()
@@ -109,18 +103,31 @@ public class NotionBlockFetchService {
             return List.of();
         }
         try {
-            List<Map<String, Object>> result = new ArrayList<>();
-            String startCursor = null;
-            do {
-                Blocks children = notionClient.retrieveBlockChildren(blockId, startCursor, 100);
-                result.addAll(processBlockList(children.getResults()));
-                startCursor = Boolean.TRUE.equals(children.getHasMore()) ? children.getNextCursor() : null;
-            } while (startCursor != null);
-            return result;
+            return fetchPaginatedBlocks(blockId);
         } catch (Exception e) {
             log.warn("자식 블록 조회 실패: blockId={}", blockId, e);
             return List.of();
         }
+    }
+
+    /**
+     * Notion API의 페이지네이션을 처리하여 전체 블록 목록을 반환한다.
+     *
+     * <p>hasMore가 true인 동안 nextCursor로 연속 조회한다.
+     * {@link #fetchBlocks}와 {@link #fetchChildBlocks}의 공통 루프를 추출한 메서드다.
+     *
+     * @param id 조회 대상 페이지 또는 블록 ID
+     * @return 직렬화된 블록 목록
+     */
+    private List<Map<String, Object>> fetchPaginatedBlocks(String id) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        String startCursor = null;
+        do {
+            Blocks blocks = notionClient.retrieveBlockChildren(id, startCursor, 100);
+            result.addAll(processBlockList(blocks.getResults()));
+            startCursor = Boolean.TRUE.equals(blocks.getHasMore()) ? blocks.getNextCursor() : null;
+        } while (startCursor != null);
+        return result;
     }
 
     /**
