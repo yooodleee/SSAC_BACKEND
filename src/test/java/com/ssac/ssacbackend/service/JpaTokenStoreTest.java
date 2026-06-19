@@ -79,29 +79,30 @@ class JpaTokenStoreTest {
     }
 
     @Test
-    @DisplayName("revoke - 토큰이 존재하면 revoked=true로 무효화한다")
-    void revoke_정상() {
+    @DisplayName("revokeAndGetUserId - 유효한 토큰을 원자적으로 무효화하고 userId를 반환한다")
+    void revokeAndGetUserId_유효한토큰() {
         RefreshToken token = RefreshToken.builder()
             .userId(1L)
-            .tokenHash("to-revoke")
+            .tokenHash("active-hash")
             .expiresAt(LocalDateTime.now().plusDays(1))
             .build();
-        given(refreshTokenRepository.findByTokenHashAndRevokedFalse("to-revoke"))
+        given(refreshTokenRepository.revokeIfActive("active-hash")).willReturn(1);
+        given(refreshTokenRepository.findByTokenHash("active-hash"))
             .willReturn(Optional.of(token));
 
-        jpaTokenStore.revoke("to-revoke");
+        Optional<Long> result = jpaTokenStore.revokeAndGetUserId("active-hash");
 
-        assertThat(token.isRevoked()).isTrue();
+        assertThat(result).contains(1L);
     }
 
     @Test
-    @DisplayName("revoke - 토큰이 없으면 아무 동작도 하지 않는다")
-    void revoke_없는토큰() {
-        given(refreshTokenRepository.findByTokenHashAndRevokedFalse("missing"))
-            .willReturn(Optional.empty());
+    @DisplayName("revokeAndGetUserId - 이미 무효화됐거나 만료된 토큰이면 empty를 반환한다")
+    void revokeAndGetUserId_무효화된토큰() {
+        given(refreshTokenRepository.revokeIfActive("revoked-hash")).willReturn(0);
 
-        jpaTokenStore.revoke("missing");
-        // 예외 없이 종료되면 성공
+        Optional<Long> result = jpaTokenStore.revokeAndGetUserId("revoked-hash");
+
+        assertThat(result).isEmpty();
     }
 
     @Test

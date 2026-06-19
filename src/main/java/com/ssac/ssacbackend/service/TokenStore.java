@@ -38,24 +38,15 @@ public interface TokenStore {
     Optional<Long> findUserIdByHash(String hash);
 
     /**
-     * revoked 여부에 관계없이 만료되지 않은 토큰의 소유자 ID를 조회한다.
+     * 유효한 토큰을 원자적으로 무효화하고 소유자 ID를 반환한다(Token Rotation 전용).
      *
-     * <p>Token Rotation 경쟁 조건 처리 전용.
-     * 동시 reissue 요청으로 이미 교체된 토큰이 재사용될 때, 만료 전이면 userId를 반환한다.
-     *
-     * @param hash SHA-256 해시 값
-     * @return 만료되지 않은 토큰의 소유자 ID, 없으면 empty
-     */
-    Optional<Long> findUserIdByHashIncludingRevoked(String hash);
-
-    /**
-     * 특정 해시의 Refresh Token을 revoked 상태로 표시한다(Token Rotation 전용).
-     *
-     * <p>레코드는 유지되므로 경쟁 조건 grace period에서 조회 가능하다.
+     * <p>DB 레벨 단일 UPDATE로 동시 reissue 요청 중 하나만 성공하도록 보장한다.
+     * revoked=false이고 만료 전인 토큰만 무효화되며, 이미 무효화됐거나 만료된 경우 빈 Optional을 반환한다.
      *
      * @param hash SHA-256 해시 값
+     * @return 무효화된 토큰의 소유자 ID, 없으면 empty
      */
-    void revoke(String hash);
+    Optional<Long> revokeAndGetUserId(String hash);
 
     /**
      * 특정 해시의 Refresh Token 레코드를 완전히 삭제한다(단일 디바이스 로그아웃 전용).

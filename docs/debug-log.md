@@ -17,6 +17,27 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-19 — Reissue 경쟁 조건 원자적 방어 (3번 스프린트)
+
+**증상:** 동시 reissue 요청 2건이 동일한 Refresh Token으로 모두 성공하여 토큰 쌍이 2개 발급됨
+
+**원인:**
+- `findUserIdByHash(read)` + `revoke(write)` 2-Step이 비원자적
+- 첫 번째 요청이 revoke 전에 두 번째 요청이 read를 통과하면 둘 다 성공
+- grace period(`findUserIdByHashIncludingRevoked`) 로직이 취약점 확대: revoked 토큰도 재발급 허용
+
+**수정:**
+- `RefreshTokenRepository.revokeIfActive`: `UPDATE ... WHERE revoked=false AND expiresAt > CURRENT_TIMESTAMP` — DB 레벨 원자적 UPDATE, 영향 행 수 반환
+- `TokenStore.revokeAndGetUserId`: 신규 인터페이스 메서드 (원자적 무효화 + userId 반환)
+- `JpaTokenStore.revokeAndGetUserId`: `revokeIfActive` 0행이면 empty 반환, 1행이면 `findByTokenHash`로 userId 조회
+- `TokenService.reissueWithUser`: 2-Step + grace period 경로 제거 → `revokeAndGetUserId` 단일 호출
+- 제거: `TokenStore.findUserIdByHashIncludingRevoked`, `TokenStore.revoke`, `JpaTokenStore` 관련 구현
+
+**결과:** 동시 요청 중 DB UPDATE를 먼저 실행한 1건만 성공, 나머지는 400(TOKEN_INVALID) 반환
+**테스트:** `TokenServiceTest`, `JpaTokenStoreTest` 업데이트 완료, 커버리지 70% 유지
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-19 — AdminCode expiresAt 타임존 버그 수정 (2번 스프린트)
 
 ### 배경
