@@ -339,6 +339,20 @@ class NotionBlockFetchServiceTest {
         }
 
         @Test
+        @DisplayName("최대 재귀 깊이(10)를 초과하는 자식 블록 요청은 빈 리스트를 반환한다")
+        void fetchChildBlocks_최대깊이_초과_빈리스트_반환() {
+            // depth > MAX_BLOCK_DEPTH(10)인 상황을 시뮬레이션:
+            // 11단계 깊이의 has_children=true 블록을 중첩 구성한다
+            // 실제로는 ReflectionTestUtils로 private 오버로드를 직접 호출한다
+            List<Map<String, Object>> result =
+                org.springframework.test.util.ReflectionTestUtils.invokeMethod(
+                    notionBlockFetchService, "fetchChildBlocks", "deep-block-id", 11);
+
+            assertThat(result).isEmpty();
+            verify(notionClient, never()).retrieveBlockChildren(anyString(), any(), any());
+        }
+
+        @Test
         @DisplayName("자식 블록이 100개를 초과하면 nextCursor로 다음 페이지를 연속 조회한다")
         void fetchChildBlocks_페이지네이션_연속조회() {
             BulletedListItemBlock block1 = Mockito.mock(BulletedListItemBlock.class);

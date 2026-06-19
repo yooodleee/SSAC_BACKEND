@@ -17,6 +17,25 @@
 
 ---
 
+## ✅ [DIAGNOSE] 2026-06-19 — Notion 블록 재귀 방어 레이어 강화 (4번 스프린트)
+
+**증상:** Notion 페이지에 깊이 중첩된 has_children 블록이 있을 경우 재귀 호출 무한 반복 → StackOverflowError 가능
+
+**원인:**
+- `serializeBlock → fetchChildBlocks → fetchPaginatedBlocks → processBlockList → serializeBlock` 재귀 경로에 깊이 제한 없음
+- `fetchRawBlock()` 에서 HTTP 응답 body null 체크 없음 → NPE 가능
+
+**수정:**
+- `MAX_BLOCK_DEPTH = 10` 상수 추가
+- `fetchChildBlocks(String blockId, int depth)` private 오버로드 추가 — depth > MAX_BLOCK_DEPTH 시 경고 로그 + `List.of()` 반환
+- `fetchPaginatedBlocks`, `processBlockList`, `serializeBlock` 모두 depth 파라미터 전파
+- `fetchRawBlock()` body null/blank 체크 추가
+
+**결과:** 재귀 10단계 초과 시 자식 블록 조회 중단, StackOverflowError 방지
+**테스트:** `fetchChildBlocks_최대깊이_초과_빈리스트_반환` 추가, 커버리지 70% 유지
+
+---
+
 ## ✅ [DIAGNOSE] 2026-06-19 — Reissue 경쟁 조건 원자적 방어 (3번 스프린트)
 
 **증상:** 동시 reissue 요청 2건이 동일한 Refresh Token으로 모두 성공하여 토큰 쌍이 2개 발급됨
