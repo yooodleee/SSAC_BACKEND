@@ -42,7 +42,7 @@ class RegistrationServiceV2Test {
     @Mock private JwtProperties jwtProperties;
 
     @InjectMocks
-    private RegistrationService registrationService;
+    private RegistrationV2Service registrationService;
 
     private PendingRegistration validPending;
 

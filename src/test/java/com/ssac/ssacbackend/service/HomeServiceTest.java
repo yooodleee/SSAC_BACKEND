@@ -2,8 +2,9 @@ package com.ssac.ssacbackend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.lenient;
@@ -13,19 +14,13 @@ import static org.mockito.Mockito.never;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.ssac.ssacbackend.domain.content.Content;
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.domain.user.UserRole;
 import com.ssac.ssacbackend.dto.response.HomeResponse;
 import com.ssac.ssacbackend.dto.response.OnboardingRequiredResponse;
-import com.ssac.ssacbackend.repository.ContentProgressRepository;
-import com.ssac.ssacbackend.repository.ContentRepository;
-import com.ssac.ssacbackend.repository.QuizAttemptRepository;
-import com.ssac.ssacbackend.repository.QuizRepository;
-import com.ssac.ssacbackend.repository.UserInterestRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import com.ssac.ssacbackend.service.HomeContentAssembler.ContentSections;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -49,17 +44,11 @@ class HomeServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private UserInterestRepository userInterestRepository;
-    @Mock
-    private ContentRepository contentRepository;
-    @Mock
-    private ContentProgressRepository contentProgressRepository;
-    @Mock
-    private QuizRepository quizRepository;
-    @Mock
-    private QuizAttemptRepository quizAttemptRepository;
-    @Mock
     private StringRedisTemplate stringRedisTemplate;
+    @Mock
+    private HomeContentAssembler homeContentAssembler;
+    @Mock
+    private HomeQuizAssembler homeQuizAssembler;
     @Mock
     private ValueOperations<String, String> valueOps;
 
@@ -73,11 +62,10 @@ class HomeServiceTest {
     @BeforeEach
     void setUp() {
         lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
-        // buildCategories() N+1 개선: GROUP BY 쿼리 기본 응답 설정
-        lenient().when(contentRepository.countPublishedGroupByCategory())
-            .thenReturn(new java.util.ArrayList<>());
-        lenient().when(contentProgressRepository.countCompletedByUserEmailGroupByCategory(anyString()))
-            .thenReturn(new java.util.ArrayList<>());
+        lenient().when(homeContentAssembler.build(anyLong(), anyString(), any(), anySet()))
+            .thenReturn(defaultContentSections());
+        lenient().when(homeQuizAssembler.build(anyLong(), any(), anyString()))
+            .thenReturn(null);
     }
 
     @Nested
@@ -104,8 +92,8 @@ class HomeServiceTest {
     class CacheHit {
 
         @Test
-        @DisplayName("캐시 히트 시 DB 조회 없이 캐시 데이터 반환")
-        void 캐시_히트_시_DB_조회_없음() throws Exception {
+        @DisplayName("캐시 히트 시 어셈블러 호출 없이 캐시 데이터 반환")
+        void 캐시_히트_시_어셈블러_호출_없음() throws Exception {
             User user = mockUser(1L, true, UserLevel.SPROUT, null);
             given(userRepository.findByEmail("test@test.com")).willReturn(Optional.of(user));
             HomeResponse cached = mockHomeResponse();
@@ -115,32 +103,23 @@ class HomeServiceTest {
 
             assertThat(result).isInstanceOf(HomeResponse.class);
             assertThat(((HomeResponse) result).user().nickname()).isEqualTo("닉네임");
-            then(contentRepository).should(never()).findByDifficultyPublished(any(), any());
+            then(homeContentAssembler).should(never()).build(anyLong(), anyString(), any(), anySet());
         }
 
         @Test
-        @DisplayName("캐시 무효화 후 최신 데이터 응답")
-        void 캐시_무효화_후_최신_데이터_응답() {
+        @DisplayName("캐시 무효화 후 어셈블러를 통해 최신 데이터 응답")
+        void 캐시_무효화_후_어셈블러_호출() {
             User user = mockUser(1L, true, UserLevel.SPROUT, null);
             given(userRepository.findByEmail("test@test.com")).willReturn(Optional.of(user));
-            given(valueOps.get("home:1")).willReturn(null); // 캐시 미스
-
-            given(userInterestRepository.findDomainIdsByUserId(1L)).willReturn(List.of());
-            given(contentProgressRepository.findCompletedContentIdsByUserEmail(anyString()))
-                .willReturn(List.of());
+            given(valueOps.get("home:1")).willReturn(null);
             given(valueOps.get("home:rec_history:1")).willReturn(null);
-            given(contentRepository.findByDifficultyPublished(any(), any())).willReturn(List.of());
-            given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
-            given(contentProgressRepository.findContinueLearning(anyString(), any()))
-                .willReturn(List.of());
-            given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
-                .willReturn(List.of());
 
             Object result = homeService.getHome("test@test.com");
 
             assertThat(result).isInstanceOf(HomeResponse.class);
             HomeResponse res = (HomeResponse) result;
             assertThat(res.onboardingRequired()).isFalse();
+            then(homeContentAssembler).should().build(anyLong(), anyString(), any(), anySet());
         }
     }
 
@@ -149,28 +128,12 @@ class HomeServiceTest {
     class CacheMiss {
 
         @Test
-        @DisplayName("온보딩 완료 사용자 맞춤 홈 데이터 응답 확인")
-        void 온보딩_완료_사용자_맞춤_홈_데이터_응답() {
+        @DisplayName("온보딩 완료 사용자 홈 데이터 응답 확인")
+        void 온보딩_완료_사용자_홈_데이터_응답() {
             User user = mockUser(2L, true, UserLevel.SPROUT, null);
             given(userRepository.findByEmail("user@test.com")).willReturn(Optional.of(user));
             given(valueOps.get("home:2")).willReturn(null);
-
-            given(userInterestRepository.findDomainIdsByUserId(2L)).willReturn(List.of("investment"));
-            given(contentProgressRepository.findCompletedContentIdsByUserEmail("user@test.com"))
-                .willReturn(List.of());
             given(valueOps.get("home:rec_history:2")).willReturn(null);
-
-            Content content = mockContent(10L, "투자 기초", "investment", ContentDifficulty.SPROUT);
-            given(contentRepository.findByCategoriesInAndDifficultyPublished(
-                eq(List.of("investment")), eq(ContentDifficulty.SPROUT), any()))
-                .willReturn(List.of(content));
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SPROUT), any()))
-                .willReturn(List.of());
-            given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
-            given(contentProgressRepository.findContinueLearning(anyString(), any()))
-                .willReturn(List.of());
-            given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
-                .willReturn(List.of());
 
             Object result = homeService.getHome("user@test.com");
 
@@ -181,88 +144,13 @@ class HomeServiceTest {
         }
 
         @Test
-        @DisplayName("콘텐츠 완료 후 해당 콘텐츠 추천 목록 제외 확인")
-        void 완료된_콘텐츠_추천_제외() {
-            User user = mockUser(3L, true, UserLevel.SEED, null);
-            given(userRepository.findByEmail("test3@test.com")).willReturn(Optional.of(user));
-            given(valueOps.get("home:3")).willReturn(null);
-            given(userInterestRepository.findDomainIdsByUserId(3L)).willReturn(List.of());
-            given(valueOps.get("home:rec_history:3")).willReturn(null);
-
-            // 완료된 콘텐츠 ID: 100
-            given(contentProgressRepository.findCompletedContentIdsByUserEmail("test3@test.com"))
-                .willReturn(List.of(100L));
-
-            Content completedContent = mockContent(100L, "완료된 콘텐츠", "investment", ContentDifficulty.SEED);
-            Content newContent = mockContent(200L, "새 콘텐츠", "investment", ContentDifficulty.SEED);
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SEED), any()))
-                .willReturn(List.of(completedContent, newContent));
-            given(contentRepository.findAllPublishedOrderByLastEdited(any()))
-                .willReturn(List.of(completedContent, newContent));
-            given(contentProgressRepository.findContinueLearning(anyString(), any()))
-                .willReturn(List.of());
-            given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
-                .willReturn(List.of());
-
-            Object result = homeService.getHome("test3@test.com");
-
-            HomeResponse res = (HomeResponse) result;
-            List<String> recommendedIds = res.recommendedContents().stream()
-                .map(HomeResponse.RecommendedContentDto::id)
-                .toList();
-            assertThat(recommendedIds).doesNotContain("100");
-            assertThat(recommendedIds).contains("200");
-        }
-
-        @Test
-        @DisplayName("추천 콘텐츠 소진 시 상위 레벨 미리보기 응답")
-        void 추천_소진_시_상위_레벨_미리보기() {
-            User user = mockUser(4L, true, UserLevel.SEED, null);
-            given(userRepository.findByEmail("test4@test.com")).willReturn(Optional.of(user));
-            given(valueOps.get("home:4")).willReturn(null);
-            given(userInterestRepository.findDomainIdsByUserId(4L)).willReturn(List.of());
-            given(valueOps.get("home:rec_history:4")).willReturn(null);
-            given(contentProgressRepository.findCompletedContentIdsByUserEmail("test4@test.com"))
-                .willReturn(List.of());
-
-            // SEED 레벨 콘텐츠 없음
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SEED), any()))
-                .willReturn(List.of());
-            given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
-
-            // SPROUT 레벨 미리보기 콘텐츠
-            Content previewContent = mockContent(500L, "SPROUT 미리보기", "investment", ContentDifficulty.SPROUT);
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SPROUT), any()))
-                .willReturn(List.of(previewContent));
-            given(contentProgressRepository.findContinueLearning(anyString(), any()))
-                .willReturn(List.of());
-            given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
-                .willReturn(List.of());
-
-            Object result = homeService.getHome("test4@test.com");
-
-            HomeResponse res = (HomeResponse) result;
-            assertThat(res.recommendedContents())
-                .anyMatch(HomeResponse.RecommendedContentDto::isPreview);
-        }
-
-        @Test
         @DisplayName("7일 이상 미접속 시 welcomeBack 포함 확인")
         void 장기_미접속_welcomeBack_포함() {
             LocalDateTime oldVisit = LocalDateTime.now().minusDays(10);
             User user = mockUser(5L, true, UserLevel.SPROUT, oldVisit);
             given(userRepository.findByEmail("test5@test.com")).willReturn(Optional.of(user));
             given(valueOps.get("home:5")).willReturn(null);
-            given(userInterestRepository.findDomainIdsByUserId(5L)).willReturn(List.of());
             given(valueOps.get("home:rec_history:5")).willReturn(null);
-            given(contentProgressRepository.findCompletedContentIdsByUserEmail("test5@test.com"))
-                .willReturn(List.of());
-            given(contentRepository.findByDifficultyPublished(any(), any())).willReturn(List.of());
-            given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
-            given(contentProgressRepository.findContinueLearning(anyString(), any()))
-                .willReturn(List.of());
-            given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
-                .willReturn(List.of());
 
             Object result = homeService.getHome("test5@test.com");
 
@@ -273,112 +161,32 @@ class HomeServiceTest {
         }
 
         @Test
-        @DisplayName("레벨 변경 후 새 레벨 기반 추천 콘텐츠 응답 확인")
-        void 레벨_변경_후_새_레벨_기반_추천() {
-            User user = mockUser(6L, true, UserLevel.TREE, null);
+        @DisplayName("7일 미만 접속 시 welcomeBack은 null이다")
+        void 최근_접속_welcomeBack_null() {
+            LocalDateTime recentVisit = LocalDateTime.now().minusDays(3);
+            User user = mockUser(6L, true, UserLevel.SEED, recentVisit);
             given(userRepository.findByEmail("test6@test.com")).willReturn(Optional.of(user));
             given(valueOps.get("home:6")).willReturn(null);
-            given(userInterestRepository.findDomainIdsByUserId(6L)).willReturn(List.of());
             given(valueOps.get("home:rec_history:6")).willReturn(null);
-            given(contentProgressRepository.findCompletedContentIdsByUserEmail("test6@test.com"))
-                .willReturn(List.of());
-
-            Content treeContent = mockContent(700L, "TREE 콘텐츠", "investment", ContentDifficulty.TREE);
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.TREE), any()))
-                .willReturn(List.of(treeContent));
-            given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
-            given(contentProgressRepository.findContinueLearning(anyString(), any()))
-                .willReturn(List.of());
-            given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
-                .willReturn(List.of());
 
             Object result = homeService.getHome("test6@test.com");
 
             HomeResponse res = (HomeResponse) result;
-            assertThat(res.user().level()).isEqualTo("TREE");
-            assertThat(res.recommendedContents()).anyMatch(c -> c.id().equals("700"));
+            assertThat(res.welcomeBack()).isNull();
         }
 
         @Test
-        @DisplayName("관심 도메인 변경 후 추천 콘텐츠 재구성 확인")
-        void 관심_도메인_변경_후_추천_재구성() {
+        @DisplayName("첫 접속(lastVisitedAt null)이면 welcomeBack은 null이다")
+        void 첫_접속_welcomeBack_null() {
             User user = mockUser(7L, true, UserLevel.SEED, null);
             given(userRepository.findByEmail("test7@test.com")).willReturn(Optional.of(user));
             given(valueOps.get("home:7")).willReturn(null);
-
-            // 변경된 관심 도메인: resume
-            given(userInterestRepository.findDomainIdsByUserId(7L)).willReturn(List.of("resume"));
             given(valueOps.get("home:rec_history:7")).willReturn(null);
-            given(contentProgressRepository.findCompletedContentIdsByUserEmail("test7@test.com"))
-                .willReturn(List.of());
-
-            Content resumeContent = mockContent(800L, "이력서 작성", "resume", ContentDifficulty.SEED);
-            given(contentRepository.findByCategoriesInAndDifficultyPublished(
-                eq(List.of("resume")), eq(ContentDifficulty.SEED), any()))
-                .willReturn(List.of(resumeContent));
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SEED), any()))
-                .willReturn(List.of());
-            given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
-            given(contentProgressRepository.findContinueLearning(anyString(), any()))
-                .willReturn(List.of());
-            given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
-                .willReturn(List.of());
 
             Object result = homeService.getHome("test7@test.com");
 
             HomeResponse res = (HomeResponse) result;
-            assertThat(res.recommendedContents()).anyMatch(c -> c.id().equals("800"));
-        }
-    }
-
-    @Nested
-    @DisplayName("카테고리 섹션 - GROUP BY 쿼리 최적화")
-    class CategoryGroupBy {
-
-        @Test
-        @DisplayName("카테고리별 게시 수와 완료 수를 GROUP BY 쿼리 2회로 집계한다")
-        void 카테고리_집계_groupby_쿼리_사용() {
-            User user = mockUser(10L, true, UserLevel.SEED, null);
-            given(userRepository.findByEmail("cat@test.com")).willReturn(Optional.of(user));
-            given(valueOps.get("home:10")).willReturn(null);
-            given(userInterestRepository.findDomainIdsByUserId(10L)).willReturn(List.of());
-            given(valueOps.get("home:rec_history:10")).willReturn(null);
-            given(contentProgressRepository.findCompletedContentIdsByUserEmail("cat@test.com"))
-                .willReturn(List.of());
-            given(contentRepository.findByDifficultyPublished(any(), any())).willReturn(List.of());
-            given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
-            given(contentProgressRepository.findContinueLearning(anyString(), any()))
-                .willReturn(List.of());
-            given(quizRepository.findUncompletedByDifficultyAndUserEmail(any(), anyString()))
-                .willReturn(List.of());
-
-            // GROUP BY 결과: realestate 3개 게시, tax 1개 완료
-            List<Object[]> publishedRows = new java.util.ArrayList<>();
-            publishedRows.add(new Object[]{"realestate", 3L});
-            publishedRows.add(new Object[]{"tax", 2L});
-            List<Object[]> completedRows = new java.util.ArrayList<>();
-            completedRows.add(new Object[]{"tax", 1L});
-            given(contentRepository.countPublishedGroupByCategory()).willReturn(publishedRows);
-            given(contentProgressRepository.countCompletedByUserEmailGroupByCategory("cat@test.com"))
-                .willReturn(completedRows);
-
-            Object result = homeService.getHome("cat@test.com");
-
-            HomeResponse res = (HomeResponse) result;
-            HomeResponse.CategoryDto realestate = res.categories().stream()
-                .filter(c -> "realestate".equals(c.id())).findFirst().orElseThrow();
-            HomeResponse.CategoryDto tax = res.categories().stream()
-                .filter(c -> "tax".equals(c.id())).findFirst().orElseThrow();
-
-            assertThat(realestate.totalCount()).isEqualTo(3L);
-            assertThat(realestate.completedCount()).isEqualTo(0L);
-            assertThat(tax.totalCount()).isEqualTo(2L);
-            assertThat(tax.completedCount()).isEqualTo(1L);
-
-            // 카테고리별 단건 쿼리(N+1)가 호출되지 않았음을 검증
-            then(contentRepository).should(never()).countByPublishedAndCategory(anyString());
-            then(contentProgressRepository).should(never())
-                .countCompletedByUserEmailAndCategory(anyString(), anyString());
+            assertThat(res.welcomeBack()).isNull();
         }
     }
 
@@ -397,13 +205,8 @@ class HomeServiceTest {
         return user;
     }
 
-    private Content mockContent(Long id, String title, String category, ContentDifficulty difficulty) {
-        Content content = mock(Content.class);
-        given(content.getId()).willReturn(id);
-        given(content.getTitle()).willReturn(title);
-        given(content.getFirstCategory()).willReturn(category);
-        given(content.getDifficulty()).willReturn(difficulty);
-        return content;
+    private ContentSections defaultContentSections() {
+        return new ContentSections(List.of(), null, null, List.of());
     }
 
     private HomeResponse mockHomeResponse() {

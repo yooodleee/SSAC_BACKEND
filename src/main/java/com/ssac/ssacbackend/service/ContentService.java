@@ -3,6 +3,7 @@ package com.ssac.ssacbackend.service;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
 import com.ssac.ssacbackend.domain.content.Content;
+import com.ssac.ssacbackend.domain.content.ContentCategory;
 import com.ssac.ssacbackend.domain.content.ContentProgress;
 import com.ssac.ssacbackend.domain.content.ContentViewHistory;
 import com.ssac.ssacbackend.domain.user.User;
@@ -11,6 +12,8 @@ import com.ssac.ssacbackend.dto.response.ContentDetailResponse;
 import com.ssac.ssacbackend.dto.response.ContentItemDto;
 import com.ssac.ssacbackend.dto.response.ContentListResponse;
 import com.ssac.ssacbackend.dto.response.LevelUpResult;
+import com.ssac.ssacbackend.dto.response.ViewedContentsResponse;
+import java.time.LocalDateTime;
 import com.ssac.ssacbackend.repository.ContentProgressRepository;
 import com.ssac.ssacbackend.repository.ContentRepository;
 import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
@@ -18,7 +21,6 @@ import com.ssac.ssacbackend.repository.UserRepository;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 콘텐츠 목록 조회, 상세 조회, 완료 처리, 조회 이력 저장 서비스.
  *
- * <p>Notion 블록 조회는 {@link NotionBlockFetchService}에 위임한다.
+ * <p>Notion 인프라 조회는 {@link NotionContentLoader}에 위임한다.
  */
 @Slf4j
 @Service
@@ -44,8 +46,7 @@ public class ContentService {
     private final LevelUpService levelUpService;
     private final HomeCacheEvictService homeCacheEvictService;
     private final ContentViewHistoryRepository contentViewHistoryRepository;
-    private final NotionSyncService notionSyncService;
-    private final NotionBlockFetchService notionBlockFetchService;
+    private final NotionContentLoader notionContentLoader;
 
     /**
      * 게시된 콘텐츠 목록을 반환한다. 비로그인 사용자도 조회 가능하다.
@@ -64,7 +65,7 @@ public class ContentService {
             : null;
 
         List<ContentItemDto> cachedItems =
-            notionSyncService.getPublishedContentItems(categories, difficulty, domain);
+            notionContentLoader.getPublishedContentItems(categories, difficulty, domain);
 
         if (!isAuthenticated(auth)) {
             return new ContentListResponse(cachedItems.size(), cachedItems);
@@ -98,22 +99,7 @@ public class ContentService {
             .filter(Content::isPublished)
             .orElseThrow(() -> new NotFoundException(ErrorCode.CONTENT_NOT_FOUND));
 
-        List<Map<String, Object>> blocks =
-            notionBlockFetchService.fetchBlocks(content.getNotionPageId());
-
-        return new ContentDetailResponse(
-            String.valueOf(content.getId()),
-            content.getNotionPageId(),
-            content.getTitle(),
-            content.getThumbnailUrl(),
-            List.copyOf(content.getCategories()),
-            List.copyOf(content.getDomains()),
-            content.getDifficulty() != null ? content.getDifficulty().name() : null,
-            NotionSyncService.difficultyLabel(content.getDifficulty()),
-            content.getNotionCreatedAt(),
-            content.getNotionLastEditedAt(),
-            blocks
-        );
+        return notionContentLoader.buildContentDetail(content);
     }
 
     /**
@@ -176,6 +162,60 @@ public class ContentService {
         ContentViewHistory history = ContentViewHistory.of(user.getId(), contentId);
         contentViewHistoryRepository.save(history);
         log.debug("콘텐츠 조회 이력 저장: userId={}, contentId={}", user.getId(), contentId);
+    }
+
+    // ── 마이페이지 위임 메서드 ─────────────────────────────────────────────────
+
+    /**
+     * 사용자의 완료 콘텐츠 수를 반환한다 (진행률 100% 기준).
+     *
+     * <p>{@link com.ssac.ssacbackend.service.UserService}의 마이페이지 통계에서 위임받는다.
+     */
+    @Transactional(readOnly = true)
+    public long countCompletedContents(String email) {
+        return contentProgressRepository.countByUserEmailAndProgressRateGreaterThanEqual(email, 100);
+    }
+
+    /**
+     * 사용자의 콘텐츠 학습 활동 일시 목록을 반환한다.
+     *
+     * <p>연속 학습일 계산 시 {@link com.ssac.ssacbackend.service.UserService}에서 위임받는다.
+     */
+    @Transactional(readOnly = true)
+    public List<LocalDateTime> findActivityTimestamps(String email) {
+        return contentProgressRepository.findActivityTimestampsByUserEmail(email);
+    }
+
+    /**
+     * 사용자가 조회한 콘텐츠 목록을 최신 순으로 반환한다.
+     *
+     * <p>{@link com.ssac.ssacbackend.service.UserService#getViewedContents}에서 위임받는다.
+     * 삭제된 콘텐츠는 목록에서 제외한다.
+     */
+    @Transactional(readOnly = true)
+    public List<ViewedContentsResponse.ViewedContentDto> getViewedContentsByUser(Long userId) {
+        return contentViewHistoryRepository.findByUserIdOrderByViewedAtDesc(userId)
+            .stream()
+            .map(h -> {
+                Content content = contentRepository.findById(h.getContentId()).orElse(null);
+                if (content == null) {
+                    return null;
+                }
+                String category = content.getFirstCategory();
+                String emoji = ContentCategory.findById(category)
+                    .map(ContentCategory::getEmoji).orElse("");
+                return new ViewedContentsResponse.ViewedContentDto(
+                    String.valueOf(content.getId()),
+                    content.getTitle(),
+                    category,
+                    emoji,
+                    content.getDifficulty() != null ? content.getDifficulty().name() : null,
+                    h.getViewedAt(),
+                    h.isCompleted()
+                );
+            })
+            .filter(d -> d != null)
+            .toList();
     }
 
     private boolean isAuthenticated(Authentication auth) {

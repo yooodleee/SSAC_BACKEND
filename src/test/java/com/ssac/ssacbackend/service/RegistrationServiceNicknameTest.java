@@ -9,7 +9,6 @@ import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.dto.RegisterV2Result;
 import com.ssac.ssacbackend.dto.TokenPair;
 import com.ssac.ssacbackend.dto.request.EmailLoginRequest;
-import com.ssac.ssacbackend.repository.SocialAccountRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -22,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * RegistrationService 닉네임 표시 관련 단위 테스트.
+ * EmailAuthService 닉네임 표시 관련 단위 테스트.
  *
  * <p>닉네임 미설정 시 displayNickname이 name을 반환하는지 검증한다.
  */
@@ -30,22 +29,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 class RegistrationServiceNicknameTest {
 
     @Mock
-    private PendingRegistrationService pendingRegistrationService;
-    @Mock
     private UserRepository userRepository;
     @Mock
-    private SocialAccountRepository socialAccountRepository;
-    @Mock
     private TokenService tokenService;
-    @Mock
-    private GuestMigrationService guestMigrationService;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private JwtProperties jwtProperties;
 
     @InjectMocks
-    private RegistrationService registrationService;
+    private EmailAuthService registrationService;
 
     @Test
     @DisplayName("이메일 로그인 응답에 닉네임 포함 (닉네임 미설정 시 name 반환)")

@@ -4,9 +4,6 @@ import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ConflictException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
-import com.ssac.ssacbackend.domain.content.Content;
-import com.ssac.ssacbackend.domain.content.ContentCategory;
-import com.ssac.ssacbackend.domain.content.ContentViewHistory;
 import com.ssac.ssacbackend.domain.onboarding.LevelInfo;
 import com.ssac.ssacbackend.domain.onboarding.UserInterest;
 import com.ssac.ssacbackend.domain.user.Gender;
@@ -17,12 +14,9 @@ import com.ssac.ssacbackend.dto.request.UpdateProfileRequest;
 import com.ssac.ssacbackend.dto.response.MyPageResponse;
 import com.ssac.ssacbackend.dto.response.UpdateProfileResponse;
 import com.ssac.ssacbackend.dto.response.ViewedContentsResponse;
-import com.ssac.ssacbackend.repository.ContentProgressRepository;
-import com.ssac.ssacbackend.repository.ContentRepository;
-import com.ssac.ssacbackend.repository.ContentViewHistoryRepository;
-import com.ssac.ssacbackend.repository.QuizAttemptRepository;
 import com.ssac.ssacbackend.repository.UserInterestRepository;
 import com.ssac.ssacbackend.repository.UserRepository;
+import com.ssac.ssacbackend.service.QuizAttemptService.MyPageQuizStats;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -39,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 마이페이지 비즈니스 로직.
  *
  * <p>프로필 조회, 관심 도메인 수정, 사용자 유형 변경을 담당한다.
+ * Content·Quiz 도메인 조회는 각 서비스({@link ContentService}, {@link QuizAttemptService})에 위임한다.
  */
 @Slf4j
 @Service
@@ -47,12 +42,10 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserInterestRepository userInterestRepository;
-    private final ContentProgressRepository contentProgressRepository;
-    private final QuizAttemptRepository quizAttemptRepository;
     private final HomeCacheEvictService homeCacheEvictService;
-    private final ContentViewHistoryRepository contentViewHistoryRepository;
-    private final ContentRepository contentRepository;
     private final TokenService tokenService;
+    private final ContentService contentService;
+    private final QuizAttemptService quizAttemptService;
 
     /**
      * 마이페이지 프로필을 조회한다.
@@ -66,20 +59,9 @@ public class UserService {
 
         List<String> interests = userInterestRepository.findDomainIdsByUserId(user.getId());
 
-        long totalContentsCompleted = contentProgressRepository
-            .countByUserEmailAndProgressRateGreaterThanEqual(email, 100);
+        long totalContentsCompleted = contentService.countCompletedContents(email);
 
-        List<Object[]> statsData = quizAttemptRepository.aggregateOverallStats(email);
-        long totalQuizCompleted = 0;
-        int correctRate = 0;
-        if (!statsData.isEmpty() && statsData.get(0) != null && statsData.get(0)[0] != null) {
-            Object[] row = statsData.get(0);
-            long totalCorrect = row[2] != null ? ((Number) row[2]).longValue() : 0;
-            long totalQuestions = row[3] != null ? ((Number) row[3]).longValue() : 0;
-            totalQuizCompleted = row[1] != null ? ((Number) row[1]).longValue() : 0;
-            correctRate = totalQuestions > 0
-                ? (int) Math.round((double) totalCorrect / totalQuestions * 100) : 0;
-        }
+        MyPageQuizStats quizStats = quizAttemptService.getMyPageQuizStats(email);
 
         int continuousLearningDays = calculateContinuousLearningDays(email);
 
@@ -87,7 +69,11 @@ public class UserService {
         LevelInfo levelInfo = level != null ? LevelInfo.from(level) : null;
 
         MyPageResponse.StatsDto stats = new MyPageResponse.StatsDto(
-            totalContentsCompleted, totalQuizCompleted, correctRate, continuousLearningDays);
+            totalContentsCompleted,
+            quizStats.totalCompleted(),
+            quizStats.correctRate(),
+            continuousLearningDays
+        );
 
         String phoneFormatted = formatPhone(user.getPhone());
 
@@ -252,32 +238,8 @@ public class UserService {
     @Transactional(readOnly = true)
     public ViewedContentsResponse getViewedContents(String email) {
         User user = findUserByEmail(email);
-        List<ContentViewHistory> histories =
-            contentViewHistoryRepository.findByUserIdOrderByViewedAtDesc(user.getId());
-
-        List<ViewedContentsResponse.ViewedContentDto> contents = histories.stream()
-            .map(h -> {
-                Content content = contentRepository.findById(h.getContentId()).orElse(null);
-                if (content == null) {
-                    return null;
-                }
-                String category = content.getFirstCategory();
-                String emoji = ContentCategory
-                    .findById(category)
-                    .map(ContentCategory::getEmoji).orElse("");
-                return new ViewedContentsResponse.ViewedContentDto(
-                    String.valueOf(content.getId()),
-                    content.getTitle(),
-                    category,
-                    emoji,
-                    content.getDifficulty() != null ? content.getDifficulty().name() : null,
-                    h.getViewedAt(),
-                    h.isCompleted()
-                );
-            })
-            .filter(d -> d != null)
-            .toList();
-
+        List<ViewedContentsResponse.ViewedContentDto> contents =
+            contentService.getViewedContentsByUser(user.getId());
         return new ViewedContentsResponse(contents.size(), contents);
     }
 
@@ -291,12 +253,12 @@ public class UserService {
     private int calculateContinuousLearningDays(String email) {
         Set<LocalDate> activityDates = new HashSet<>();
 
-        contentProgressRepository.findActivityTimestampsByUserEmail(email)
+        contentService.findActivityTimestamps(email)
             .stream()
             .map(LocalDateTime::toLocalDate)
             .forEach(activityDates::add);
 
-        quizAttemptRepository.findActivityTimestampsByUserEmail(email)
+        quizAttemptService.findActivityTimestamps(email)
             .stream()
             .map(LocalDateTime::toLocalDate)
             .forEach(activityDates::add);
