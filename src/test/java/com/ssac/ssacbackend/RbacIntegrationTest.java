@@ -141,7 +141,7 @@ class RbacIntegrationTest {
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content").isArray());
+            .andExpect(jsonPath("$.data.items").isArray());
     }
 
     @Test
