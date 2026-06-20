@@ -1,11 +1,15 @@
 package com.ssac.ssacbackend.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssac.ssacbackend.common.exception.ErrorCode;
+import com.ssac.ssacbackend.common.response.ErrorResponse;
 import com.ssac.ssacbackend.repository.UserRepository;
 import com.ssac.ssacbackend.service.CustomOAuth2UserService;
 import com.ssac.ssacbackend.service.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.MDC;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,6 +41,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
     AbTestProperties.class})
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
@@ -127,26 +133,32 @@ public class SecurityConfig {
                     boolean isGuest = auth != null && auth.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("ROLE_GUEST"));
                     boolean isAdminPath = req.getRequestURI().startsWith("/api/v1/admin");
+                    ErrorCode errorCode;
                     if (isGuest) {
-                        res.getWriter().write(
-                            "{\"status\":403,\"code\":\"GUEST-001\","
-                            + "\"message\":\"로그인이 필요한 기능입니다.\"}");
+                        errorCode = ErrorCode.GUEST_NOT_ALLOWED;
                     } else if (isAdminPath) {
-                        res.getWriter().write(
-                            "{\"status\":403,\"code\":\"ADMIN-003\","
-                            + "\"message\":\"관리자 권한이 필요합니다.\"}");
+                        errorCode = ErrorCode.ADMIN_FORBIDDEN;
                     } else {
-                        res.getWriter().write(
-                            "{\"status\":403,\"code\":\"AUTH-004\","
-                            + "\"message\":\"접근 권한이 없습니다.\"}");
+                        errorCode = ErrorCode.ACCESS_DENIED;
                     }
+                    ErrorResponse body = ErrorResponse.of(
+                        HttpServletResponse.SC_FORBIDDEN,
+                        errorCode.getCode(),
+                        errorCode.getMessage(),
+                        MDC.get("traceId")
+                    );
+                    res.getWriter().write(OBJECT_MAPPER.writeValueAsString(body));
                 })
                 .authenticationEntryPoint((req, res, e) -> {
                     res.setContentType("application/json;charset=UTF-8");
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    res.getWriter().write(
-                        "{\"status\":401,\"code\":\"UNAUTHORIZED\","
-                        + "\"message\":\"인증이 필요합니다.\"}");
+                    ErrorResponse body = ErrorResponse.of(
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        ErrorCode.UNAUTHORIZED.getCode(),
+                        ErrorCode.UNAUTHORIZED.getMessage(),
+                        MDC.get("traceId")
+                    );
+                    res.getWriter().write(OBJECT_MAPPER.writeValueAsString(body));
                 })
             )
             .oauth2Login(oauth2 -> oauth2

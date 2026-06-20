@@ -108,7 +108,7 @@ class RbacIntegrationTest {
         mockMvc.perform(get("/api/v1/users/me"))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.status").value(401))
-            .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+            .andExpect(jsonPath("$.code").value("AUTH-001"));
     }
 
     @Test

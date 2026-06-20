@@ -147,7 +147,7 @@ public class QuizAttemptService {
         log.debug("Guest 퀴즈 기록 조회: guestId={}, page={}, size={}, sort={}", guestId, page, size, sortType);
 
         Sort sort = buildSort(sortType);
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         return quizAttemptRepository
             .findByGuestIdPagedWithQuiz(guestId, pageable)
@@ -160,7 +160,7 @@ public class QuizAttemptService {
      * <p>JOIN FETCH로 quiz를 함께 로드하여 N+1 문제를 방지한다.
      *
      * @param email    JWT에서 추출한 사용자 이메일
-     * @param page     페이지 번호 (0부터 시작)
+     * @param page     페이지 번호 (1부터 시작)
      * @param size     페이지 크기
      * @param sortType 정렬 기준
      * @return 페이지네이션된 응시 기록 목록
@@ -171,7 +171,7 @@ public class QuizAttemptService {
         log.debug("퀴즈 기록 조회: email={}, page={}, size={}, sort={}", email, page, size, sortType);
 
         Sort sort = buildSort(sortType);
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         return quizAttemptRepository
             .findByUserEmailFetchQuiz(email, pageable)

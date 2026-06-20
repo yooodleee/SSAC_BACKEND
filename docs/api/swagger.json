@@ -355,14 +355,14 @@
           {
             "name": "page",
             "in": "query",
-            "description": "\ud398\uc774\uc9c0 \ubc88\ud638 (0\ubd80\ud130 \uc2dc\uc791)",
+            "description": "\ud398\uc774\uc9c0 \ubc88\ud638 (1\ubd80\ud130 \uc2dc\uc791)",
             "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 0
+              "default": 1
             },
-            "example": 0
+            "example": 1
           },
           {
             "name": "size",
@@ -3224,14 +3224,14 @@
           {
             "name": "page",
             "in": "query",
-            "description": "\ud398\uc774\uc9c0 \ubc88\ud638 (0\ubd80\ud130 \uc2dc\uc791)",
+            "description": "\ud398\uc774\uc9c0 \ubc88\ud638 (1\ubd80\ud130 \uc2dc\uc791)",
             "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 0
+              "default": 1
             },
-            "example": 0
+            "example": 1
           },
           {
             "name": "size",
@@ -3995,14 +3995,14 @@
           {
             "name": "page",
             "in": "query",
-            "description": "\ud398\uc774\uc9c0 \ubc88\ud638 (0\ubd80\ud130 \uc2dc\uc791)",
+            "description": "\ud398\uc774\uc9c0 \ubc88\ud638 (1\ubd80\ud130 \uc2dc\uc791)",
             "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 0
+              "default": 1
             },
-            "example": 0
+            "example": 1
           },
           {
             "name": "size",
@@ -6514,15 +6514,15 @@
           "sort": {
             "$ref": "#/components/schemas/SortObject"
           },
-          "numberOfElements": {
-            "type": "integer",
-            "format": "int32"
-          },
           "first": {
             "type": "boolean"
           },
           "last": {
             "type": "boolean"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
           },
           "empty": {
             "type": "boolean"
@@ -7243,15 +7243,15 @@
           "sort": {
             "$ref": "#/components/schemas/SortObject"
           },
-          "numberOfElements": {
-            "type": "integer",
-            "format": "int32"
-          },
           "first": {
             "type": "boolean"
           },
           "last": {
             "type": "boolean"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
           },
           "empty": {
             "type": "boolean"
