@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,7 +62,7 @@ public class AuthController {
             + "성공 시 Access/Refresh Token과 사용자 정보(userType, level, onboardingCompleted 포함)를 반환한다."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "회원가입 성공"),
+        @ApiResponse(responseCode = "201", description = "회원가입 성공"),
         @ApiResponse(responseCode = "400", description =
             "USER-TYPE-001: userType 누락 | "
             + "USER-TYPE-002: 유효하지 않은 userType 값 | "
@@ -72,7 +73,7 @@ public class AuthController {
     })
     public ResponseEntity<RegisterResponse> register(@RequestBody @Valid RegisterRequest request) {
         RegisterResponse response = registrationService.register(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/nickname/check")

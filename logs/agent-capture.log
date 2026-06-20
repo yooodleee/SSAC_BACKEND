@@ -1,4 +1,4 @@
-[2026-06-20 20:25:28]
-Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew test 2>&1 | grep "FAILED\|AssertionError\|PathNotFoundException\|expected\|but was" | head -20
+[2026-06-20 22:56:52]
+Command: cd "C:\Users\dhals_zn0ga5j\python_seed\SSAC_BACKEND\ssac-backend" && ./gradlew test 2>&1 | grep "FAILED"
 ---
-{'stdout': 'AuthControllerTest > saveTerms - \udcec빟愿\udc80 \udceb룞\udcec쓽 \udcec\udca0\udc80\udcec옣 \udcec꽦怨\udcb5 \udcec떆 200\udcec쓣 諛섑솚\udced븳\udceb떎 FAILED\n> Task :test FAILED\nBUILD FAILED in 45s', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
+{'stdout': 'AuthControllerTest > register - \udced쉶\udcec썝媛\udc80\udcec엯 \udcec꽦怨\udcb5 \udcec떆 RegisterResponse瑜\udcbc \udced룷\udced븿\udced븳 200\udcec쓣 諛섑솚\udced븳\udceb떎 FAILED\n> Task :test FAILED\nBUILD FAILED in 22s', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}
