@@ -397,7 +397,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePageQuizAttemptSummaryResponse"
+                  "$ref": "#/components/schemas/ApiResponsePageResponseQuizAttemptSummaryResponse"
                 }
               }
             }
@@ -407,7 +407,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePageQuizAttemptSummaryResponse"
+                  "$ref": "#/components/schemas/ApiResponsePageResponseQuizAttemptSummaryResponse"
                 }
               }
             }
@@ -3266,7 +3266,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePageQuizAttemptSummaryResponse"
+                  "$ref": "#/components/schemas/ApiResponsePageResponseQuizAttemptSummaryResponse"
                 }
               }
             }
@@ -4023,7 +4023,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePageUserSummaryResponse"
+                  "$ref": "#/components/schemas/ApiResponsePageResponseUserSummaryResponse"
                 }
               }
             }
@@ -6466,14 +6466,14 @@
           }
         }
       },
-      "ApiResponsePageQuizAttemptSummaryResponse": {
+      "ApiResponsePageResponseQuizAttemptSummaryResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean"
           },
           "data": {
-            "$ref": "#/components/schemas/PageQuizAttemptSummaryResponse"
+            "$ref": "#/components/schemas/PageResponseQuizAttemptSummaryResponse"
           },
           "message": {
             "type": "string"
@@ -6483,10 +6483,10 @@
           }
         }
       },
-      "PageQuizAttemptSummaryResponse": {
+      "PageResponseQuizAttemptSummaryResponse": {
         "type": "object",
         "properties": {
-          "totalElements": {
+          "totalCount": {
             "type": "integer",
             "format": "int64"
           },
@@ -6494,64 +6494,22 @@
             "type": "integer",
             "format": "int32"
           },
-          "pageable": {
-            "$ref": "#/components/schemas/PageableObject"
+          "page": {
+            "type": "integer",
+            "format": "int32"
           },
           "size": {
             "type": "integer",
             "format": "int32"
           },
-          "content": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/QuizAttemptSummaryResponse"
             }
-          },
-          "number": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "numberOfElements": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "empty": {
-            "type": "boolean"
-          }
-        }
-      },
-      "PageableObject": {
-        "type": "object",
-        "properties": {
-          "paged": {
-            "type": "boolean"
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "unpaged": {
-            "type": "boolean"
-          },
-          "offset": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject"
           }
         }
       },
@@ -6609,20 +6567,6 @@
             "type": "string",
             "format": "date-time",
             "description": "\uc751\uc2dc \uc77c\uc2dc"
-          }
-        }
-      },
-      "SortObject": {
-        "type": "object",
-        "properties": {
-          "sorted": {
-            "type": "boolean"
-          },
-          "unsorted": {
-            "type": "boolean"
-          },
-          "empty": {
-            "type": "boolean"
           }
         }
       },
@@ -7195,14 +7139,14 @@
           }
         }
       },
-      "ApiResponsePageUserSummaryResponse": {
+      "ApiResponsePageResponseUserSummaryResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean"
           },
           "data": {
-            "$ref": "#/components/schemas/PageUserSummaryResponse"
+            "$ref": "#/components/schemas/PageResponseUserSummaryResponse"
           },
           "message": {
             "type": "string"
@@ -7212,10 +7156,10 @@
           }
         }
       },
-      "PageUserSummaryResponse": {
+      "PageResponseUserSummaryResponse": {
         "type": "object",
         "properties": {
-          "totalElements": {
+          "totalCount": {
             "type": "integer",
             "format": "int64"
           },
@@ -7223,38 +7167,22 @@
             "type": "integer",
             "format": "int32"
           },
-          "pageable": {
-            "$ref": "#/components/schemas/PageableObject"
+          "page": {
+            "type": "integer",
+            "format": "int32"
           },
           "size": {
             "type": "integer",
             "format": "int32"
           },
-          "content": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserSummaryResponse"
             }
-          },
-          "number": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sort": {
-            "$ref": "#/components/schemas/SortObject"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "numberOfElements": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "empty": {
-            "type": "boolean"
           }
         }
       },

@@ -16,6 +16,7 @@ import com.ssac.ssacbackend.dto.response.AdminCodeCreateResponse;
 import com.ssac.ssacbackend.dto.response.AdminHomeResponse;
 import com.ssac.ssacbackend.service.AdminFeedbackService;
 import com.ssac.ssacbackend.service.AdminService;
+import org.springframework.data.domain.Page;
 import java.time.OffsetDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -95,7 +96,7 @@ class AdminControllerTest {
     @DisplayName("listUsers - 사용자 목록 조회 성공 시 200을 반환한다")
     void listUsers_정상() {
         Authentication auth = mockAuth("admin@test.com");
-        given(adminService.listUsers(any())).willReturn(null);
+        given(adminService.listUsers(any())).willReturn(Page.empty());
 
         ResponseEntity<?> result = controller.listUsers(auth, 1, 20);
 
