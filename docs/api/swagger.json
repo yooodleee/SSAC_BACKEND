@@ -286,24 +286,10 @@
         "operationId": "logoutAll",
         "responses": {
           "403": {
-            "description": "loginRequired: true (\ud68c\uc6d0 \ub85c\uadf8\uc778 \ud544\uc694)",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
+            "description": "loginRequired: true (\ud68c\uc6d0 \ub85c\uadf8\uc778 \ud544\uc694)"
           },
           "200": {
-            "description": "\uc804\uccb4 \ub514\ubc14\uc774\uc2a4 \ub85c\uadf8\uc544\uc6c3 \uc131\uacf5",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
+            "description": "\uc804\uccb4 \ub514\ubc14\uc774\uc2a4 \ub85c\uadf8\uc544\uc6c3 \uc131\uacf5"
           },
           "401": {
             "description": "\uc778\uc99d \ud1a0\ud070\uc774 \uc5c6\uac70\ub098 \ub9cc\ub8cc\ub418\uc5c8\uc2b5\ub2c8\ub2e4.",
@@ -1283,14 +1269,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
+            "description": "OK"
           },
           "401": {
             "description": "\uc778\uc99d \ud1a0\ud070\uc774 \uc5c6\uac70\ub098 \ub9cc\ub8cc\ub418\uc5c8\uc2b5\ub2c8\ub2e4.",
@@ -1762,6 +1741,9 @@
           "required": true
         },
         "responses": {
+          "204": {
+            "description": "\uc57d\uad00 \ub3d9\uc758 \uc800\uc7a5 \uc131\uacf5"
+          },
           "401": {
             "description": "\uc778\uc99d \ud1a0\ud070\uc774 \uc5c6\uac70\ub098 \ub9cc\ub8cc\ub418\uc5c8\uc2b5\ub2c8\ub2e4.",
             "content": {
@@ -1776,9 +1758,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "\uc57d\uad00 \ub3d9\uc758 \uc800\uc7a5 \uc131\uacf5"
           },
           "400": {
             "description": "TERMS-001: \ud544\uc218 \uc57d\uad00 \ubbf8\ub3d9\uc758"
@@ -2336,14 +2315,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
+            "description": "OK"
           },
           "401": {
             "description": "\uc778\uc99d \ud1a0\ud070\uc774 \uc5c6\uac70\ub098 \ub9cc\ub8cc\ub418\uc5c8\uc2b5\ub2c8\ub2e4.",
@@ -2393,14 +2365,7 @@
         "operationId": "markAllAsRead",
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
+            "description": "OK"
           },
           "401": {
             "description": "\uc778\uc99d \ud1a0\ud070\uc774 \uc5c6\uac70\ub098 \ub9cc\ub8cc\ub418\uc5c8\uc2b5\ub2c8\ub2e4.",
@@ -5081,23 +5046,6 @@
           "progressRate": {
             "type": "integer",
             "format": "int32"
-          }
-        }
-      },
-      "ApiResponseVoid": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "message": {
-            "type": "string"
-          },
-          "loginRequired": {
-            "type": "boolean"
           }
         }
       },
