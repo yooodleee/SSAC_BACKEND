@@ -288,7 +288,7 @@
           "403": {
             "description": "loginRequired: true (\ud68c\uc6d0 \ub85c\uadf8\uc778 \ud544\uc694)"
           },
-          "200": {
+          "204": {
             "description": "\uc804\uccb4 \ub514\ubc14\uc774\uc2a4 \ub85c\uadf8\uc544\uc6c3 \uc131\uacf5"
           },
           "401": {
@@ -1834,7 +1834,7 @@
               }
             }
           },
-          "200": {
+          "201": {
             "description": "\ud68c\uc6d0\uac00\uc785 \uc131\uacf5",
             "content": {
               "*/*": {
