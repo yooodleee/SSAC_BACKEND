@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.ssac.ssacbackend.common.response.ApiResponse;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.service.DevUserService;
 import com.ssac.ssacbackend.service.PendingRegistrationService;
@@ -79,9 +80,11 @@ class DevAuthControllerTest {
             Object result = controller.mockNewUser(OAuthProvider.KAKAO, false, response);
 
             assertThat(result).isNotNull();
-            assertThat(result).isInstanceOf(DevAuthController.MockNewUserResponse.class);
-            DevAuthController.MockNewUserResponse mockResponse =
-                (DevAuthController.MockNewUserResponse) result;
+            assertThat(result).isInstanceOf(ResponseEntity.class);
+            @SuppressWarnings("unchecked")
+            ResponseEntity<ApiResponse<DevAuthController.MockNewUserResponse>> responseEntity =
+                (ResponseEntity<ApiResponse<DevAuthController.MockNewUserResponse>>) result;
+            DevAuthController.MockNewUserResponse mockResponse = responseEntity.getBody().getData();
             assertThat(mockResponse.isNewUser()).isTrue();
             assertThat(mockResponse.tempToken()).isEqualTo("json-temp-token");
         }
@@ -96,21 +99,21 @@ class DevAuthControllerTest {
         @Test
         @DisplayName("이메일로 테스트 사용자 삭제 성공 시 200을 반환한다")
         void deleteUser_성공() {
-            ResponseEntity<Map<String, String>> result =
+            ResponseEntity<ApiResponse<Map<String, String>>> result =
                 controller.deleteUser("test@example.com");
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(result.getBody()).containsEntry("email", "test@example.com");
+            assertThat(result.getBody().getData()).containsEntry("email", "test@example.com");
             verify(devUserService).deleteByEmail("test@example.com");
         }
 
         @Test
         @DisplayName("삭제 성공 응답에 message 필드를 포함한다")
         void deleteUser_응답에message포함() {
-            ResponseEntity<Map<String, String>> result =
+            ResponseEntity<ApiResponse<Map<String, String>>> result =
                 controller.deleteUser("another@example.com");
 
-            assertThat(result.getBody()).containsKey("message");
+            assertThat(result.getBody().getData()).containsKey("message");
         }
     }
 }
