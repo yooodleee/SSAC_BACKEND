@@ -44,7 +44,7 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("register - 회원가입 성공 시 RegisterResponse를 포함한 200을 반환한다")
+    @DisplayName("register - 회원가입 성공 시 RegisterResponse를 포함한 201을 반환한다")
     void register_정상() {
         RegisterRequest request = new RegisterRequest(
             "temp-token-abc", "홍길동", UserType.HIGH_SCHOOL, null);
@@ -57,7 +57,7 @@ class AuthControllerTest {
 
         ResponseEntity<RegisterResponse> result = controller.register(request);
 
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(result.getBody()).isEqualTo(mockResponse);
     }
 

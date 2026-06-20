@@ -1,5 +1,6 @@
 package com.ssac.ssacbackend.controller;
 
+import com.ssac.ssacbackend.common.response.ApiResponse;
 import com.ssac.ssacbackend.domain.social.OAuthProvider;
 import com.ssac.ssacbackend.service.DevUserService;
 import com.ssac.ssacbackend.service.PendingRegistrationService;
@@ -86,7 +87,7 @@ public class DevAuthController {
             return null;
         }
 
-        return new MockNewUserResponse(true, tempToken, provider.name());
+        return ResponseEntity.ok(ApiResponse.success(new MockNewUserResponse(true, tempToken, provider.name())));
     }
 
     /**
@@ -102,9 +103,9 @@ public class DevAuthController {
         summary = "[DEV] 테스트 사용자 삭제",
         description = "이메일 기준으로 사용자 및 모든 연관 데이터를 삭제한다. 테스트 초기화 목적으로 사용한다."
     )
-    public ResponseEntity<Map<String, String>> deleteUser(@RequestParam String email) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> deleteUser(@RequestParam String email) {
         devUserService.deleteByEmail(email);
-        return ResponseEntity.ok(Map.of("message", "삭제 완료", "email", email));
+        return ResponseEntity.ok(ApiResponse.success(Map.of("message", "삭제 완료", "email", email)));
     }
 
     record MockNewUserResponse(boolean isNewUser, String tempToken, String provider) {}

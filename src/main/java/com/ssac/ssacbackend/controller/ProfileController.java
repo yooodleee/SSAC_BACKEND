@@ -109,7 +109,7 @@ public class ProfileController {
     )
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200", description = "전체 디바이스 로그아웃 성공"),
+            responseCode = "204", description = "전체 디바이스 로그아웃 성공"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "403", description = "loginRequired: true (회원 로그인 필요)")
     })
