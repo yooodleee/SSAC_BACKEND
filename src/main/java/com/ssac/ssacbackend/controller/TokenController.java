@@ -118,7 +118,7 @@ public class TokenController {
         summary = "로그아웃",
         description = "Refresh Token을 무효화하고 관련 쿠키를 삭제한다."
     )
-    public ResponseEntity<ApiResponse<Void>> logout(
+    public ResponseEntity<Void> logout(
         @CookieValue(name = "refreshToken", required = false) String refreshToken,
         HttpServletResponse response
     ) {
@@ -128,7 +128,7 @@ public class TokenController {
         CookieUtils.clearRefreshTokenCookie(response, cookieProperties);
         CookieUtils.clearAccessTokenCookie(response, cookieProperties);
         CookieUtils.clearGuestIdCookie(response, cookieProperties);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.noContent().build();
     }
 
 }

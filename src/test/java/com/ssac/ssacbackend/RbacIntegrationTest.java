@@ -206,7 +206,7 @@ class RbacIntegrationTest {
         // 로그아웃
         mockMvc.perform(post("/api/v1/auth/logout")
                 .cookie(new Cookie("refreshToken", refreshToken)))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // 로그아웃 후: 동일한 Access Token으로 재요청 → 401
         mockMvc.perform(get("/api/v1/users/me")
@@ -222,7 +222,7 @@ class RbacIntegrationTest {
         // 로그아웃
         mockMvc.perform(post("/api/v1/auth/logout")
                 .cookie(new Cookie("refreshToken", tokens.refreshToken())))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // 동일한 Refresh Token으로 재발급 시도 → 400 (revoked)
         mockMvc.perform(post("/api/v1/auth/reissue")
@@ -384,7 +384,7 @@ class RbacIntegrationTest {
 
         mockMvc.perform(post("/api/v1/auth/logout")
                 .cookie(new Cookie("refreshToken", tokens.refreshToken())))
-            .andExpect(status().isOk())
+            .andExpect(status().isNoContent())
             .andExpect(result -> {
                 String setCookieHeaders = String.join(";",
                     result.getResponse().getHeaders("Set-Cookie"));
@@ -414,7 +414,7 @@ class RbacIntegrationTest {
         // 전체 디바이스 로그아웃 (세션 1 Access Token으로 호출)
         mockMvc.perform(post("/api/v1/users/me/logout")
                 .header("Authorization", "Bearer " + session1.accessToken()))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // 세션 1의 Access Token → 401
         mockMvc.perform(get("/api/v1/users/me")
@@ -436,7 +436,7 @@ class RbacIntegrationTest {
         // 전체 디바이스 로그아웃
         mockMvc.perform(post("/api/v1/users/me/logout")
                 .header("Authorization", "Bearer " + session1.accessToken()))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // 세션 1 Refresh Token으로 재발급 시도 → 400
         mockMvc.perform(post("/api/v1/auth/reissue")
@@ -463,7 +463,7 @@ class RbacIntegrationTest {
 
         mockMvc.perform(post("/api/v1/users/me/logout")
                 .header("Authorization", "Bearer " + tokens.accessToken()))
-            .andExpect(status().isOk())
+            .andExpect(status().isNoContent())
             .andExpect(result -> {
                 String setCookieHeaders = String.join(";",
                     result.getResponse().getHeaders("Set-Cookie"));
