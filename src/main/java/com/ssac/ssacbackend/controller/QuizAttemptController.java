@@ -70,6 +70,11 @@ public class QuizAttemptController {
         @RequestBody @Valid QuizSubmitRequest request) {
         log.debug("퀴즈 제출 요청: principal={}, quizId={}", authentication.getName(), request.quizId());
 
+        // [역할 분기] GUEST/USER 모두 이 엔드포인트를 공유한다 (SecurityConfig에서 둘 다 허용).
+        // 역할에 따라 저장 전략이 다르므로 여기서 분기한다.
+        // - GUEST: 임시 저장 (로그인 후 자동 이전), 응답에 isMigrated 포함 안 됨
+        // - USER/ADMIN: 영구 저장, 레벨/뱃지 계산 포함
+        // 추후 엔드포인트 분리(POST /quiz-attempts vs /quiz-attempts/guest) 시 이 분기 제거 가능.
         boolean isGuest = authentication.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_GUEST"));
 
