@@ -4923,10 +4923,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  }
+                  "$ref": "#/components/schemas/ApiResponseMapStringString"
                 }
               }
             }
@@ -7580,6 +7577,26 @@
           },
           "data": {
             "$ref": "#/components/schemas/AbTestGroupResponse"
+          },
+          "message": {
+            "type": "string"
+          },
+          "loginRequired": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseMapStringString": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "message": {
             "type": "string"
