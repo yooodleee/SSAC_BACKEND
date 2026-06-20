@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ssac.ssacbackend.common.response.ApiResponse;
+import com.ssac.ssacbackend.common.response.PageResponse;
 import com.ssac.ssacbackend.dto.request.AttemptSortType;
 import com.ssac.ssacbackend.dto.request.QuizSubmitRequest;
 import com.ssac.ssacbackend.dto.request.StatPeriod;
@@ -106,11 +107,11 @@ class QuizAttemptControllerTest {
         void getGuestHistory_성공() {
             Authentication auth = mockAuthWithRole("guest-uuid", "ROLE_GUEST");
             Page<QuizAttemptSummaryResponse> page = new PageImpl<>(List.of());
-            given(quizAttemptService.getGuestHistory("guest-uuid", 0, 10, AttemptSortType.LATEST))
+            given(quizAttemptService.getGuestHistory("guest-uuid", 1, 10, AttemptSortType.LATEST))
                 .willReturn(page);
 
-            ResponseEntity<ApiResponse<Page<QuizAttemptSummaryResponse>>> result =
-                controller.getGuestHistory(auth, 0, 10, AttemptSortType.LATEST);
+            ResponseEntity<ApiResponse<PageResponse<QuizAttemptSummaryResponse>>> result =
+                controller.getGuestHistory(auth, 1, 10, AttemptSortType.LATEST);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(result.getBody().isSuccess()).isTrue();
@@ -128,11 +129,11 @@ class QuizAttemptControllerTest {
         void getHistory_성공() {
             Authentication auth = mockAuth("user@test.com");
             Page<QuizAttemptSummaryResponse> page = new PageImpl<>(List.of());
-            given(quizAttemptService.getHistory("user@test.com", 0, 10, AttemptSortType.LATEST))
+            given(quizAttemptService.getHistory("user@test.com", 1, 10, AttemptSortType.LATEST))
                 .willReturn(page);
 
-            ResponseEntity<ApiResponse<Page<QuizAttemptSummaryResponse>>> result =
-                controller.getHistory(auth, 0, 10, AttemptSortType.LATEST);
+            ResponseEntity<ApiResponse<PageResponse<QuizAttemptSummaryResponse>>> result =
+                controller.getHistory(auth, 1, 10, AttemptSortType.LATEST);
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(result.getBody().isSuccess()).isTrue();

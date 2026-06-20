@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.controller;
 
 import com.ssac.ssacbackend.common.response.ApiResponse;
+import com.ssac.ssacbackend.common.response.PageResponse;
 import com.ssac.ssacbackend.dto.request.AttemptSortType;
 import com.ssac.ssacbackend.dto.request.QuizSubmitRequest;
 import com.ssac.ssacbackend.dto.request.StatPeriod;
@@ -92,7 +93,7 @@ public class QuizAttemptController {
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @GetMapping("/guest")
-    public ResponseEntity<ApiResponse<Page<QuizAttemptSummaryResponse>>> getGuestHistory(
+    public ResponseEntity<ApiResponse<PageResponse<QuizAttemptSummaryResponse>>> getGuestHistory(
         Authentication authentication,
         @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
         @RequestParam(defaultValue = "1") int page,
@@ -104,7 +105,7 @@ public class QuizAttemptController {
             authentication.getName(), page, size, sort);
         Page<QuizAttemptSummaryResponse> result =
             quizAttemptService.getGuestHistory(authentication.getName(), page, size, sort);
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(result, page)));
     }
 
     @Operation(
@@ -123,7 +124,7 @@ public class QuizAttemptController {
             responseCode = "403", description = "loginRequired: true (회원 로그인 필요)")
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<QuizAttemptSummaryResponse>>> getHistory(
+    public ResponseEntity<ApiResponse<PageResponse<QuizAttemptSummaryResponse>>> getHistory(
         Authentication authentication,
         @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
         @RequestParam(defaultValue = "1") int page,
@@ -135,7 +136,7 @@ public class QuizAttemptController {
             authentication.getName(), page, size, sort);
         Page<QuizAttemptSummaryResponse> result =
             quizAttemptService.getHistory(authentication.getName(), page, size, sort);
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(result, page)));
     }
 
     @Operation(

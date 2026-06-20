@@ -1,6 +1,7 @@
 package com.ssac.ssacbackend.controller;
 
 import com.ssac.ssacbackend.common.response.ApiResponse;
+import com.ssac.ssacbackend.common.response.PageResponse;
 import com.ssac.ssacbackend.domain.feedback.FeedbackStatus;
 import com.ssac.ssacbackend.dto.request.AdminCodeCreateRequest;
 import com.ssac.ssacbackend.dto.request.FeedbackStatusUpdateRequest;
@@ -139,7 +140,7 @@ public class AdminController {
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<Page<UserSummaryResponse>>> listUsers(
+    public ResponseEntity<ApiResponse<PageResponse<UserSummaryResponse>>> listUsers(
         Authentication authentication,
         @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
         @RequestParam(defaultValue = "1") int page,
@@ -149,7 +150,7 @@ public class AdminController {
             authentication.getName(), page, size);
         Page<UserSummaryResponse> result = adminService.listUsers(
             PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt")));
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(result, page)));
     }
 
     // ── 사용자 관리 ──────────────────────────────────────────────────────────
