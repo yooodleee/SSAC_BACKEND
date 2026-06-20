@@ -94,8 +94,8 @@ public class QuizAttemptController {
     @GetMapping("/guest")
     public ResponseEntity<ApiResponse<Page<QuizAttemptSummaryResponse>>> getGuestHistory(
         Authentication authentication,
-        @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
-        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
+        @RequestParam(defaultValue = "1") int page,
         @Parameter(description = "페이지 크기", example = "10")
         @RequestParam(defaultValue = "10") int size,
         @Parameter(description = "정렬 기준 (LATEST: 최신 순, SCORE: 점수 순)")
@@ -125,8 +125,8 @@ public class QuizAttemptController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<QuizAttemptSummaryResponse>>> getHistory(
         Authentication authentication,
-        @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
-        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
+        @RequestParam(defaultValue = "1") int page,
         @Parameter(description = "페이지 크기", example = "10")
         @RequestParam(defaultValue = "10") int size,
         @Parameter(description = "정렬 기준 (LATEST: 최신 순, SCORE: 점수 순)")

@@ -141,14 +141,14 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<Page<UserSummaryResponse>>> listUsers(
         Authentication authentication,
-        @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
-        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
+        @RequestParam(defaultValue = "1") int page,
         @Parameter(description = "페이지 크기", example = "20")
         @RequestParam(defaultValue = "20") int size) {
         log.debug("관리자 사용자 목록 조회: adminEmail={}, page={}, size={}",
             authentication.getName(), page, size);
         Page<UserSummaryResponse> result = adminService.listUsers(
-            PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+            PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt")));
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 

@@ -97,7 +97,7 @@ class AdminControllerTest {
         Authentication auth = mockAuth("admin@test.com");
         given(adminService.listUsers(any())).willReturn(null);
 
-        ResponseEntity<?> result = controller.listUsers(auth, 0, 20);
+        ResponseEntity<?> result = controller.listUsers(auth, 1, 20);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         verify(adminService).listUsers(any());
