@@ -89,14 +89,14 @@ class ProfileControllerTest {
     class LogoutAll {
 
         @Test
-        @DisplayName("전체 로그아웃 성공 시 200을 반환한다")
+        @DisplayName("전체 로그아웃 성공 시 204를 반환한다")
         void logoutAll_성공() {
             Authentication auth = mockAuth("user@test.com");
             MockHttpServletResponse httpResponse = new MockHttpServletResponse();
 
-            ResponseEntity<ApiResponse<Void>> result = controller.logoutAll(auth, httpResponse);
+            ResponseEntity<Void> result = controller.logoutAll(auth, httpResponse);
 
-            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
             verify(tokenService).logoutAll("user@test.com");
         }
 

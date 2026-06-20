@@ -50,12 +50,12 @@ public class NotificationController {
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @PatchMapping("/{id}/read")
-    public ResponseEntity<ApiResponse<Void>> markAsRead(
+    public ResponseEntity<Void> markAsRead(
         @PathVariable Long id,
         Authentication authentication) {
         log.debug("알림 읽음 처리: id={}, email={}", id, authentication.getName());
         notificationService.markAsRead(id, authentication.getName());
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(
@@ -64,9 +64,9 @@ public class NotificationController {
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @PatchMapping("/read-all")
-    public ResponseEntity<ApiResponse<Void>> markAllAsRead(Authentication authentication) {
+    public ResponseEntity<Void> markAllAsRead(Authentication authentication) {
         log.debug("모든 알림 읽음 처리: email={}", authentication.getName());
         notificationService.markAllAsRead(authentication.getName());
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.noContent().build();
     }
 }

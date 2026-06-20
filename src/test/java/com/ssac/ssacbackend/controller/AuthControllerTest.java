@@ -30,7 +30,7 @@ class AuthControllerTest {
     private AuthController controller;
 
     @Test
-    @DisplayName("saveTerms - 약관 동의 저장 성공 시 200을 반환한다")
+    @DisplayName("saveTerms - 약관 동의 저장 성공 시 204를 반환한다")
     void saveTerms_정상() {
         TermsRequest request = new TermsRequest(
             "temp-token-abc",
@@ -39,7 +39,7 @@ class AuthControllerTest {
 
         ResponseEntity<Void> result = controller.saveTerms(request);
 
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(registrationService).saveTerms(request);
     }
 

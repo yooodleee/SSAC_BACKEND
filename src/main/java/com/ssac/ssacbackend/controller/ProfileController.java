@@ -114,7 +114,7 @@ public class ProfileController {
             responseCode = "403", description = "loginRequired: true (회원 로그인 필요)")
     })
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logoutAll(
+    public ResponseEntity<Void> logoutAll(
         Authentication authentication,
         HttpServletResponse response) {
         log.debug("전체 디바이스 로그아웃 요청: email={}", authentication.getName());
@@ -122,6 +122,6 @@ public class ProfileController {
         CookieUtils.clearAccessTokenCookie(response, cookieProperties);
         CookieUtils.clearRefreshTokenCookie(response, cookieProperties);
         CookieUtils.clearGuestIdCookie(response, cookieProperties);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.noContent().build();
     }
 }

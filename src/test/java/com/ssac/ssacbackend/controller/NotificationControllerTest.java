@@ -72,13 +72,13 @@ class NotificationControllerTest {
     class MarkAsRead {
 
         @Test
-        @DisplayName("알림 읽음 처리 성공 시 200을 반환한다")
+        @DisplayName("알림 읽음 처리 성공 시 204를 반환한다")
         void markAsRead_성공() {
             Authentication auth = mockAuth("user@test.com");
 
-            ResponseEntity<ApiResponse<Void>> result = controller.markAsRead(5L, auth);
+            ResponseEntity<Void> result = controller.markAsRead(5L, auth);
 
-            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
             verify(notificationService).markAsRead(5L, "user@test.com");
         }
     }
@@ -90,13 +90,13 @@ class NotificationControllerTest {
     class MarkAllAsRead {
 
         @Test
-        @DisplayName("전체 읽음 처리 성공 시 200을 반환한다")
+        @DisplayName("전체 읽음 처리 성공 시 204를 반환한다")
         void markAllAsRead_성공() {
             Authentication auth = mockAuth("user@test.com");
 
-            ResponseEntity<ApiResponse<Void>> result = controller.markAllAsRead(auth);
+            ResponseEntity<Void> result = controller.markAllAsRead(auth);
 
-            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
             verify(notificationService).markAllAsRead("user@test.com");
         }
     }

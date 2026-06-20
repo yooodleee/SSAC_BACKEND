@@ -44,13 +44,13 @@ public class AuthController {
             + "tempToken 만료 시 401을 반환한다."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "약관 동의 저장 성공"),
+        @ApiResponse(responseCode = "204", description = "약관 동의 저장 성공"),
         @ApiResponse(responseCode = "400", description = "TERMS-001: 필수 약관 미동의"),
         @ApiResponse(responseCode = "401", description = "TERMS-002: 회원가입 세션 만료")
     })
     public ResponseEntity<Void> saveTerms(@RequestBody @Valid TermsRequest request) {
         registrationService.saveTerms(request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/register")
