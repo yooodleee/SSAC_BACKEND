@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.ssac.ssacbackend.domain.content.Content;
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
+import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.ContentDetailResponse;
 import com.ssac.ssacbackend.dto.response.ContentItemDto;
 import java.util.LinkedHashSet;
@@ -82,7 +82,7 @@ class NotionContentLoaderTest {
             given(content.getThumbnailUrl()).willReturn(null);
             given(content.getCategories()).willReturn(List.of("AI"));
             given(content.getDomains()).willReturn(new LinkedHashSet<>());
-            given(content.getDifficulty()).willReturn(ContentDifficulty.SEED);
+            given(content.getDifficulty()).willReturn(UserLevel.SEED);
             given(content.getNotionCreatedAt()).willReturn(null);
             given(content.getNotionLastEditedAt()).willReturn(null);
 

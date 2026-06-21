@@ -16,7 +16,6 @@ import com.ssac.ssacbackend.domain.content.ContentProgress;
 import com.ssac.ssacbackend.domain.content.ContentViewHistory;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.dto.response.ContentCompleteResponse;
 import com.ssac.ssacbackend.dto.response.ContentDetailResponse;
 import com.ssac.ssacbackend.dto.response.ContentItemDto;
@@ -329,7 +328,7 @@ class ContentServiceTest {
             given(contentViewHistoryRepository.findByUserIdOrderByViewedAtDesc(1L))
                 .willReturn(List.of(history));
             given(contentRepository.findById(10L)).willReturn(Optional.of(mockContent));
-            given(mockContent.getDifficulty()).willReturn(ContentDifficulty.SEED);
+            given(mockContent.getDifficulty()).willReturn(UserLevel.SEED);
 
             List<ViewedContentsResponse.ViewedContentDto> result =
                 contentService.getViewedContentsByUser(1L);

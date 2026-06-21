@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
-import com.ssac.ssacbackend.domain.onboarding.LevelInfo;
 import com.ssac.ssacbackend.domain.user.User;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.HomeResponse;
@@ -112,14 +111,13 @@ public class HomeService {
             homeContentAssembler.build(user.getId(), email, level, recentlyRecommendedIds);
         TodayQuizDto todayQuiz = homeQuizAssembler.build(user.getId(), level, email);
 
-        LevelInfo levelInfo = LevelInfo.from(level);
         String levelImageKey = resolveLevelImageKey(user.getLevel());
         HomeUserDto userDto = new HomeUserDto(
             user.getNickname(),
             user.getUserType() != null ? user.getUserType().name() : null,
             level.name(),
-            levelInfo.getLabel(),
-            levelInfo.getEmoji(),
+            level.getLabel(),
+            level.getEmoji(),
             levelImageKey
         );
 

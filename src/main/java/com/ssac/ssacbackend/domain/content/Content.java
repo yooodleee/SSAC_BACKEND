@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import com.ssac.ssacbackend.domain.user.UserLevel;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -63,7 +64,7 @@ public class Content {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private ContentDifficulty difficulty;
+    private UserLevel difficulty;
 
     @Column(name = "is_published", nullable = false)
     private boolean isPublished = false;
@@ -100,7 +101,7 @@ public class Content {
      * Notion 데이터로 콘텐츠 필드를 갱신한다.
      */
     public void syncFromNotion(String title, String thumbnailUrl, List<String> categories,
-                                List<String> domains, ContentDifficulty difficulty,
+                                List<String> domains, UserLevel difficulty,
                                 boolean isPublished, LocalDateTime notionCreatedAt,
                                 LocalDateTime notionLastEditedAt, LocalDateTime publishedAt) {
         this.title = title;

@@ -13,7 +13,7 @@ import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.component.NotionImageMigrator;
 import com.ssac.ssacbackend.config.NotionProperties;
 import com.ssac.ssacbackend.domain.content.Content;
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
+import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.ContentItemDto;
 import com.ssac.ssacbackend.dto.response.ContentMonitoringListResponse;
 import com.ssac.ssacbackend.dto.response.ContentSyncResponse;
@@ -201,14 +201,14 @@ class NotionSyncServiceTest {
     @Test
     @DisplayName("난이도 필터 적용 시 해당 쿼리 호출")
     void 난이도_필터_쿼리_호출() {
-        given(contentRepository.findAllPublishedByDifficulty(ContentDifficulty.SEED))
+        given(contentRepository.findAllPublishedByDifficulty(UserLevel.SEED))
             .willReturn(List.of());
 
         List<ContentItemDto> items =
             notionSyncService.getPublishedContentItems(null, "SEED", null);
 
         assertThat(items).isEmpty();
-        verify(contentRepository).findAllPublishedByDifficulty(ContentDifficulty.SEED);
+        verify(contentRepository).findAllPublishedByDifficulty(UserLevel.SEED);
 
     }
 
@@ -235,9 +235,9 @@ class NotionSyncServiceTest {
     @Test
     @DisplayName("난이도 레이블 변환 - SEED → 왕초보")
     void 난이도_레이블_변환() {
-        assertThat(NotionSyncService.difficultyLabel(ContentDifficulty.SEED)).isEqualTo("왕초보");
-        assertThat(NotionSyncService.difficultyLabel(ContentDifficulty.SPROUT)).isEqualTo("초보");
-        assertThat(NotionSyncService.difficultyLabel(ContentDifficulty.TREE)).isEqualTo("중급");
+        assertThat(NotionSyncService.difficultyLabel(UserLevel.SEED)).isEqualTo("왕초보");
+        assertThat(NotionSyncService.difficultyLabel(UserLevel.SPROUT)).isEqualTo("초보");
+        assertThat(NotionSyncService.difficultyLabel(UserLevel.TREE)).isEqualTo("중급");
         assertThat(NotionSyncService.difficultyLabel(null)).isEmpty();
     }
 

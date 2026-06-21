@@ -10,7 +10,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
 import com.ssac.ssacbackend.domain.content.Content;
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.HomeResponse.CategoryDto;
 import com.ssac.ssacbackend.dto.response.HomeResponse.RecommendedContentDto;
@@ -68,9 +67,9 @@ class HomeContentAssemblerTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test@test.com"))
                 .willReturn(List.of(100L));
 
-            Content completedContent = mockContent(100L, "완료된 콘텐츠", "investment", ContentDifficulty.SEED);
-            Content newContent = mockContent(200L, "새 콘텐츠", "investment", ContentDifficulty.SEED);
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SEED), any()))
+            Content completedContent = mockContent(100L, "완료된 콘텐츠", "investment", UserLevel.SEED);
+            Content newContent = mockContent(200L, "새 콘텐츠", "investment", UserLevel.SEED);
+            given(contentRepository.findByDifficultyPublished(eq(UserLevel.SEED), any()))
                 .willReturn(List.of(completedContent, newContent));
             given(contentRepository.findAllPublishedOrderByLastEdited(any()))
                 .willReturn(List.of(completedContent, newContent));
@@ -90,12 +89,12 @@ class HomeContentAssemblerTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test2@test.com"))
                 .willReturn(List.of());
 
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SEED), any()))
+            given(contentRepository.findByDifficultyPublished(eq(UserLevel.SEED), any()))
                 .willReturn(List.of());
             given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
 
-            Content previewContent = mockContent(500L, "SPROUT 미리보기", "investment", ContentDifficulty.SPROUT);
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SPROUT), any()))
+            Content previewContent = mockContent(500L, "SPROUT 미리보기", "investment", UserLevel.SPROUT);
+            given(contentRepository.findByDifficultyPublished(eq(UserLevel.SPROUT), any()))
                 .willReturn(List.of(previewContent));
 
             ContentSections result = assembler.build(2L, "test2@test.com", UserLevel.SEED, Set.of());
@@ -110,11 +109,11 @@ class HomeContentAssemblerTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test3@test.com"))
                 .willReturn(List.of());
 
-            Content resumeContent = mockContent(800L, "이력서 작성", "resume", ContentDifficulty.SEED);
+            Content resumeContent = mockContent(800L, "이력서 작성", "resume", UserLevel.SEED);
             given(contentRepository.findByCategoriesInAndDifficultyPublished(
-                eq(List.of("resume")), eq(ContentDifficulty.SEED), any()))
+                eq(List.of("resume")), eq(UserLevel.SEED), any()))
                 .willReturn(List.of(resumeContent));
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SEED), any()))
+            given(contentRepository.findByDifficultyPublished(eq(UserLevel.SEED), any()))
                 .willReturn(List.of());
             given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
 
@@ -130,8 +129,8 @@ class HomeContentAssemblerTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test4@test.com"))
                 .willReturn(List.of());
 
-            Content treeContent = mockContent(700L, "TREE 콘텐츠", "investment", ContentDifficulty.TREE);
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.TREE), any()))
+            Content treeContent = mockContent(700L, "TREE 콘텐츠", "investment", UserLevel.TREE);
+            given(contentRepository.findByDifficultyPublished(eq(UserLevel.TREE), any()))
                 .willReturn(List.of(treeContent));
             given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
 
@@ -147,9 +146,9 @@ class HomeContentAssemblerTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("test5@test.com"))
                 .willReturn(List.of());
 
-            Content oldContent = mockContent(10L, "이전 추천", "investment", ContentDifficulty.SEED);
-            Content newContent = mockContent(20L, "새 추천", "investment", ContentDifficulty.SEED);
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SEED), any()))
+            Content oldContent = mockContent(10L, "이전 추천", "investment", UserLevel.SEED);
+            Content newContent = mockContent(20L, "새 추천", "investment", UserLevel.SEED);
+            given(contentRepository.findByDifficultyPublished(eq(UserLevel.SEED), any()))
                 .willReturn(List.of(oldContent, newContent));
             given(contentRepository.findAllPublishedOrderByLastEdited(any()))
                 .willReturn(List.of(oldContent, newContent));
@@ -233,8 +232,8 @@ class HomeContentAssemblerTest {
             given(contentProgressRepository.findCompletedContentIdsByUserEmail("card2@test.com"))
                 .willReturn(List.of());
 
-            Content content = mockContent(300L, "카드 콘텐츠", "investment", ContentDifficulty.SEED);
-            given(contentRepository.findByDifficultyPublished(eq(ContentDifficulty.SEED), any()))
+            Content content = mockContent(300L, "카드 콘텐츠", "investment", UserLevel.SEED);
+            given(contentRepository.findByDifficultyPublished(eq(UserLevel.SEED), any()))
                 .willReturn(List.of(content));
             given(contentRepository.findAllPublishedOrderByLastEdited(any())).willReturn(List.of());
 
@@ -247,7 +246,7 @@ class HomeContentAssemblerTest {
 
     // ── 헬퍼 ─────────────────────────────────────────────────────────────────
 
-    private Content mockContent(Long id, String title, String category, ContentDifficulty difficulty) {
+    private Content mockContent(Long id, String title, String category, UserLevel difficulty) {
         Content content = mock(Content.class);
         given(content.getId()).willReturn(id);
         given(content.getTitle()).willReturn(title);
