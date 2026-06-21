@@ -75,11 +75,64 @@ class ResumeServiceTest {
             .isInstanceOf(NotFoundException.class);
     }
 
+    /**
+     * [비정규화 동기화 정책]
+     *
+     * <p>ContentProgress.category는 ContentService.completeContent() 또는 startContent() 호출 시
+     * Content.getFirstCategory() 값을 복사해 저장하는 비정규화 필드다.
+     *
+     * <p>updateProgress()는 학습 위치(lastPosition)와 진행률(progressRate)만 갱신하며
+     * category는 절대 변경하지 않는다. 이 계약이 깨지면 홈 화면 이어보기 카테고리 필터가
+     * 오동작한다.
+     *
+     * <p>Notion 콘텐츠의 카테고리가 변경된 경우, ContentProgress.category는 즉시 반영되지 않는다.
+     * 갱신이 필요하다면 NotionSyncService 배치 이후 별도 마이그레이션으로 처리한다.
+     */
+    @Test
+    @DisplayName("updateProgress - category는 updateProgress 호출로 변경되지 않는다 (비정규화 동기화 정책)")
+    void updateProgress_category_불변() {
+        ContentProgress cp = buildContentProgressWithCategory(1L, "chapter-1", 20, "realestate");
+        given(contentProgressRepository.findByIdAndUserEmail(1L, "user@test.com"))
+            .willReturn(Optional.of(cp));
+
+        resumeService.updateProgress(1L, "user@test.com", "chapter-5", 80);
+
+        assertThat(cp.getCategory())
+            .as("category는 updateProgress()로 변경되지 않는다")
+            .isEqualTo("realestate");
+    }
+
+    @Test
+    @DisplayName("updateProgress - lastPosition과 progressRate만 갱신된다")
+    void updateProgress_lastPosition_progressRate_만_변경() {
+        ContentProgress cp = buildContentProgressWithCategory(1L, "chapter-1", 20, "tax");
+        given(contentProgressRepository.findByIdAndUserEmail(1L, "user@test.com"))
+            .willReturn(Optional.of(cp));
+
+        resumeService.updateProgress(1L, "user@test.com", "chapter-9", 95);
+
+        assertThat(cp.getLastPosition()).isEqualTo("chapter-9");
+        assertThat(cp.getProgressRate()).isEqualTo(95);
+        assertThat(cp.getCategory()).isEqualTo("tax");
+    }
+
     private ContentProgress buildContentProgress(Long id, String lastPosition, int progressRate) {
         ContentProgress cp = ContentProgress.builder()
             .title("테스트 콘텐츠")
             .lastPosition(lastPosition)
             .progressRate(progressRate)
+            .build();
+        ReflectionTestUtils.setField(cp, "id", id);
+        return cp;
+    }
+
+    private ContentProgress buildContentProgressWithCategory(
+            Long id, String lastPosition, int progressRate, String category) {
+        ContentProgress cp = ContentProgress.builder()
+            .title("테스트 콘텐츠")
+            .lastPosition(lastPosition)
+            .progressRate(progressRate)
+            .category(category)
             .build();
         ReflectionTestUtils.setField(cp, "id", id);
         return cp;

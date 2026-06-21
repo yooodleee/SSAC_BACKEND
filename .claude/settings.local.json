@@ -299,7 +299,9 @@
       "Bash(RefreshTokenRepository.revokeIfActive)",
       "Bash(WHERE revoked=false AND expiresAt)",
       "Bash(TokenStore.revokeAndGetUserId)",
-      "Bash(TokenService.reissueWithUser)"
+      "Bash(TokenService.reissueWithUser)",
+      "Bash(V31__add_missing_foreign_keys.sql)",
+      "Bash(ResumeServiceTest)"
     ]
   }
 }
