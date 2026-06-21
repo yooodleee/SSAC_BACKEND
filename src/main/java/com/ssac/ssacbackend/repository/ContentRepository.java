@@ -1,7 +1,7 @@
 package com.ssac.ssacbackend.repository;
 
 import com.ssac.ssacbackend.domain.content.Content;
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
+import com.ssac.ssacbackend.domain.user.UserLevel;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -34,14 +34,14 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
     @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.categories LEFT JOIN FETCH c.domains"
         + " WHERE c.isPublished = true AND c.difficulty = :difficulty"
         + " ORDER BY c.notionLastEditedAt DESC")
-    List<Content> findAllPublishedByDifficulty(@Param("difficulty") ContentDifficulty difficulty);
+    List<Content> findAllPublishedByDifficulty(@Param("difficulty") UserLevel difficulty);
 
     @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.categories LEFT JOIN FETCH c.domains"
         + " WHERE c.isPublished = true AND :category MEMBER OF c.categories"
         + " AND c.difficulty = :difficulty ORDER BY c.notionLastEditedAt DESC")
     List<Content> findAllPublishedByCategoryAndDifficulty(
         @Param("category") String category,
-        @Param("difficulty") ContentDifficulty difficulty);
+        @Param("difficulty") UserLevel difficulty);
 
     @Query("SELECT DISTINCT c FROM Content c LEFT JOIN FETCH c.categories LEFT JOIN FETCH c.domains"
         + " JOIN c.domains dom"
@@ -66,7 +66,7 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
         + " ORDER BY c.notionLastEditedAt DESC")
     List<Content> findByCategoriesInAndDifficultyPublished(
         @Param("categories") List<String> categories,
-        @Param("difficulty") ContentDifficulty difficulty,
+        @Param("difficulty") UserLevel difficulty,
         Pageable pageable);
 
     /**
@@ -77,7 +77,7 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
     @Query("SELECT c FROM Content c WHERE c.isPublished = true AND c.difficulty = :difficulty"
         + " ORDER BY c.notionLastEditedAt DESC")
     List<Content> findByDifficultyPublished(
-        @Param("difficulty") ContentDifficulty difficulty,
+        @Param("difficulty") UserLevel difficulty,
         Pageable pageable);
 
     /**
@@ -103,7 +103,7 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
 
     long countByIsPublished(boolean isPublished);
 
-    long countByDifficulty(ContentDifficulty difficulty);
+    long countByDifficulty(UserLevel difficulty);
 
     // ── 관리자 모니터링 ─────────────────────────────────────────────────────────
 

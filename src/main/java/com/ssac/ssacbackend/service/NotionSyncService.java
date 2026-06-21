@@ -12,7 +12,7 @@ import com.ssac.ssacbackend.component.NotionImageMigrator;
 import com.ssac.ssacbackend.config.NotionProperties;
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentCategory;
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
+import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.ContentItemDto;
 import com.ssac.ssacbackend.dto.response.ContentMonitoringListResponse;
 import com.ssac.ssacbackend.dto.response.ContentMonitoringListResponse.ContentMonitoringSummary;
@@ -270,7 +270,7 @@ public class NotionSyncService {
         String thumbnailUrl = notionImageMigrator.migrateIfNeeded(rawThumbnail);
         List<String> categories = parseCategories(page);
         List<String> domains = extractMultiSelect(page, "domains");
-        ContentDifficulty difficulty = extractDifficulty(page);
+        UserLevel difficulty = extractDifficulty(page);
         boolean isPublished = extractCheckbox(page, "published");
         LocalDateTime notionCreatedAt = parseDateTime(page.getCreatedTime());
         LocalDateTime notionLastEditedAt = parseDateTime(page.getLastEditedTime());
@@ -329,13 +329,13 @@ public class NotionSyncService {
             .toList();
     }
 
-    private ContentDifficulty extractDifficulty(Page page) {
+    private UserLevel extractDifficulty(Page page) {
         PageProperty prop = page.getProperties().get("difficulty");
         if (prop == null || prop.getSelect() == null || prop.getSelect().getName() == null) {
             return null;
         }
         try {
-            return ContentDifficulty.valueOf(prop.getSelect().getName().toUpperCase());
+            return UserLevel.valueOf(prop.getSelect().getName().toUpperCase());
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -369,7 +369,7 @@ public class NotionSyncService {
     }
 
     private List<Content> fetchPublished(List<String> categories, String difficulty, String domain) {
-        ContentDifficulty diffEnum = parseDifficulty(difficulty);
+        UserLevel diffEnum = parseDifficulty(difficulty);
         boolean hasCategory = categories != null && !categories.isEmpty();
 
         if (hasCategory && categories.size() == 1 && diffEnum != null) {
@@ -390,12 +390,12 @@ public class NotionSyncService {
         return contentRepository.findAllPublished();
     }
 
-    private ContentDifficulty parseDifficulty(String difficulty) {
+    private UserLevel parseDifficulty(String difficulty) {
         if (difficulty == null) {
             return null;
         }
         try {
-            return ContentDifficulty.valueOf(difficulty.toUpperCase());
+            return UserLevel.valueOf(difficulty.toUpperCase());
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -414,14 +414,10 @@ public class NotionSyncService {
         }
     }
 
-    static String difficultyLabel(ContentDifficulty difficulty) {
+    static String difficultyLabel(UserLevel difficulty) {
         if (difficulty == null) {
             return "";
         }
-        return switch (difficulty) {
-            case SEED -> "왕초보";
-            case SPROUT -> "초보";
-            case TREE -> "중급";
-        };
+        return difficulty.getContentLabel();
     }
 }

@@ -7,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.domain.quiz.Quiz;
 import com.ssac.ssacbackend.domain.quiz.QuizAttempt;
 import com.ssac.ssacbackend.domain.user.LevelHistory;
@@ -72,9 +71,9 @@ class LevelUpServiceTest {
         User user = buildUser(UserLevel.SEED);
         QuizAttempt attempt = buildAttempt(10, 8);
         // contentRate 80% (8/10), quizRate 80% (8/10) >= SEED threshold 70%
-        given(contentRepository.countByDifficulty(ContentDifficulty.SEED)).willReturn(10L);
+        given(contentRepository.countByDifficulty(UserLevel.SEED)).willReturn(10L);
         given(contentProgressRepository.countCompletedByUserEmailAndDifficulty(
-            "test@example.com", ContentDifficulty.SEED)).willReturn(8L);
+            "test@example.com", UserLevel.SEED)).willReturn(8L);
         given(quizAttemptRepository.findRecentByUserEmail(
             any(String.class), any(Pageable.class)))
             .willReturn(List.of(attempt));
@@ -94,9 +93,9 @@ class LevelUpServiceTest {
         User user = buildUser(UserLevel.SPROUT);
         QuizAttempt attempt = buildAttempt(10, 9);
         // contentRate 90% (9/10), quizRate 90% (9/10) >= SPROUT threshold 80%
-        given(contentRepository.countByDifficulty(ContentDifficulty.SPROUT)).willReturn(10L);
+        given(contentRepository.countByDifficulty(UserLevel.SPROUT)).willReturn(10L);
         given(contentProgressRepository.countCompletedByUserEmailAndDifficulty(
-            "test@example.com", ContentDifficulty.SPROUT)).willReturn(9L);
+            "test@example.com", UserLevel.SPROUT)).willReturn(9L);
         given(quizAttemptRepository.findRecentByUserEmail(
             any(String.class), any(Pageable.class)))
             .willReturn(List.of(attempt));
@@ -116,9 +115,9 @@ class LevelUpServiceTest {
         User user = buildUser(UserLevel.SEED);
         QuizAttempt attempt = buildAttempt(10, 6);
         // contentRate 80%, quizRate 60% < SEED threshold 70% → no levelup
-        given(contentRepository.countByDifficulty(ContentDifficulty.SEED)).willReturn(10L);
+        given(contentRepository.countByDifficulty(UserLevel.SEED)).willReturn(10L);
         given(contentProgressRepository.countCompletedByUserEmailAndDifficulty(
-            "test@example.com", ContentDifficulty.SEED)).willReturn(8L);
+            "test@example.com", UserLevel.SEED)).willReturn(8L);
         given(quizAttemptRepository.findRecentByUserEmail(
             any(String.class), any(Pageable.class)))
             .willReturn(List.of(attempt));

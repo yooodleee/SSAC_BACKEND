@@ -2,7 +2,6 @@ package com.ssac.ssacbackend.service;
 
 import com.ssac.ssacbackend.domain.content.Content;
 import com.ssac.ssacbackend.domain.content.ContentCategory;
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.HomeResponse.CategoryDto;
 import com.ssac.ssacbackend.dto.response.HomeResponse.ContinueLearningDto;
@@ -57,14 +56,13 @@ public class HomeContentAssembler {
         Set<Long> excludedIds = new HashSet<>(completedIds);
         excludedIds.addAll(recentlyRecommendedIds);
 
-        ContentDifficulty contentDiff = toContentDifficulty(level);
         PageRequest contentPage = PageRequest.of(0, CONTENT_FETCH_LIMIT);
 
         List<Content> interestContents = interestDomains.isEmpty()
             ? List.of()
             : contentRepository.findByCategoriesInAndDifficultyPublished(
-                interestDomains, contentDiff, contentPage);
-        List<Content> diffContents = contentRepository.findByDifficultyPublished(contentDiff, contentPage);
+                interestDomains, level, contentPage);
+        List<Content> diffContents = contentRepository.findByDifficultyPublished(level, contentPage);
         List<Content> allContents = contentRepository.findAllPublishedOrderByLastEdited(contentPage);
 
         List<RecommendedContentDto> recommended = buildRecommended(
@@ -121,7 +119,7 @@ public class HomeContentAssembler {
             UserLevel nextLevel = nextLevel(level);
             if (nextLevel != null) {
                 contentRepository.findByDifficultyPublished(
-                        toContentDifficulty(nextLevel),
+                        nextLevel,
                         PageRequest.of(0, RECOMMENDED_MAX - result.size()))
                     .stream()
                     .filter(c -> !addedIds.contains(c.getId()))
@@ -142,7 +140,7 @@ public class HomeContentAssembler {
             content.getTitle(),
             category,
             emoji,
-            difficultyLabel(content.getDifficulty()),
+            content.getDifficulty() != null ? content.getDifficulty().getContentLabel() : "",
             0,
             completed,
             isPreview
@@ -243,24 +241,6 @@ public class HomeContentAssembler {
     }
 
     // ── 유틸리티 ────────────────────────────────────────────────────────────────
-
-    private static ContentDifficulty toContentDifficulty(UserLevel level) {
-        if (level == null) {
-            return ContentDifficulty.SEED;
-        }
-        return ContentDifficulty.valueOf(level.name());
-    }
-
-    private static String difficultyLabel(ContentDifficulty difficulty) {
-        if (difficulty == null) {
-            return "";
-        }
-        return switch (difficulty) {
-            case SEED -> "왕초보";
-            case SPROUT -> "초보";
-            case TREE -> "중급";
-        };
-    }
 
     private static int deterministicIndex(Long userId, int size) {
         long seed = (userId != null ? userId : 0L) + LocalDate.now().toEpochDay();

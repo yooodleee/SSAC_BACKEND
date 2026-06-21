@@ -3,7 +3,6 @@ package com.ssac.ssacbackend.service;
 import com.ssac.ssacbackend.domain.quiz.QuizAttempt;
 import com.ssac.ssacbackend.domain.user.LevelHistory;
 import com.ssac.ssacbackend.domain.user.User;
-import com.ssac.ssacbackend.domain.content.ContentDifficulty;
 import com.ssac.ssacbackend.domain.user.UserLevel;
 import com.ssac.ssacbackend.dto.response.LevelUpProgressDto;
 import com.ssac.ssacbackend.dto.response.LevelUpResult;
@@ -81,12 +80,11 @@ public class LevelUpService {
     }
 
     private int calculateContentCompletionRate(UserLevel level, String email) {
-        ContentDifficulty diffEnum = ContentDifficulty.valueOf(level.name());
-        long total = contentRepository.countByDifficulty(diffEnum);
+        long total = contentRepository.countByDifficulty(level);
         if (total == 0) {
             return 0;
         }
-        long completed = contentProgressRepository.countCompletedByUserEmailAndDifficulty(email, diffEnum);
+        long completed = contentProgressRepository.countCompletedByUserEmailAndDifficulty(email, level);
         return (int) Math.round((double) completed / total * 100);
     }
 

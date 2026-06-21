@@ -4,7 +4,6 @@ import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ConflictException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
-import com.ssac.ssacbackend.domain.onboarding.LevelInfo;
 import com.ssac.ssacbackend.domain.onboarding.OnboardingQuestion;
 import com.ssac.ssacbackend.domain.onboarding.QuestionOption;
 import com.ssac.ssacbackend.domain.onboarding.UserInterest;
@@ -214,20 +213,20 @@ public class OnboardingService {
             throw new NotFoundException(ErrorCode.ONBOARDING_NOT_COMPLETED);
         }
 
-        LevelInfo levelInfo = LevelInfo.from(user.getLevel());
+        UserLevel level = user.getLevel();
         List<RecommendedDomainDto> domains = user.getUserType() != null
             ? RECOMMENDATION_MAP.getOrDefault(
-                recKey(user.getUserType(), user.getLevel()), List.of())
+                recKey(user.getUserType(), level), List.of())
             : List.of();
 
         return new OnboardingResultResponse(
             user.getUserType() != null ? user.getUserType().name() : null,
-            user.getLevel().name(),
+            level.name(),
             user.getOnboardingScore(),
             MAX_SCORE,
-            levelInfo.getLabel(),
-            levelInfo.getEmoji(),
-            levelInfo.getDescription(),
+            level.getLabel(),
+            level.getEmoji(),
+            level.getDescription(),
             user.isOnboardingSkipped(),
             user.isOnboardingCompleted(),
             domains

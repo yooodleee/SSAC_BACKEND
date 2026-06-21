@@ -4,7 +4,6 @@ import com.ssac.ssacbackend.common.exception.BadRequestException;
 import com.ssac.ssacbackend.common.exception.ConflictException;
 import com.ssac.ssacbackend.common.exception.ErrorCode;
 import com.ssac.ssacbackend.common.exception.NotFoundException;
-import com.ssac.ssacbackend.domain.onboarding.LevelInfo;
 import com.ssac.ssacbackend.domain.onboarding.UserInterest;
 import com.ssac.ssacbackend.domain.user.Gender;
 import com.ssac.ssacbackend.domain.user.User;
@@ -66,7 +65,6 @@ public class UserService {
         int continuousLearningDays = calculateContinuousLearningDays(email);
 
         UserLevel level = user.getLevel();
-        LevelInfo levelInfo = level != null ? LevelInfo.from(level) : null;
 
         MyPageResponse.StatsDto stats = new MyPageResponse.StatsDto(
             totalContentsCompleted,
@@ -88,8 +86,8 @@ public class UserService {
             user.getUserType() != null ? user.getUserType().name() : null,
             userTypeLabel(user.getUserType()),
             level != null ? level.name() : null,
-            levelInfo != null ? levelInfo.getLabel() : null,
-            levelInfo != null ? levelInfo.getEmoji() : null,
+            level != null ? level.getLabel() : null,
+            level != null ? level.getEmoji() : null,
             user.isOnboardingCompleted(),
             interests,
             stats,
