@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  *
  * <p>redirectTo 쿠키가 있으면 해당 경로로, 없으면 /로 리다이렉트한다.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler {
@@ -27,6 +29,13 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
         AuthenticationException exception) throws IOException {
 
+        String provider = extractProvider(request.getRequestURI());
+        log.warn("OAuth2 인증 실패: provider={}, exceptionType={}, reason={}, uri={}",
+            provider,
+            exception.getClass().getSimpleName(),
+            exception.getMessage(),
+            request.getRequestURI());
+
         String redirectTo = extractCookieValue(request, "redirectTo");
         CookieUtils.clearRedirectToCookie(response, cookieProperties);
 
@@ -36,6 +45,19 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
             .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    }
+
+    /**
+     * 요청 URI에서 OAuth2 공급자 이름을 추출한다.
+     *
+     * <p>예: /login/oauth2/code/naver → "naver"
+     */
+    private String extractProvider(String requestUri) {
+        if (requestUri == null) {
+            return "unknown";
+        }
+        String[] parts = requestUri.split("/");
+        return parts.length > 0 ? parts[parts.length - 1] : "unknown";
     }
 
     private String extractCookieValue(HttpServletRequest request, String name) {

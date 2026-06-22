@@ -71,6 +71,7 @@ public class TokenController {
 
         ReissueResult result = tokenService.reissueWithUser(refreshToken);
         CookieUtils.addRefreshTokenCookie(response, result.tokens().refreshToken(), cookieProperties);
+        log.info("토큰 재발급 완료: userId={}, refreshToken 쿠키 저장", result.user().getId());
 
         return ResponseEntity.ok()
             .header("X-Reissued", "true")
