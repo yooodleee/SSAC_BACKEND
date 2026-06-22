@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>사전 발급된 관리자 코드로 로그인하고 JWT를 발급한다.
  * 인증 불필요 — SecurityConfig의 /api/v1/auth/** PUBLIC 정책에 포함된다.
  */
+@Slf4j
 @Tag(name = "Admin Auth", description = "관리자 인증 API")
 @RestController
 @RequestMapping("/api/v1/auth/admin")
@@ -44,6 +46,7 @@ public class AdminLoginController {
     ) {
         LoginResult result = adminLoginService.login(request.adminCode());
         CookieUtils.addRefreshTokenCookie(httpResponse, result.refreshToken(), cookieProperties);
+        log.info("관리자 로그인 완료: userId={}, refreshToken 쿠키 저장", result.response().user().id());
         return ResponseEntity.ok(ApiResponse.success(result.response()));
     }
 }

@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>소셜 인증 후 사용자 정보 입력 및 약관 동의를 한 번에 처리한다.
  * Refresh Token은 응답 body에 포함하지 않고 HttpOnly Cookie로 전달한다.
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -71,6 +73,7 @@ public class AuthV1Controller {
     ) {
         RegisterV2Result result = registrationV2Service.registerV2(request);
         CookieUtils.addRefreshTokenCookie(httpResponse, result.refreshToken(), cookieProperties);
+        log.info("신규 회원 가입 완료(소셜): userId={}, refreshToken 쿠키 저장", result.response().user().id());
         return ResponseEntity.ok(ApiResponse.success(result.response()));
     }
 
@@ -98,6 +101,7 @@ public class AuthV1Controller {
     ) {
         RegisterV2Result result = registrationV2Service.registerWithEmail(request);
         CookieUtils.addRefreshTokenCookie(httpResponse, result.refreshToken(), cookieProperties);
+        log.info("신규 회원 가입 완료(이메일): userId={}, refreshToken 쿠키 저장", result.response().user().id());
         return ResponseEntity.ok(ApiResponse.success(result.response()));
     }
 
@@ -124,6 +128,7 @@ public class AuthV1Controller {
     ) {
         RegisterV2Result result = emailAuthService.loginWithEmail(request);
         CookieUtils.addRefreshTokenCookie(httpResponse, result.refreshToken(), cookieProperties);
+        log.info("이메일 로그인 완료: userId={}, refreshToken 쿠키 저장", result.response().user().id());
         return ResponseEntity.ok(ApiResponse.success(result.response()));
     }
 

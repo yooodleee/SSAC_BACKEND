@@ -91,7 +91,7 @@ public class AuthTokenController {
             user.getUserType() != null ? user.getUserType().name() : null
         );
         CookieUtils.addRefreshTokenCookie(response, reissueResult.tokens().refreshToken(), cookieProperties);
-        log.info("인가 코드 교환(기존 회원): userId={}", result.userId());
+        log.info("인가 코드 교환(기존 회원) 완료: userId={}, refreshToken 쿠키 저장", result.userId());
         return ResponseEntity.ok(
             AuthTokenResponse.existingUser(
                 reissueResult.tokens().accessToken(),
