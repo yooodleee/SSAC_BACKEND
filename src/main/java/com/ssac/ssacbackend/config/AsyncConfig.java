@@ -1,6 +1,8 @@
 package com.ssac.ssacbackend.config;
 
+import java.util.Map;
 import java.util.concurrent.Executor;
+import org.slf4j.MDC;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -25,6 +27,19 @@ public class AsyncConfig implements AsyncConfigurer {
         executor.setThreadNamePrefix("async-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(10);
+        executor.setTaskDecorator(runnable -> {
+            Map<String, String> mdcContext = MDC.getCopyOfContextMap();
+            return () -> {
+                try {
+                    if (mdcContext != null) {
+                        MDC.setContextMap(mdcContext);
+                    }
+                    runnable.run();
+                } finally {
+                    MDC.clear();
+                }
+            };
+        });
         executor.initialize();
         return executor;
     }
